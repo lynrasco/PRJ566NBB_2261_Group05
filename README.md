@@ -1,6 +1,6 @@
 # PRJ566NBB_2261_Group05
 
-Project Name: FlipValue
+Project Name: FlipValue<br>
 Team Name: iSALAJ Inc
 
 ## Project Summary:
