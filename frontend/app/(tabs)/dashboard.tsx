@@ -9,7 +9,7 @@ export default function DashboardScreen() {
   return (
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
       {/* Dashboard Header */}
-      <DashboardHeader 
+      <DashboardHeader
         userName="Linda"
         profileImage={require('@/assets/images/partial-react-logo.png')}
       />

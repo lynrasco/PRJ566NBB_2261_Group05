@@ -1,5 +1,8 @@
-import { View, Text, TextInput, StyleSheet, Button, Pressable } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Button } from "@/components/ui/button";
 
 const styles = StyleSheet.create({
     container: {
@@ -58,29 +61,60 @@ const styles = StyleSheet.create({
     }
 })
 
+/*
 function LoginButton() {
+    const router = useRouter();
     return (
-        <Pressable style={styles.button}>
+        <Pressable style={styles.button} onPress={() => router.push("/dashboard")}>
             <Text style={styles.boldText}>Log In</Text>
         </Pressable>
     );
 }
+*/
 
 export default function Login() {
     const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+
+    const validateForm = () => {
+        const nextErrors: { email?: string; password?: string } = {};
+        if (!email.trim()) {
+            nextErrors.email = "Email is required.";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            nextErrors.email = "Enter a valid email address.";
+        }
+
+        if (!password.trim()) {
+            nextErrors.password = "Password is required.";
+        }
+        setErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    };
+
+    const handleLogin = () => {
+        if (validateForm()) {
+            router.push("/dashboard");
+        }
+    };
 
     return (
-        <View style={styles.container}>
+        <LinearGradient colors={["#024883", "#001B33"]} style={styles.container}>
             <Text style={styles.title}>FlipValue</Text>
 
-            <TextInput placeholder="Email" placeholderTextColor="#D9D9D9" style={[styles.emailInput, styles.baseText]} />
-            <TextInput placeholder="Password" placeholderTextColor="#D9D9D9" style={[styles.passwordInput, styles.baseText]} />
-            <LoginButton />
+            <TextInput placeholder="Email" placeholderTextColor="#D9D9D9" style={[styles.emailInput, styles.baseText]} value={email} onChangeText={setEmail} />
+            {errors.email && <Text style={{ color: "red", marginTop: 5 }}>{errors.email}</Text>}
+            <TextInput placeholder="Password" placeholderTextColor="#D9D9D9" style={[styles.passwordInput, styles.baseText]} value={password} onChangeText={setPassword} />
+            {errors.password && <Text style={{ color: "red", marginTop: 5 }}>{errors.password}</Text>}
+            
+            <Button title="Log In" onPress={handleLogin} variant="primary" />
+            
             <Pressable onPress={() => router.push("/register")}>
             <Text style={[styles.signUp, styles.baseText]}>Dont have an account?{" "}
               <Text style={[styles.signUpLink, styles.boldText]}>Sign Up</Text>
             </Text>
             </Pressable>
-        </View>
+        </LinearGradient>
     );
 }

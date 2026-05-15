@@ -4,6 +4,7 @@ export type ButtonProps = PressableProps & {
   title: string;
   variant?: 'primary' | 'secondary' | 'ghost';
   disabled?: boolean;
+  style?: ViewStyle;
 };
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost';
@@ -89,7 +90,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    minWidth: 140,
+    minWidth: 274,
+    marginTop: 10,
+    marginBottom: 10,
   },
   ghost: {
     backgroundColor: 'transparent',

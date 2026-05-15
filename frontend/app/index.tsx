@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Index() {
   const router = useRouter();
@@ -14,11 +15,11 @@ export default function Index() {
   }, []);
 
   return (
-    <View style={styles.container}>
+     <LinearGradient colors={["#024883", "#001B33"]} style={styles.container}>
       <Text style={styles.title}>FlipValue</Text>
       <Text style={styles.subtitle}>Helping you flip the value of {'\n'}
         unwanted items.</Text>
-    </View>
+    </LinearGradient>
   );
 }
 
