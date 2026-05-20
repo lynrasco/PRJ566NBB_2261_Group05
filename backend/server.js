@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const loginRoute = require("./routes/login");
 
 dotenv.config();
 
@@ -21,7 +22,10 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 
+app.use("/api/auth", authRoutes);
+
 app.use("/api/users", userRoutes);
+
 
 app.use(errorHandler);
 
