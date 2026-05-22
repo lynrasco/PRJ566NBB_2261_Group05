@@ -6,6 +6,7 @@ const errorHandler = require("./middleware/errorHandler");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const loginRoute = require("./routes/login");
+const itemRoutes = require("./routes/itemRoutes");
 
 dotenv.config();
 
@@ -22,9 +23,9 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 
-app.use("/api/auth", authRoutes);
-
 app.use("/api/users", userRoutes);
+
+app.use("/api/items", itemRoutes);
 
 
 app.use(errorHandler);
