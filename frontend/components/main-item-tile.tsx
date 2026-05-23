@@ -1,13 +1,12 @@
-import { StyleSheet, View, Image, TouchableOpacity, ViewProps } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, type TouchableOpacityProps } from 'react-native';
 import { ThemedText } from './themed-text';
 
-export type MainItemTileProps = ViewProps & {
+export type MainItemTileProps = TouchableOpacityProps & {
   image?: string;
   title: string;
   brand?: string;
   priceRange?: string;
   description?: string;
-  onPress?: () => void;
 };
 
 export function MainItemTile({
