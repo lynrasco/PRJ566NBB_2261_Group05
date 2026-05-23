@@ -58,7 +58,9 @@ export default function MarketListingsScreen() {
       </TouchableOpacity>
 
       <View style={styles.list}>
-        <FeaturedListing listing={listings[0]} imageSource={imageSource} />
+        <TouchableOpacity onPress={() => router.push('/edit-item')}>
+          <FeaturedListing listing={listings[0]} imageSource={imageSource} />
+        </TouchableOpacity>
 
         {listings.slice(1).map((listing) => (
           <MarketplaceListing key={listing.id} listing={listing} imageSource={imageSource} />
@@ -78,7 +80,7 @@ function FeaturedListing({
   return (
     <View style={styles.featuredWrapper}>
       <Text style={styles.marketplaceLabel}>{listing.marketplace}</Text>
-      <View style={styles.featuredCard}>
+      <View style={styles.featuredCard} pointerEvents="none">
         <Image source={imageSource} style={styles.featuredImage} />
         <Text style={styles.featuredPrice}>{listing.price}</Text>
         <Text style={styles.featuredTitle}>{listing.title}</Text>
@@ -209,3 +211,4 @@ const styles = StyleSheet.create({
     color: '#111111',
   },
 });
+

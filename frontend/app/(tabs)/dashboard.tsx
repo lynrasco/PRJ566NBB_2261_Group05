@@ -1,4 +1,5 @@
 import { StyleSheet, ScrollView, Modal, View, Text, Pressable, Image } from 'react-native';
+import { router } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { DashboardHeader } from '@/components/dashboard-header';
@@ -76,7 +77,10 @@ export default function DashboardScreen() {
               <Ionicons name="trash-outline" size={25} color="black" />
               </Pressable>
 
-            <Pressable style={styles.editButton} onPress={() => alert("edit item preview UI here")}>
+            <Pressable style={styles.editButton} onPress={() => {
+              setModalVisible(false);
+              router.push('/edit-item');
+            }}>
               <Text style={styles.editText}>Edit</Text>
             </Pressable>
           </View>
@@ -213,3 +217,4 @@ const styles = StyleSheet.create({
     fontFamily: "AzeretMono_700Bold",
   }
 });
+
