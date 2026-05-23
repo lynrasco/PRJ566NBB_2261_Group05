@@ -39,6 +39,12 @@
           }
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow FlipValue to use your camera to capture item photos for marketplace listings."
+        }
+      ],
       "expo-font"
     ],
     "experiments": {

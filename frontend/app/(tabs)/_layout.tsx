@@ -53,6 +53,7 @@ export default function TabLayout() {
         name="camera"
         options={{
           title: 'Camera',
+          tabBarStyle: { display: 'none' },
           tabBarIcon: ({ color }) => <IconSymbol size={50} name="plus.circle" color={color} />,
         }}
       />

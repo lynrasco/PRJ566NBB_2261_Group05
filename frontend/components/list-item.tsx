@@ -1,12 +1,11 @@
-import { StyleSheet, View, Image, TouchableOpacity, ViewProps } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, type TouchableOpacityProps } from 'react-native';
 import { ThemedText } from './themed-text';
 
-export type ListItemProps = ViewProps & {
+export type ListItemProps = TouchableOpacityProps & {
   image?: string;
   title: string;
   price: string;
   description?: string;
-  onPress?: () => void;
 };
 
 export function ListItem({
