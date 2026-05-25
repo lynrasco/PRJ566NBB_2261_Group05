@@ -1,14 +1,18 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+
+dotenv.config();
+
+
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 //const loginRoute = require("./routes/login");
 const itemRoutes = require("./routes/itemRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
-dotenv.config();
 
 connectDB();
 
@@ -26,6 +30,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
 app.use("/api/items", itemRoutes);
+
+app.use("/api/ai", aiRoutes);
 
 
 app.use(errorHandler);
