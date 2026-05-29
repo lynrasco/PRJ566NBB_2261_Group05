@@ -1,12 +1,55 @@
 const express = require("express");
-const OpenAI = require("openai");
+const fs = require("fs/promises");
+const path = require("path");
+const vision = require("@google-cloud/vision");
 const router = express.Router();
 
 const imageRepository = require("../repositories/imageRepository");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const visionClient = new vision.ImageAnnotatorClient();
+
+const isRemoteUrl = (imageUrl) => /^https?:\/\//i.test(imageUrl);
+
+const buildVisionImage = async (imageUrl) => {
+  if (isRemoteUrl(imageUrl)) {
+    return {
+      source: {
+        imageUri: imageUrl,
+      },
+    };
+  }
+
+  const localImagePath = path.resolve(__dirname, "..", imageUrl);
+  const imageContent = await fs.readFile(localImagePath);
+
+  return {
+    content: imageContent.toString("base64"),
+  };
+};
+
+const formatAnnotations = (annotations, nameKey = "description") => {
+  return annotations.map((annotation) => ({
+    description: annotation[nameKey],
+    score: annotation.score,
+  }));
+};
+
+const buildDescription = ({ labels, logos, objects, text }) => {
+  const descriptionParts = [
+    labels.length
+      ? `Likely item tags: ${labels.map((label) => label.description).join(", ")}.`
+      : null,
+    logos.length
+      ? `Visible brand/logo clues: ${logos.map((logo) => logo.description).join(", ")}.`
+      : null,
+    objects.length
+      ? `Detected objects: ${objects.map((object) => object.description).join(", ")}.`
+      : null,
+    text ? `Visible text: ${text.replace(/\s+/g, " ").trim()}` : null,
+  ];
+
+  return descriptionParts.filter(Boolean).join(" ");
+};
 
 router.post("/process-image", async (req, res, next) => {
   try {
@@ -26,35 +69,43 @@ router.post("/process-image", async (req, res, next) => {
       throw error;
     }
 
-    const response = await openai.responses.create({
-      model: "gpt-4.1-mini",
-      input: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              text: "Analyze this resale item image. Return likely category, brand if visible, condition estimate, material/style clues, and useful pricing notes. Keep it short.",
-            },
-            {
-              type: "input_image",
-              image_url: image.imageUrl,
-            },
-          ],
-        },
+    const visionImage = await buildVisionImage(image.imageUrl);
+
+    const [result] = await visionClient.annotateImage({
+      image: visionImage,
+      features: [
+        { type: "LABEL_DETECTION", maxResults: 10 },
+        { type: "LOGO_DETECTION", maxResults: 5 },
+        { type: "TEXT_DETECTION", maxResults: 5 },
+        { type: "OBJECT_LOCALIZATION", maxResults: 10 },
       ],
     });
 
-    const aiDescription = response.output_text;
+    const labels = formatAnnotations(result.labelAnnotations || []);
+    const logos = formatAnnotations(result.logoAnnotations || []);
+    const objects = formatAnnotations(
+      result.localizedObjectAnnotations || [],
+      "name"
+    );
+    const text = result.textAnnotations?.[0]?.description || "";
+    const aiTags = labels.map((label) => label.description);
+    const aiDescription = buildDescription({ labels, logos, objects, text });
 
     const updatedImage = await imageRepository.updateImageById(imageId, {
+      aiTags,
       aiDescription,
     });
 
     res.status(200).json({
       success: true,
-      message: "AI image processing completed successfully",
+      message: "Google Vision image processing completed successfully",
       image: updatedImage,
+      vision: {
+        labels,
+        logos,
+        objects,
+        text,
+      },
     });
   } catch (error) {
     next(error);
