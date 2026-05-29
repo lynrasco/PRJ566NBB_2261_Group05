@@ -1,23 +1,54 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform } from 'react-native';
-import { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, KeyboardAvoidingView } from 'react-native';
+import { useState, useRef } from 'react';
 
 export default function EditItemScreen() {
-  const [title, setTitle] = useState('Viable Black by SM');
-  const [brand, setBrand] = useState('Steve Madden');
-  const [category, setCategory] = useState('Footwear');
-  const [description, setDescription] = useState(
-    'Elegant black heels designed to provide both style and confidence. Featuring a sleek shape and comfortable fit, these heels are perfect for formal events, office wear, or a night out. The timeless black color ensures they complement any outfit effortlessly.'
-  );
-  const [price, setPrice] = useState(50);
-  const [minPrice, setMinPrice] = useState(23);
-  const [maxPrice, setMaxPrice] = useState(83);
+  const params = useLocalSearchParams<{
+    itemId?: string;
+    title?: string;
+    brand?: string;
+    category?: string;
+    description?: string;
+    price?: string;
+    imageUrl?: string;
+  }>();
 
-  const imageSource = require('@/assets/images/partial-react-logo.png');
+  const [title, setTitle] = useState(params.title || 'Viable Black by SM');
+  const [brand, setBrand] = useState(params.brand || 'Steve Madden');
+  const [category, setCategory] = useState(params.category || 'Footwear');
+  const [description, setDescription] = useState(
+    params.description || 'Elegant black heels designed to provide both style and confidence. Featuring a sleek shape and comfortable fit, these heels are perfect for formal events, office wear, or a night out. The timeless black color ensures they complement any outfit effortlessly.'
+  );
+  const [price, setPrice] = useState(parseFloat(params.price || '50'));
+  const parsedPrice = parseFloat(params.price || '50');
+  const [minPrice, setMinPrice] = useState(Math.max(5, Math.floor(parsedPrice * 0.5)));
+  const [maxPrice, setMaxPrice] = useState(Math.ceil(parsedPrice * 1.5));
+
+  const imageSource = params.imageUrl
+    ? { uri: params.imageUrl }
+    : require('@/assets/images/partial-react-logo.png');
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const descriptionRef = useRef<TextInput>(null);
+
+  const handleDescriptionFocus = () => {
+    setTimeout(() => {
+      descriptionRef.current?.measure((fx, fy, width, height, px, py) => {
+        scrollViewRef.current?.scrollTo({
+          y: py - 200,
+          animated: true,
+        });
+      });
+    }, 100);
+  };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
       <View style={styles.header}>
         <TouchableOpacity
           accessibilityLabel="Go back"
@@ -33,6 +64,7 @@ export default function EditItemScreen() {
       </View>
 
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
@@ -85,6 +117,7 @@ export default function EditItemScreen() {
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Description:</Text>
           <TextInput
+            ref={descriptionRef}
             style={[styles.input, styles.descriptionInput]}
             value={description}
             onChangeText={setDescription}
@@ -92,6 +125,7 @@ export default function EditItemScreen() {
             placeholderTextColor="#999"
             multiline
             numberOfLines={5}
+            onFocus={handleDescriptionFocus}
           />
         </View>
 
@@ -123,7 +157,7 @@ export default function EditItemScreen() {
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -137,8 +171,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingTop: 20,
+    paddingVertical: 16,
+    paddingTop: 35,
   },
   backButton: {
     padding: 8,
