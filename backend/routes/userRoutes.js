@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const userRepository = require("../repositories/userRepository");
+const protect = require("../middleware/authMiddleware");
 
 // GET all users
-router.get("/", async (req, res, next) => {
+router.get("/", protect, async (req, res, next) => {
   try {
     const users = await userRepository.getAllUsers();
 
