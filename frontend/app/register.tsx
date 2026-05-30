@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#597790",
         borderRadius: 8,
         paddingHorizontal: 10,
-        marginTop: 15,
+        marginTop: 10,
         color: "#fff",
     },
     emailInput: {
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#597790",
         borderRadius: 8,
         paddingHorizontal: 10,
-        marginTop: 15,
+        marginTop: 10,
         color: "#fff"
     },
     passwordInput: {
@@ -75,6 +75,16 @@ const styles = StyleSheet.create({
     },
     textBold: {
         fontFamily: "AzeretMono_700Bold",
+    },
+    errorBox: {
+        height: 15,
+        justifyContent: "center",
+        marginTop: 2,
+        marginBottom: 2,
+    },
+    errorText: {
+        color: "red",
+        fontSize: 12,
     }
 })
 
@@ -129,13 +139,29 @@ export default function Register() {
             <Text style={styles.title}>FlipValue</Text>
 
             <TextInput style={[styles.nameInput, styles.baseText]} placeholder="Name" placeholderTextColor="#D9D9D9" value={name} onChangeText={setName} />
-            {errors.name && <Text style={{ color: "red", marginTop: 5 }}>{errors.name}</Text>}
+            <View style={styles.errorBox}>
+                <Text style={styles.errorText}>
+                    {errors.name ? errors.name : " "}
+                </Text>
+            </View>
             <TextInput style={[styles.emailInput, styles.baseText]} placeholder="Email" placeholderTextColor="#D9D9D9" value={email} onChangeText={setEmail} />
-            {errors.email && <Text style={{ color: "red", marginTop: 5 }}>{errors.email}</Text>}
+            <View style={styles.errorBox}>
+                <Text style={styles.errorText}>
+                    {errors.email ? errors.email : " "}
+                </Text>
+            </View>
             <TextInput style={[styles.passwordInput, styles.baseText]} placeholder="Password" placeholderTextColor="#D9D9D9" value={password} onChangeText={setPassword} />
-            {errors.password && <Text style={{ color: "red", marginTop: 5 }}>{errors.password}</Text>}
+            <View style={styles.errorBox}>
+                <Text style={styles.errorText}>
+                    {errors.password ? errors.password : " "}
+                </Text>
+            </View>
             <TextInput style={[styles.confirmPasswordInput, styles.baseText]} placeholder="Confirm Password" placeholderTextColor="#D9D9D9" value={confirmPassword} onChangeText={setConfirmPassword}/>
-            {errors.confirmPassword && <Text style={{ color: "red", marginTop: 5 }}>{errors.confirmPassword}</Text>}
+            <View style={styles.errorBox}>
+                <Text style={styles.errorText}>
+                    {errors.confirmPassword ? errors.confirmPassword : " "}
+                </Text>
+            </View>
             <Button title="Sign Up" variant="primary" onPress={handleSubmit} />
 
             <Pressable onPress={() => router.push("/login")}>

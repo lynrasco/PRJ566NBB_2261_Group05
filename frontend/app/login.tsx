@@ -58,6 +58,16 @@ const styles = StyleSheet.create({
     },
     boldText: {
         fontFamily: "AzeretMono_700Bold",
+    },
+    errorBox: {
+        height: 15,
+        justifyContent: "center",
+        marginTop: 2,
+        marginBottom: 2,
+    },
+    errorText: {
+        color: "red",
+        fontSize: 12,
     }
 })
 
@@ -104,12 +114,20 @@ export default function Login() {
             <Text style={styles.title}>FlipValue</Text>
 
             <TextInput placeholder="Email" placeholderTextColor="#D9D9D9" style={[styles.emailInput, styles.baseText]} value={email} onChangeText={setEmail} />
-            {errors.email && <Text style={{ color: "red", marginTop: 5 }}>{errors.email}</Text>}
+            <View style={styles.errorBox}>
+                <Text style={styles.errorText}>
+                    {errors.email ? errors.email : " "}
+                </Text>
+            </View>
             <TextInput placeholder="Password" placeholderTextColor="#D9D9D9" style={[styles.passwordInput, styles.baseText]} value={password} onChangeText={setPassword} />
-            {errors.password && <Text style={{ color: "red", marginTop: 5 }}>{errors.password}</Text>}
-            
+            <View style={styles.errorBox}>
+                <Text style={styles.errorText}>
+                    {errors.password ? errors.password : " "}
+                </Text>
+            </View>
+
             <Button title="Log In" onPress={handleLogin} variant="primary" />
-            
+
             <Pressable onPress={() => router.push("/register")}>
             <Text style={[styles.signUp, styles.baseText]}>Dont have an account?{" "}
               <Text style={[styles.signUpLink, styles.boldText]}>Sign Up</Text>

@@ -53,7 +53,7 @@ export default function DashboardScreen() {
       {/* Dashboard Header */}
       <DashboardHeader
         userName="Linda"
-        profileImage={require('@/assets/images/partial-react-logo.png')}
+        profileImage={require('@/assets/images/profile-picture.png')}
       />
 
       {/* Loading State */}
