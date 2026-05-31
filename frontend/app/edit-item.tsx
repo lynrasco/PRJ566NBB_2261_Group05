@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, KeyboardAvoidingView } from 'react-native';
 import { useState, useRef } from 'react';
+import { ThemedText } from '@/components/themed-text';
 
 export default function EditItemScreen() {
   const params = useLocalSearchParams<{
@@ -46,8 +47,8 @@ export default function EditItemScreen() {
   return (
     <KeyboardAvoidingView 
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <View style={styles.header}>
         <TouchableOpacity
@@ -66,6 +67,7 @@ export default function EditItemScreen() {
       <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.contentContainer}
+        style={{ backgroundColor: '#fff' }}
         showsVerticalScrollIndicator={false}
       >
         {/* Product Image */}
@@ -79,7 +81,7 @@ export default function EditItemScreen() {
 
         {/* Title */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Title:</Text>
+          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Title:</ThemedText>
           <TextInput
             style={styles.input}
             value={title}
@@ -91,7 +93,7 @@ export default function EditItemScreen() {
 
         {/* Brand */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Brand:</Text>
+          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Brand:</ThemedText>
           <TextInput
             style={styles.input}
             value={brand}
@@ -103,7 +105,7 @@ export default function EditItemScreen() {
 
         {/* Category */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Category:</Text>
+          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Category:</ThemedText>
           <TextInput
             style={styles.input}
             value={category}
@@ -115,7 +117,7 @@ export default function EditItemScreen() {
 
         {/* Description */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Description:</Text>
+          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Description:</ThemedText>
           <TextInput
             ref={descriptionRef}
             style={[styles.input, styles.descriptionInput]}
@@ -131,8 +133,8 @@ export default function EditItemScreen() {
 
         {/* Price */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Price:</Text>
-          <Text style={styles.priceDisplay}>$ {parseFloat(price.toFixed(2))}</Text>
+          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Price:</ThemedText>
+          <Text style={styles.priceDisplay}>${parseFloat(price.toFixed(2))}</Text>
 
           {/* Price Range Slider */}
           <View style={styles.priceRangeContainer}>
@@ -162,6 +164,10 @@ export default function EditItemScreen() {
 }
 
 const styles = StyleSheet.create({
+  formLabel: {
+    color: "#000",
+    marginBottom: 8,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -191,12 +197,15 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    //fontWeight: '600',
+    fontFamily: "AzeretMono_400Regular",
     fontSize: 14,
   },
   contentContainer: {
     paddingHorizontal: 16,
     paddingBottom: 32,
+    backgroundColor: '#fff',
+    flexGrow: 1,
   },
   imageWrapper: {
     justifyContent: 'center',
@@ -238,7 +247,7 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   fieldGroup: {
     marginBottom: 20,
@@ -262,6 +271,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    fontFamily: "AzeretMono_400Regular",
   },
   descriptionInput: {
     textAlignVertical: 'top',
@@ -270,10 +280,11 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   priceDisplay: {
-    fontSize: 36,
-    fontWeight: '700',
+    fontSize: 30,
+    //fontWeight: '700',
     color: '#000',
     marginBottom: 12,
+    fontFamily: "AzeretMono_700Bold",
   },
   priceRangeContainer: {
     flexDirection: 'row',
@@ -282,10 +293,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   priceRangeMin: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
+    //fontWeight: '600',
+    fontFamily: "AzeretMono_700Bold",
     color: '#000',
-    width: 30,
+    width: 45,
   },
   sliderWrapper: {
     flex: 1,
@@ -296,10 +308,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   priceRangeMax: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
+    //fontWeight: '600',
+    fontFamily: "AzeretMono_700Bold",
     color: '#000',
-    width: 30,
+    width: 45,
     textAlign: 'right',
   },
   bottomSpacing: {

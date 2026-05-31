@@ -20,6 +20,7 @@ export function ThemedText({
   return (
     <Text
       style={[
+        styles.mainText,
         { color },
         type === 'default' ? styles.default : undefined,
         type === 'title' ? styles.title : undefined,
@@ -34,23 +35,30 @@ export function ThemedText({
 }
 
 const styles = StyleSheet.create({
+  mainText: {
+    fontFamily: "AzeretMono_400Regular",
+  },
   default: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    //lineHeight: 20,
+    lineHeight: 18,
   },
   defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
+    fontSize: 15,
+    //lineHeight: 24,
+    fontFamily: "AzeretMono_700Bold",
+    lineHeight: 20,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 30,
+    //fontWeight: 'bold',
+    fontFamily: "AzeretMono_700Bold",
     lineHeight: 32,
   },
   subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    //fontWeight: 'bold',
+    fontFamily: "AzeretMono_700Bold"
   },
   link: {
     lineHeight: 30,

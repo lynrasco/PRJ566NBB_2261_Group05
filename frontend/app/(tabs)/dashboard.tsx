@@ -85,7 +85,7 @@ export default function DashboardScreen() {
       {/* Main Item Tile - First Item (Featured) */}
       {!loading && !error && items.length > 0 && (
         <ThemedView style={styles.sectionContainer}>
-          <ThemedText type="subtitle" style={[styles.sectionTitle, { color: '#1a1a1a' }]}>
+          <ThemedText type="subtitle" style={[styles.sectionTitle, { color: '#1a1a1a', marginBottom: 5}]}>
             Previous Listing
           </ThemedText>
           <MainItemTile
@@ -148,42 +148,42 @@ export default function DashboardScreen() {
                 });
               }
             }}>
-              <Text style={styles.editText}>Edit</Text>
+              <ThemedText type="default" style={{fontSize: 11}}>Edit</ThemedText>
             </Pressable>
           </View>
           {selectedItem?.imageUrl && (
             <Image source={{ uri: selectedItem.imageUrl }} style={styles.modalImage} />
           )}
 
-          <Text style={styles.modalTitle}>{selectedItem?.title}{'\n'}</Text>
+          <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13, textAlign: 'center', marginBottom: 12}}>{selectedItem?.title}</ThemedText>
           {selectedItem?.brand && (
             <>
-              <Text style={styles.modalLabel}>Brand:</Text>
-              <Text style={styles.modalText}>{selectedItem.brand}{'\n'}</Text>
+              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Brand:</ThemedText>
+              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.brand}</ThemedText>
             </>
           )}
           {selectedItem?.category && (
             <>
-              <Text style={styles.modalLabel}>Category:</Text>
-              <Text style={styles.modalText}>{selectedItem.category}{'\n'}</Text>
+              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Category:</ThemedText>
+              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.category}</ThemedText>
             </>
           )}
           {selectedItem?.description && (
             <>
-              <Text style={styles.modalLabel}>Description:</Text>
-              <Text style={styles.modalText}>{selectedItem.description}{'\n'}</Text>
+              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Description:</ThemedText>
+              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.description}</ThemedText>
             </>
           )}
           {selectedItem?.condition && (
             <>
-              <Text style={styles.modalLabel}>Condition:</Text>
-              <Text style={styles.modalText}>{selectedItem.condition}{'\n'}</Text>
+              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Condition:</ThemedText>
+              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.condition}</ThemedText>
             </>
           )}
           {selectedItem?.price && (
             <>
-              <Text style={styles.modalLabel}>Price:</Text>
-              <Text style={styles.modalText}>${selectedItem.price}{'\n'}</Text>
+              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Price:</ThemedText>
+              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>${selectedItem.price}</ThemedText>
             </>
           )}
         </Pressable>
@@ -288,6 +288,7 @@ const styles = StyleSheet.create({
   editText: {
     fontFamily: "AzeretMono_400Regular",
     color: "white",
+    fontSize: 14,
   },
   editButton: {
     backgroundColor: '#023969',
@@ -298,11 +299,11 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
   modalImage: {
-    width: 120,
-    height: 120,
+    width: "100%",
+    //height: 180,
+    aspectRatio: 1.7,
     borderRadius: 16,
-    marginBottom: 12,
-    alignSelf: "center",
+    resizeMode: "contain",
   },
   modalTitle: {
     textAlign: "center",

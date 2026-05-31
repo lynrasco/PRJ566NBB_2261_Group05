@@ -138,11 +138,10 @@ const styles = StyleSheet.create({
   marketplaceLabel: {
     marginLeft: 12,
     fontFamily: 'AzeretMono_700Bold',
-    fontSize: 10,
+    fontSize: 11,
     color: '#111111',
   },
   featuredCard: {
-    minHeight: 116,
     borderRadius: 7,
     backgroundColor: '#ffffff',
     paddingHorizontal: 16,
@@ -156,8 +155,9 @@ const styles = StyleSheet.create({
   },
   featuredImage: {
     alignSelf: 'center',
-    width: 118,
-    height: 65,
+    width: '100%',
+    height: 140,
+    borderRadius: 6,
     resizeMode: 'contain',
   },
   featuredPrice: {
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     top: 20,
     right: 20,
     fontFamily: 'AzeretMono_700Bold',
-    fontSize: 9,
+    fontSize: 10,
     color: '#111111',
   },
   featuredTitle: {
@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
     maxWidth: 214,
     textAlign: 'center',
     fontFamily: 'AzeretMono_400Regular',
-    fontSize: 9,
-    lineHeight: 11,
+    fontSize: 10,
+    lineHeight: 12,
     color: '#111111',
   },
   listingWrapper: {
@@ -195,19 +195,19 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   thumbnail: {
-    width: 39,
-    height: 34,
+    width: 55,
+    height: 55,
     borderRadius: 3,
     backgroundColor: '#eeeeee',
-    resizeMode: 'contain',
+    resizeMode: 'cover',
   },
   listingTitle: {
     flex: 1,
     marginLeft: 16,
     textAlign: 'center',
     fontFamily: 'AzeretMono_400Regular',
-    fontSize: 9,
-    lineHeight: 11,
+    fontSize: 10,
+    lineHeight: 12,
     color: '#111111',
   },
 });

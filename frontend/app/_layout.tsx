@@ -23,7 +23,10 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false, animation: "fade"}} ></Stack>
+      <Stack screenOptions={{ headerShown: false, animation: "ios_from_right"}} >
+        <Stack.Screen name="(auth)" options={{gestureEnabled: false }} />
+        <Stack.Screen name="(tabs)" options={{gestureEnabled: false}} />
+      </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
   );

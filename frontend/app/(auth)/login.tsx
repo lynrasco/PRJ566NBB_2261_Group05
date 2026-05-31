@@ -105,7 +105,8 @@ export default function Login() {
 
     const handleLogin = () => {
         if (validateForm()) {
-            router.push("/dashboard");
+            //router.push('/dashboard')
+            router.replace("/dashboard");
         }
     };
 
