@@ -124,14 +124,21 @@ export default function DashboardScreen() {
 
     {/* Item Detail Modal */}
     <Modal visible={modalVisible} transparent animationType="none" onRequestClose={() => setModalVisible(false)}>
-      <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
-        <Pressable style={styles.modalContent} onPress={() => {}}>
+      <View style={styles.modalOverlay}>
+        <Pressable
+          style={StyleSheet.absoluteFill} 
+          onPress={() => setModalVisible(false)}
+        />
+         <View style={styles.modalContent}>
+
           <View style={styles.modalBar}>
             <Pressable onPress={() => setModalVisible(false)}>
               <Ionicons name="trash-outline" size={25} color="black" />
             </Pressable>
 
-            <Pressable style={styles.editButton} onPress={() => {
+            <Pressable style={styles.editButton} 
+              hitSlop={15}
+              onPress={() => {
               setModalVisible(false);
               if (selectedItem) {
                 router.push({
@@ -147,8 +154,9 @@ export default function DashboardScreen() {
                   },
                 });
               }
-            }}>
-              <ThemedText type="default" style={{fontSize: 11}}>Edit</ThemedText>
+            }}
+            >
+              <ThemedText type="default" style={{fontSize: 12}}>Edit</ThemedText>
             </Pressable>
           </View>
           {selectedItem?.imageUrl && (
@@ -186,8 +194,8 @@ export default function DashboardScreen() {
               <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>${selectedItem.price}</ThemedText>
             </>
           )}
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
     </>
   );
@@ -279,11 +287,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    /*
     position: "absolute",
     top: 10,
     left: 10,
     right: 10,
     paddingHorizontal: 5,
+    */
+    marginBottom: 10,
   },
   editText: {
     fontFamily: "AzeretMono_400Regular",
@@ -294,8 +305,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#023969',
     alignItems: "center",
     justifyContent: "center",
-    width: 69,
-    height: 25,
+    width: 72,
+    height: 32,
     borderRadius: 40,
   },
   modalImage: {
