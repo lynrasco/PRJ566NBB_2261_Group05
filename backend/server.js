@@ -21,6 +21,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Simple request logger to help debug route matching during development
+app.use((req, res, next) => {
+  console.log(new Date().toISOString(), req.method, req.originalUrl);
+  next();
+});
+
 app.get("/", (req, res) => {
   res.send("FlipValue backend running");
 });
