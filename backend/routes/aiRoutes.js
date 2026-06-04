@@ -1,30 +1,21 @@
 const express = require("express");
 const fs = require("fs/promises");
 const path = require("path");
-const { GoogleGenAI } = require("@google/genai");
+const vision = require("@google-cloud/vision");
 const router = express.Router();
 
 const imageRepository = require("../repositories/imageRepository");
 
-let geminiClient;
+const visionClient = new vision.ImageAnnotatorClient();
 
 const isRemoteUrl = (imageUrl) => /^https?:\/\//i.test(imageUrl);
 
-const getImageAsBase64 = async (imageUrl) => {
+const buildVisionImage = async (imageUrl) => {
   if (isRemoteUrl(imageUrl)) {
-    const response = await fetch(imageUrl);
-
-    if (!response.ok) {
-      const error = new Error("Unable to download image for processing");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-
     return {
-      data: Buffer.from(arrayBuffer).toString("base64"),
-      mimeType: response.headers.get("content-type") || "image/jpeg",
+      source: {
+        imageUri: imageUrl,
+      },
     };
   }
 
@@ -33,78 +24,32 @@ const getImageAsBase64 = async (imageUrl) => {
   const imageContent = await fs.readFile(localImagePath);
 
   return {
-    data: imageContent.toString("base64"),
-    mimeType: getMimeType(imageUrl),
+    content: imageContent.toString("base64"),
   };
 };
 
-const getMimeType = (imageUrl) => {
-  const extension = path.extname(imageUrl).toLowerCase();
-
-  if (extension === ".png") {
-    return "image/png";
-  }
-
-  if (extension === ".webp") {
-    return "image/webp";
-  }
-
-  return "image/jpeg";
+const formatAnnotations = (annotations, nameKey = "description") => {
+  return annotations.map((annotation) => ({
+    description: annotation[nameKey],
+    score: annotation.score,
+  }));
 };
 
-const extractJson = (text) => {
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
+const buildDescription = ({ labels, logos, objects, text }) => {
+  const descriptionParts = [
+    labels.length
+      ? `Likely item tags: ${labels.map((label) => label.description).join(", ")}.`
+      : null,
+    logos.length
+      ? `Visible brand/logo clues: ${logos.map((logo) => logo.description).join(", ")}.`
+      : null,
+    objects.length
+      ? `Detected objects: ${objects.map((object) => object.description).join(", ")}.`
+      : null,
+    text ? `Visible text: ${text.replace(/\s+/g, " ").trim()}` : null,
+  ];
 
-  if (!jsonMatch) {
-    const error = new Error("Gemini did not return valid JSON");
-    error.statusCode = 502;
-    throw error;
-  }
-
-  return JSON.parse(jsonMatch[0]);
-};
-
-const buildGeminiPrompt = () => {
-  return `
-Analyze this product image for a resale marketplace app.
-
-Return only valid JSON with this exact structure:
-{
-  "productName": "string",
-  "category": "string",
-  "subcategory": "string",
-  "brand": "string or unknown",
-  "condition": "New | Like New | Good | Fair | Poor | Unknown",
-  "conditionReasoning": "string",
-  "aiTags": ["string"],
-  "searchKeywords": ["string"],
-  "aiDescription": "string"
-}
-
-Rules:
-- Base the answer only on visible evidence in the image.
-- Use "unknown" when brand or product details are unclear.
-- Condition should be an estimate from visible wear, damage, packaging, cleanliness, and age clues.
-- aiTags should be short resale/search tags.
-- searchKeywords should be useful for finding similar listings on resale platforms.
-- Do not include markdown, code fences, or extra explanation.
-`;
-};
-
-const getGeminiClient = () => {
-  if (!process.env.GEMINI_API_KEY) {
-    const error = new Error("GEMINI_API_KEY is not configured");
-    error.statusCode = 500;
-    throw error;
-  }
-
-  if (!geminiClient) {
-    geminiClient = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-    });
-  }
-
-  return geminiClient;
+  return descriptionParts.filter(Boolean).join(" ");
 };
 
 router.post("/process-image", async (req, res, next) => {
@@ -125,29 +70,27 @@ router.post("/process-image", async (req, res, next) => {
       throw error;
     }
 
-    const imageData = await getImageAsBase64(image.imageUrl);
+    const visionImage = await buildVisionImage(image.imageUrl);
 
-    const geminiResponse = await getGeminiClient().models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [
-        {
-          inlineData: {
-            mimeType: imageData.mimeType,
-            data: imageData.data,
-          },
-        },
-        {
-          text: buildGeminiPrompt(),
-        },
+    const [result] = await visionClient.annotateImage({
+      image: visionImage,
+      features: [
+        { type: "LABEL_DETECTION", maxResults: 10 },
+        { type: "LOGO_DETECTION", maxResults: 5 },
+        { type: "TEXT_DETECTION", maxResults: 5 },
+        { type: "OBJECT_LOCALIZATION", maxResults: 10 },
       ],
-      config: {
-        responseMimeType: "application/json",
-      },
     });
 
-    const detection = extractJson(geminiResponse.text || "");
-    const aiTags = Array.isArray(detection.aiTags) ? detection.aiTags : [];
-    const aiDescription = detection.aiDescription || "";
+    const labels = formatAnnotations(result.labelAnnotations || []);
+    const logos = formatAnnotations(result.logoAnnotations || []);
+    const objects = formatAnnotations(
+      result.localizedObjectAnnotations || [],
+      "name"
+    );
+    const text = result.textAnnotations?.[0]?.description || "";
+    const aiTags = labels.map((label) => label.description);
+    const aiDescription = buildDescription({ labels, logos, objects, text });
 
     const updatedImage = await imageRepository.updateImageById(imageId, {
       aiTags,
@@ -156,9 +99,14 @@ router.post("/process-image", async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: "Gemini image processing completed successfully",
+      message: "Google Vision image processing completed successfully",
       image: updatedImage,
-      detection,
+      vision: {
+        labels,
+        logos,
+        objects,
+        text,
+      },
     });
   } catch (error) {
     next(error);
