@@ -6,6 +6,7 @@ const router = express.Router();
 
 const imageRepository = require("../repositories/imageRepository");
 const ebayService = require("../services/ebayService");
+const localPricingService = require("../services/localPricingService");
 
 const visionClient = new vision.ImageAnnotatorClient();
 
@@ -242,6 +243,47 @@ router.post("/search-ebay", async (req, res, next) => {
       query,
       conditionId,
       ebayResults,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/price-estimate", async (req, res, next) => {
+  try {
+    const { imageId, condition, userDescription } = req.body;
+
+    if (!imageId) {
+      const error = new Error("Image ID is required");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const image = await imageRepository.getImageById(imageId);
+
+    if (!image) {
+      const error = new Error("Image not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const query = buildEbaySearchQuery({ image, userDescription });
+    const conditionId = normalizeEbayCondition(condition);
+    const ebayResults = await ebayService.searchItems(query, conditionId, 12);
+    const priceEstimate = await localPricingService.estimatePrice({
+      image,
+      condition: condition || "used",
+      userDescription,
+      ebayResults,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Price estimate completed successfully",
+      query,
+      conditionId,
+      ebayResults,
+      priceEstimate,
     });
   } catch (error) {
     next(error);
