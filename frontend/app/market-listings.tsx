@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState, useEffect } from 'react';
 
 type Listing = {
   id: string;
@@ -7,7 +8,7 @@ type Listing = {
   title: string;
   price?: string;
 };
-
+/*
 const listings: Listing[] = [
   {
     id: 'best-fit',
@@ -36,13 +37,15 @@ const listings: Listing[] = [
     title: 'Elegant black heels designed to provide both style and confidence.',
   },
 ];
+*/
 
+/*
 export default function MarketListingsScreen() {
+  const [listings, setListings] = useState<Listing[]>([]);
   const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
   const imageSource = imageUri
     ? { uri: imageUri }
     : require('@/assets/images/partial-react-logo.png');
-
   return (
     <ScrollView
       contentContainerStyle={styles.contentContainer}
@@ -66,6 +69,56 @@ export default function MarketListingsScreen() {
           <MarketplaceListing key={listing.id} listing={listing} imageSource={imageSource} />
         ))}
       </View>
+    </ScrollView>
+  );
+}
+*/
+export default function MarketListingsScreen() {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
+
+  const imageSource = imageUri
+    ? { uri: imageUri }
+    : require('@/assets/images/partial-react-logo.png');
+
+  const featured = listings.length > 0 ? listings[0] : null;
+  const rest = listings.length > 1 ? listings.slice(1) : [];
+
+  return (
+    <ScrollView
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+      style={styles.container}
+    >
+      <TouchableOpacity
+        accessibilityLabel="Go back"
+        onPress={() => router.back()}
+        style={styles.backButton}
+      >
+        <Text style={styles.backIcon}>←</Text>
+      </TouchableOpacity>
+
+      {listings.length === 0 ? (
+        <Text style={{ textAlign: 'center', marginTop: 40 }}>
+          Waiting for eBay listings...
+        </Text>
+      ) : (
+        <View style={styles.list}>
+          {featured && (
+            <TouchableOpacity onPress={() => router.push('/edit-item')}>
+              <FeaturedListing listing={featured} imageSource={imageSource} />
+            </TouchableOpacity>
+          )}
+
+          {rest.map((listing) => (
+            <MarketplaceListing
+              key={listing.id}
+              listing={listing}
+              imageSource={imageSource}
+            />
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
