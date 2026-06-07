@@ -31,4 +31,12 @@ export const getItemById = async (id: string) => {
   }
 };
 
+export const getEbayListings = async (query: string) => {
+  const response = await apiClient.post('/ebay/listings', {
+    query,
+    limit: 12,
+  });
+  return response.data.listings;
+};
+
 export default apiClient;

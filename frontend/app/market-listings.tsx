@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { getEbayListings } from '@/services/api';
 import { useState, useEffect } from 'react';
 
 type Listing = {
@@ -7,6 +8,8 @@ type Listing = {
   marketplace: string;
   title: string;
   price?: string;
+  imageUrl?: string;
+  url?: string;
 };
 /*
 const listings: Listing[] = [
@@ -77,6 +80,23 @@ export default function MarketListingsScreen() {
   const [listings, setListings] = useState<Listing[]>([]);
   const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
 
+  useEffect(() => {
+    loadListings();
+  }, []);
+
+  const loadListings = async () => {
+    try {
+      const data = await getEbayListings('black heels');
+      //console.log('EBAY LISTINGS:', data);
+
+      // To log all listings from Ebay for testing:
+      console.log('EBAY LISTINGS:', JSON.stringify(data, null, 2));
+      setListings(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const imageSource = imageUri
     ? { uri: imageUri }
     : require('@/assets/images/partial-react-logo.png');
@@ -134,7 +154,14 @@ function FeaturedListing({
     <View style={styles.featuredWrapper}>
       <Text style={styles.marketplaceLabel}>{listing.marketplace}</Text>
       <View style={styles.featuredCard} pointerEvents="none">
-        <Image source={imageSource} style={styles.featuredImage} />
+        <Image
+        source={
+          listing.imageUrl
+          ? { uri: listing.imageUrl }
+          : require('@/assets/images/partial-react-logo.png')
+        }
+        style={styles.featuredImage}
+        />
         <Text style={styles.featuredPrice}>{listing.price}</Text>
         <Text style={styles.featuredTitle}>{listing.title}</Text>
       </View>
@@ -153,7 +180,13 @@ function MarketplaceListing({
     <View style={styles.listingWrapper}>
       <Text style={styles.marketplaceLabel}>{listing.marketplace}</Text>
       <View style={styles.listingCard}>
-        <Image source={imageSource} style={styles.thumbnail} />
+        <Image
+        source={
+          listing.imageUrl
+          ? { uri: listing.imageUrl }
+          : require('@/assets/images/partial-react-logo.png')
+        } style={styles.thumbnail}
+        />
         <Text style={styles.listingTitle}>{listing.title}</Text>
       </View>
     </View>
