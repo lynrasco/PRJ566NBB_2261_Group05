@@ -12,6 +12,7 @@ const userRoutes = require("./routes/userRoutes");
 //const loginRoute = require("./routes/login");
 const itemRoutes = require("./routes/itemRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const ebayRoutes = require("./routes/ebayRoutes");
 
 
 connectDB();
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
   next();
 });
 
+
 app.get("/", (req, res) => {
   res.send("FlipValue backend running");
 });
@@ -38,6 +40,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/items", itemRoutes);
 
 app.use("/api/ai", aiRoutes);
+
+app.use("/api/ebay", ebayRoutes);
 
 
 app.use(errorHandler);
