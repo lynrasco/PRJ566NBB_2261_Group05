@@ -34,7 +34,7 @@ export default function CameraScreen() {
 
       if (photo?.uri) {
         router.push({
-          pathname: '/market-listings',
+          pathname: '/item-condition',
           params: { imageUri: photo.uri },
         });
       }
