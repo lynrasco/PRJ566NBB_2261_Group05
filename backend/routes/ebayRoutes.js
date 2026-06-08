@@ -3,7 +3,7 @@ const router = express.Router();
 
 const ebayService = require("../services/ebayService");
 
-router.post("/listings", async (req, res, next) => {
+const handleListingsSearch = async (req, res, next) => {
   try {
     const { query, conditionId, limit } = req.body;
 
@@ -38,6 +38,9 @@ router.post("/listings", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
+
+router.post("/", handleListingsSearch);
+router.post("/listings", handleListingsSearch);
 
 module.exports = router;

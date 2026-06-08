@@ -54,9 +54,9 @@ const buildDescription = ({ labels, logos, objects, text }) => {
   return descriptionParts.filter(Boolean).join(" ");
 };
 
-router.post("/process-image", async (req, res, next) => {
+const handleProcessImage = async (req, res, next) => {
   try {
-    const { imageId } = req.body;
+    const { imageId, userDescription } = req.body;
 
     if (!imageId) {
       const error = new Error("Image ID is required");
@@ -99,10 +99,17 @@ router.post("/process-image", async (req, res, next) => {
       aiDescription,
     });
 
+    const ebayQuery = buildEbaySearchQuery({
+      image: updatedImage,
+      userDescription,
+    });
+
     res.status(200).json({
       success: true,
       message: "Google Vision image processing completed successfully",
       image: updatedImage,
+      ebayQuery,
+      nextRoute: "/api/ebay",
       vision: {
         labels,
         logos,
@@ -113,7 +120,10 @@ router.post("/process-image", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
+
+router.post("/", handleProcessImage);
+router.post("/process-image", handleProcessImage);
 
 const normalizeEbayCondition = (condition) => {
   if (!condition) return null;
