@@ -78,24 +78,28 @@ export default function MarketListingsScreen() {
 */
 export default function MarketListingsScreen() {
   const [listings, setListings] = useState<Listing[]>([]);
-  const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
+  const { imageUri, conditionId } = useLocalSearchParams<{
+    imageUri?: string;
+    condition?: string;
+    conditionId?: string;
+  }>();
 
   useEffect(() => {
+    const loadListings = async () => {
+      try {
+        const data = await getEbayListings('black heels', conditionId);
+        //console.log('EBAY LISTINGS:', data);
+
+        // To log all listings from Ebay for testing:
+        console.log('EBAY LISTINGS:', JSON.stringify(data, null, 2));
+        setListings(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     loadListings();
-  }, []);
-
-  const loadListings = async () => {
-    try {
-      const data = await getEbayListings('black heels');
-      //console.log('EBAY LISTINGS:', data);
-
-      // To log all listings from Ebay for testing:
-      console.log('EBAY LISTINGS:', JSON.stringify(data, null, 2));
-      setListings(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  }, [conditionId]);
 
   const imageSource = imageUri
     ? { uri: imageUri }

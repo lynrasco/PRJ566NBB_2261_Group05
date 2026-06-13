@@ -2,9 +2,19 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useState } from 'react';
 
-type ItemCondition = 'New' | 'Like New' | 'Good' | 'Fair' | 'Poor';
+type ItemCondition = {
+  label: string;
+  conditionId: string;
+};
 
-const conditions: ItemCondition[] = ['New', 'Like New', 'Good', 'Fair', 'Poor'];
+const conditions: ItemCondition[] = [
+  { label: 'New with tags', conditionId: '1000' },
+  { label: 'New without tags', conditionId: '1500' },
+  { label: 'New with imperfections', conditionId: '1750' },
+  { label: 'Pre-owned – Excellent', conditionId: '2990' },
+  { label: 'Pre-owned – Good', conditionId: '3000' },
+  { label: 'Pre-owned – Fair', conditionId: '3010' },
+];
 
 export default function ItemConditionScreen() {
   const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
@@ -23,7 +33,8 @@ export default function ItemConditionScreen() {
       pathname: '/market-listings',
       params: {
         imageUri,
-        condition: selectedCondition,
+        condition: selectedCondition.label,
+        conditionId: selectedCondition.conditionId,
       },
     });
   };
@@ -60,12 +71,12 @@ export default function ItemConditionScreen() {
           return (
             <TouchableOpacity
               accessibilityRole="button"
-              key={condition}
+              key={condition.conditionId}
               onPress={() => setSelectedCondition(condition)}
               style={[styles.conditionButton, isSelected && styles.conditionButtonSelected]}
             >
               <Text style={[styles.conditionText, isSelected && styles.conditionTextSelected]}>
-                {condition}
+                {condition.label}
               </Text>
             </TouchableOpacity>
           );
