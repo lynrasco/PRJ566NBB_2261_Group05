@@ -31,6 +31,7 @@ export const getItemById = async (id: string) => {
   }
 };
 
+/*
 export const getEbayListings = async (query: string, conditionId?: string) => {
   const response = await apiClient.post('/ebay/listings', {
     query,
@@ -38,6 +39,54 @@ export const getEbayListings = async (query: string, conditionId?: string) => {
     limit: 12,
   });
   return response.data.listings;
+};
+*/
+
+export const uploadImage = async (imageUri: string) => {
+  const form = new FormData();
+
+  form.append('image', {
+    uri: imageUri,
+    name: 'photo.jpg',
+    type: 'image/jpeg',
+  } as any);
+
+  const response = await apiClient.post('/images/upload', form, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data.imageId;
+};
+
+export const processImage = async (imageId: string) => {
+  const response = await apiClient.post('/ai/process-image', {
+    imageId,
+  });
+
+  return response.data.image;
+};
+
+export const searchFromImage = async (
+  imageId: string,
+  conditionId?: string
+) => {
+  const response = await apiClient.post('/ai/search-ebay', {
+    imageId,
+    condition: conditionId,
+  });
+
+  return response.data.ebayResults.itemSummaries.map((item: any) => ({
+    id: item.itemId,
+    marketplace: 'eBay',
+    title: item.title,
+    price: item.price
+      ? `${item.price.currency} ${item.price.value}`
+      : 'Price not available',
+    imageUrl: item.image?.imageUrl,
+    url: item.itemWebUrl,
+  }));
 };
 
 export default apiClient;

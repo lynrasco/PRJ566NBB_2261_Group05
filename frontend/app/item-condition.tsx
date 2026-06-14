@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useState } from 'react';
+import { uploadImage, processImage, searchFromImage } from '@/services/api';
 
 type ItemCondition = {
   label: string;
@@ -24,11 +25,13 @@ export default function ItemConditionScreen() {
     ? { uri: imageUri }
     : require('@/assets/images/partial-react-logo.png');
 
+  /*
   const continueToListings = () => {
+    /*
     if (!selectedCondition) {
       return;
     }
-
+    
     router.push({
       pathname: '/market-listings',
       params: {
@@ -37,7 +40,40 @@ export default function ItemConditionScreen() {
         conditionId: selectedCondition.conditionId,
       },
     });
+    
   };
+  */
+  const continueToListings = async () => {
+  if (!selectedCondition || !imageUri) return;
+
+  try {
+    // STEP 1: upload image → get imageId
+    const imageId = await uploadImage(imageUri);
+
+    // STEP 2: process image (AI)
+    await processImage(imageId);
+
+    // STEP 3: search eBay using imageId + conditionId
+    const listings = await searchFromImage(
+      imageId,
+      selectedCondition.conditionId
+    );
+
+    router.push({
+      pathname: '/market-listings',
+      params: {
+        listings: JSON.stringify(listings),
+        imageUri,
+        conditionId: selectedCondition.conditionId,
+      },
+    });
+
+  } catch (err) {
+    console.error('Flow error:', err);
+  }
+};
+
+
 
   return (
     <ScrollView

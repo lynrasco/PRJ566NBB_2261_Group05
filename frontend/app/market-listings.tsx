@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getEbayListings } from '@/services/api';
+//import { getEbayListings } from '@/services/api';
 import { useState, useEffect } from 'react';
 
 type Listing = {
@@ -77,6 +77,51 @@ export default function MarketListingsScreen() {
 }
 */
 export default function MarketListingsScreen() {
+  const { imageUri, listings } = useLocalSearchParams<{
+    imageUri?: string;
+    listings?: string;
+  }>();
+
+  const parsedListings = listings ? JSON.parse(listings) : [];
+
+  const imageSource = imageUri
+    ? { uri: imageUri }
+    : require('@/assets/images/partial-react-logo.png');
+
+  const featured = parsedListings.length > 0 ? parsedListings[0] : null;
+  const rest = parsedListings.length > 1 ? parsedListings.slice(1) : [];
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <Text style={styles.backIcon}>←</Text>
+      </TouchableOpacity>
+
+      {parsedListings.length === 0 ? (
+        <Text style={{ textAlign: 'center', marginTop: 40 }}>
+          No listings received
+        </Text>
+      ) : (
+        <View style={styles.list}>
+          {featured && (
+            <FeaturedListing listing={featured} imageSource={imageSource} />
+          )}
+
+          {rest.map((listing: any) => (
+            <MarketplaceListing
+              key={listing.id}
+              listing={listing}
+              imageSource={imageSource}
+            />
+          ))}
+        </View>
+      )}
+
+    </ScrollView>
+  );
+}
+/*
+export default function MarketListingsScreen() {
   const [listings, setListings] = useState<Listing[]>([]);
   const { imageUri, conditionId } = useLocalSearchParams<{
     imageUri?: string;
@@ -146,6 +191,7 @@ export default function MarketListingsScreen() {
     </ScrollView>
   );
 }
+*/
 
 function FeaturedListing({
   listing,
