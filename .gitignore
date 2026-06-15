@@ -148,3 +148,5 @@ vite.config.ts.timestamp-*
 
 #google vision api keys
 google-vision-key*.json
+backend/.env
+backend/google-vision-api.json
