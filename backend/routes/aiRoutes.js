@@ -12,7 +12,13 @@ const visionClient = new vision.ImageAnnotatorClient();
 
 const isRemoteUrl = (imageUrl) => /^https?:\/\//i.test(imageUrl);
 
-const buildVisionImage = async (imageUrl) => {
+const buildVisionImage = async ({ imageUrl, imageBase64 }) => {
+  if (imageBase64) {
+    return {
+      content: imageBase64,
+    };
+  }
+
   if (isRemoteUrl(imageUrl)) {
     return {
       source: {
@@ -54,16 +60,39 @@ const buildDescription = ({ labels, logos, objects, text }) => {
   return descriptionParts.filter(Boolean).join(" ");
 };
 
-const handleProcessImage = async (req, res, next) => {
-  try {
-    const { imageId, userDescription } = req.body;
+const analyzeVisionImage = async (visionImage) => {
+  const [result] = await visionClient.annotateImage({
+    image: visionImage,
+    features: [
+      { type: "LABEL_DETECTION", maxResults: 10 },
+      { type: "LOGO_DETECTION", maxResults: 5 },
+      { type: "TEXT_DETECTION", maxResults: 5 },
+      { type: "OBJECT_LOCALIZATION", maxResults: 10 },
+    ],
+  });
 
-    if (!imageId) {
-      const error = new Error("Image ID is required");
-      error.statusCode = 400;
-      throw error;
-    }
+  const labels = formatAnnotations(result.labelAnnotations || []);
+  const logos = formatAnnotations(result.logoAnnotations || []);
+  const objects = formatAnnotations(
+    result.localizedObjectAnnotations || [],
+    "name"
+  );
+  const text = result.textAnnotations?.[0]?.description || "";
+  const aiTags = labels.map((label) => label.description);
+  const aiDescription = buildDescription({ labels, logos, objects, text });
 
+  return {
+    labels,
+    logos,
+    objects,
+    text,
+    aiTags,
+    aiDescription,
+  };
+};
+
+const resolveImageContext = async ({ imageId, imageUrl, imageBase64 }) => {
+  if (imageId) {
     const image = await imageRepository.getImageById(imageId);
 
     if (!image) {
@@ -72,32 +101,46 @@ const handleProcessImage = async (req, res, next) => {
       throw error;
     }
 
-    const visionImage = await buildVisionImage(image.imageUrl);
+    return {
+      imageId,
+      image,
+      visionImage: await buildVisionImage({ imageUrl: image.imageUrl }),
+    };
+  }
 
-    const [result] = await visionClient.annotateImage({
-      image: visionImage,
-      features: [
-        { type: "LABEL_DETECTION", maxResults: 10 },
-        { type: "LOGO_DETECTION", maxResults: 5 },
-        { type: "TEXT_DETECTION", maxResults: 5 },
-        { type: "OBJECT_LOCALIZATION", maxResults: 10 },
-      ],
-    });
+  if (imageUrl || imageBase64) {
+    return {
+      imageId: null,
+      image: {
+        imageUrl,
+        aiTags: [],
+        aiDescription: "",
+      },
+      visionImage: await buildVisionImage({ imageUrl, imageBase64 }),
+    };
+  }
 
-    const labels = formatAnnotations(result.labelAnnotations || []);
-    const logos = formatAnnotations(result.logoAnnotations || []);
-    const objects = formatAnnotations(
-      result.localizedObjectAnnotations || [],
-      "name"
-    );
-    const text = result.textAnnotations?.[0]?.description || "";
-    const aiTags = labels.map((label) => label.description);
-    const aiDescription = buildDescription({ labels, logos, objects, text });
+  const error = new Error("Image ID or image URL is required");
+  error.statusCode = 400;
+  throw error;
+};
 
-    const updatedImage = await imageRepository.updateImageById(imageId, {
-      aiTags,
-      aiDescription,
-    });
+const handleProcessImage = async (req, res, next) => {
+  try {
+    const { imageId, imageUrl, imageBase64, userDescription } = req.body;
+    const resolved = await resolveImageContext({ imageId, imageUrl, imageBase64 });
+    const visionResult = await analyzeVisionImage(resolved.visionImage);
+
+    const updatedImage = resolved.imageId
+      ? await imageRepository.updateImageById(resolved.imageId, {
+          aiTags: visionResult.aiTags,
+          aiDescription: visionResult.aiDescription,
+        })
+      : {
+          ...resolved.image,
+          aiTags: visionResult.aiTags,
+          aiDescription: visionResult.aiDescription,
+        };
 
     const ebayQuery = buildEbaySearchQuery({
       image: updatedImage,
@@ -111,10 +154,10 @@ const handleProcessImage = async (req, res, next) => {
       ebayQuery,
       nextRoute: "/api/ebay",
       vision: {
-        labels,
-        logos,
-        objects,
-        text,
+        labels: visionResult.labels,
+        logos: visionResult.logos,
+        objects: visionResult.objects,
+        text: visionResult.text,
       },
     });
   } catch (error) {
@@ -220,20 +263,39 @@ router.buildEbaySearchQuery = buildEbaySearchQuery;
 
 router.post("/search-ebay", async (req, res, next) => {
   try {
-    const { imageId, condition, userDescription } = req.body;
+    const {
+      imageId,
+      imageUrl,
+      imageBase64,
+      aiTags,
+      aiDescription,
+      condition,
+      userDescription,
+    } = req.body;
 
-    if (!imageId) {
-      const error = new Error("Image ID is required");
-      error.statusCode = 400;
-      throw error;
-    }
+    let image =
+      aiTags || aiDescription
+        ? {
+            imageUrl,
+            aiTags: aiTags || [],
+            aiDescription: aiDescription || "",
+          }
+        : null;
 
-    const image = await imageRepository.getImageById(imageId);
+    let resolved = null;
 
     if (!image) {
-      const error = new Error("Image not found");
-      error.statusCode = 404;
-      throw error;
+      resolved = await resolveImageContext({ imageId, imageUrl, imageBase64 });
+      image = resolved.image;
+    }
+
+    if (!buildEbaySearchQuery({ image, userDescription }) && resolved?.visionImage) {
+      const visionResult = await analyzeVisionImage(resolved.visionImage);
+      image = {
+        ...image,
+        aiTags: visionResult.aiTags,
+        aiDescription: visionResult.aiDescription,
+      };
     }
 
     const query = buildEbaySearchQuery({ image, userDescription });
@@ -261,21 +323,9 @@ router.post("/search-ebay", async (req, res, next) => {
 
 router.post("/price-estimate", async (req, res, next) => {
   try {
-    const { imageId, condition, userDescription } = req.body;
-
-    if (!imageId) {
-      const error = new Error("Image ID is required");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    const image = await imageRepository.getImageById(imageId);
-
-    if (!image) {
-      const error = new Error("Image not found");
-      error.statusCode = 404;
-      throw error;
-    }
+    const { imageId, imageUrl, imageBase64, condition, userDescription } = req.body;
+    const resolved = await resolveImageContext({ imageId, imageUrl, imageBase64 });
+    const image = resolved.image;
 
     const query = buildEbaySearchQuery({ image, userDescription });
     const conditionId = normalizeEbayCondition(condition);
