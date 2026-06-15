@@ -11,36 +11,6 @@ type Listing = {
   imageUrl?: string;
   url?: string;
 };
-/*
-const listings: Listing[] = [
-  {
-    id: 'best-fit',
-    marketplace: 'Best Fit',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-    price: '$57 - $70',
-  },
-  {
-    id: 'facebook-1',
-    marketplace: 'Facebook',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-  },
-  {
-    id: 'ebay',
-    marketplace: 'Ebay',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-  },
-  {
-    id: 'facebook-2',
-    marketplace: 'Facebook',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-  },
-  {
-    id: 'facebook-3',
-    marketplace: 'Facebook',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-  },
-];
-*/
 
 /*
 export default function MarketListingsScreen() {

@@ -47,15 +47,12 @@ export default function ItemConditionScreen() {
   if (!selectedCondition || !imageUri) return;
 
   try {
-    // STEP 1: upload image → get imageId
-    const imageId = await uploadImage(imageUri);
+    const imageData = await uploadImage(imageUri);
 
-    // STEP 2: process image (AI)
-    await processImage(imageId);
+    await processImage(imageData);
 
-    // STEP 3: search eBay using imageId + conditionId
     const listings = await searchFromImage(
-      imageId,
+      imageData,
       selectedCondition.conditionId
     );
 
@@ -67,7 +64,6 @@ export default function ItemConditionScreen() {
         conditionId: selectedCondition.conditionId,
       },
     });
-
   } catch (err) {
     console.error('Flow error:', err);
   }

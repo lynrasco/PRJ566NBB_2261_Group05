@@ -84,9 +84,28 @@ export const searchFromImage = async (
       ? { imageUrl: imageInput, condition: conditionId, userDescription }
       : { ...imageInput, condition: conditionId, userDescription };
 
-  const response = await apiClient.post('/ai/search-ebay', payload);
 
-  return response.data.ebayResults.itemSummaries.map((item: any) => ({
+  const response = await apiClient.post('/ai/search-ebay', payload);
+  console.log("EBAY RAW RESPONSE:", response.data.ebayResults);
+  const results = response.data?.ebayResults?.itemSummaries;
+
+if (!Array.isArray(results)) {
+  console.log("No eBay results:", response.data.ebayResults);
+  return [];
+}
+
+return results.map((item: any) => ({
+  id: item.itemId,
+  marketplace: 'eBay',
+  title: item.title,
+  price: item.price
+    ? `${item.price.currency} ${item.price.value}`
+    : 'Price not available',
+  imageUrl: extractImage(item),
+  url: item.itemWebUrl,
+}));
+  /*
+  return response.data.ebayResults.itemSummaries.map((item: any) => ({r
     id: item.itemId,
     marketplace: 'eBay',
     title: item.title,
@@ -96,6 +115,17 @@ export const searchFromImage = async (
     imageUrl: item.image?.imageUrl,
     url: item.itemWebUrl,
   }));
+  */
 };
+function extractImage(item: any): string | null {
+  return (
+    item.thumbnailImages?.[0]?.imageUrl ||
+    item.additionalImages?.[0]?.imageUrl ||
+    item.image?.imageUrl ||
+    item.image?.url ||
+    item.thumbnailImage ||
+    null
+  );
+}
 
 export default apiClient;
