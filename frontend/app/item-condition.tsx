@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useState } from 'react';
-import { uploadImage, processImage, searchFromImage } from '@/services/api';
+//import { imageMetaData } from '@/services/api';
+import { uploadImage } from '@/services/api';
 
 type ItemCondition = {
   label: string;
@@ -24,7 +25,42 @@ export default function ItemConditionScreen() {
   const imageSource = imageUri
     ? { uri: imageUri }
     : require('@/assets/images/partial-react-logo.png');
+    const continueToListings = async () => {
+  if (!selectedCondition || !imageUri) return;
 
+  try {
+    const imageId = await uploadImage(imageUri);
+
+    router.push({
+      pathname: '/market-listings',
+      params: {
+        imageId,
+        conditionId: selectedCondition.conditionId,
+      },
+    });
+
+  } catch (err) {
+    console.error("FLOW ERROR:", err);
+  }
+};
+
+    /*
+    const continueToListings = () => {
+      if (!selectedCondition) {
+        return;
+      }
+      let params = {
+        imageUri,
+        condition: selectedCondition,
+      }
+      imageMetaData(imageUri);
+      router.push({
+        pathname: '/market-listings',
+        params: {
+          imageUri
+        },
+      });}
+    */
   /*
   const continueToListings = () => {
     /*
@@ -43,36 +79,7 @@ export default function ItemConditionScreen() {
     
   };
   */
-  const continueToListings = async () => {
-  if (!selectedCondition || !imageUri) return;
-
-  try {
-    // STEP 1: upload image → get imageId
-    const imageId = await uploadImage(imageUri);
-
-    // STEP 2: process image (AI)
-    await processImage(imageId);
-
-    // STEP 3: search eBay using imageId + conditionId
-    const listings = await searchFromImage(
-      imageId,
-      selectedCondition.conditionId
-    );
-
-    router.push({
-      pathname: '/market-listings',
-      params: {
-        listings: JSON.stringify(listings),
-        imageUri,
-        conditionId: selectedCondition.conditionId,
-      },
-    });
-
-  } catch (err) {
-    console.error('Flow error:', err);
-  }
-};
-
+  
 
 
   return (
