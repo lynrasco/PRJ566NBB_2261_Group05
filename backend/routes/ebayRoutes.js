@@ -7,7 +7,7 @@ const handleListingsSearch = async (req, res, next) => {
   try {
     const { query, conditionId, limit } = req.body;
 
-    if (!query) {
+    if (!query || !query.trim()) {
       const error = new Error("Search query is required");
       error.statusCode = 400;
       throw error;
@@ -23,12 +23,11 @@ const handleListingsSearch = async (req, res, next) => {
       id: item.itemId,
       marketplace: "eBay",
       title: item.title,
-      price: item.price
-        ? `${item.price.currency} ${item.price.value}`
-        : "Price not available",
+      price: item.price ? Number(item.price.value) : null,
+      currency: item.price?.currency || "USD",
       imageUrl: item.image?.imageUrl || null,
       url: item.itemWebUrl,
-      condition: item.condition,
+      condition: item.condition || null,
     }));
 
     res.status(200).json({
