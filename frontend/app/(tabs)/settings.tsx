@@ -19,6 +19,11 @@ export default function SettingsScreen() {
   const openSetting = (option: string) => {
     if (option === 'Profile settings') {
       router.push('/profile-settings');
+      return;
+    }
+
+    if (option === 'About us') {
+      router.push('/about-us');
     }
   };
 
