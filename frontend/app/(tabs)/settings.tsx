@@ -22,6 +22,16 @@ export default function SettingsScreen() {
       return;
     }
 
+    if (option === 'Password & security') {
+      router.push('/password-security');
+      return;
+    }
+
+    if (option === 'Languages') {
+      router.push('/languages');
+      return;
+    }
+
     if (option === 'About us') {
       router.push('/about-us');
     }
