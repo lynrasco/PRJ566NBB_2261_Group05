@@ -38,6 +38,16 @@ export default function PasswordSecurityScreen() {
           Password & Security
         </Text>
 
+        <View style={styles.previewCard}>
+            <View style={styles.iconCircle}>
+                <Ionicons name="lock-closed-outline" size={28} color="#024883" />
+            </View>
+            <Text style={styles.previewTitle}>Security</Text>
+            <Text style={styles.previewText}>
+                Manage your password and device security settings.
+            </Text>
+        </View>
+
         <View style={styles.form}>
           <View style={styles.fieldGroup}>
             <Text selectable style={styles.label}>
@@ -95,7 +105,7 @@ export default function PasswordSecurityScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#eef3f8',
   },
   content: {
     flexGrow: 1,
@@ -139,11 +149,12 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     borderRadius: 9,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 14,
     fontFamily: 'AzeretMono_400Regular',
     fontSize: 15,
     color: '#050505',
+    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
   },
   faceIdCard: {
     minHeight: 72,
@@ -186,5 +197,36 @@ const styles = StyleSheet.create({
   switchWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  previewCard: {
+    alignItems: 'center',
+    marginBottom: 18,
+    paddingVertical: 24,
+    paddingHorizontal: 18,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
+  },
+  iconCircle: {
+    width: 58,
+    height: 58,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 29,
+    backgroundColor: '#e9f2fb',
+  },
+  previewTitle: {
+    marginTop: 12,
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 16,
+    color: '#111111',
+  },
+  previewText: {
+    marginTop: 7,
+    textAlign: 'center',
+    fontFamily: 'AzeretMono_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#52616f',
   },
 });

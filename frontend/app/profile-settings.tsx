@@ -66,6 +66,16 @@ export default function ProfileSettingsScreen() {
 
         <Text style={styles.title}>Profile Settings</Text>
 
+        <View style={styles.previewCard}>
+            <View style={styles.iconCircle}>
+                <Ionicons name="person-outline" size={28} color="#024883" />
+            </View>
+            <Text style={styles.previewTitle}>Profile</Text>
+            <Text style={styles.previewText}>
+                Update your personal information.
+            </Text>
+        </View>
+
         <View style={styles.form}>
           {PROFILE_FIELDS.map((field) => (
             <View key={field.key} style={styles.fieldGroup}>
@@ -96,7 +106,7 @@ export default function ProfileSettingsScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#eef3f8',
   },
   content: {
     flexGrow: 1,
@@ -162,7 +172,7 @@ const styles = StyleSheet.create({
   input: {
     height: 34,
     borderRadius: 8,
-    backgroundColor: '#eeeeee',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 12,
     fontFamily: 'AzeretMono_400Regular',
     fontSize: 13,
@@ -172,5 +182,36 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 2,
     elevation: 2,
+  },
+  previewCard: {
+    alignItems: 'center',
+    marginBottom: 18,
+    paddingVertical: 24,
+    paddingHorizontal: 18,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
+  },
+  iconCircle: {
+    width: 58,
+    height: 58,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 29,
+    backgroundColor: '#e9f2fb',
+  },
+  previewTitle: {
+    marginTop: 12,
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 16,
+    color: '#111111',
+  },
+  previewText: {
+    marginTop: 7,
+    textAlign: 'center',
+    fontFamily: 'AzeretMono_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#52616f',
   },
 });

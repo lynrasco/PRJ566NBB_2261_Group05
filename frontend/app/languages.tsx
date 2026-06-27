@@ -21,6 +21,16 @@ export default function LanguagesScreen() {
         Languages
       </Text>
 
+      <View style={styles.previewCard}>
+        <View style={styles.iconCircle}>
+            <Ionicons name="language-outline" size={28} color="#024883" />
+        </View>
+        <Text style={styles.previewTitle}>App language</Text>
+        <Text style={styles.previewText}>
+            Choose the language used throughout the app.
+        </Text>
+      </View>
+
       <Pressable style={({ pressed }) => [styles.optionCard, pressed && styles.cardPressed]}>
         <Text selectable style={styles.optionLabel}>
           App Language
@@ -39,7 +49,7 @@ export default function LanguagesScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#eef3f8',
   },
   content: {
     flexGrow: 1,
@@ -71,8 +81,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 43,
-    borderRadius: 14,
-    backgroundColor: '#f6f6f6',
+    borderRadius: 18,
+    backgroundColor: '#ffffff',
     paddingLeft: 31,
     paddingRight: 17,
     boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)',
@@ -96,5 +106,37 @@ const styles = StyleSheet.create({
     fontFamily: 'AzeretMono_400Regular',
     fontSize: 15,
     color: '#111111',
+  },
+  previewCard: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 18,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)',
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 28,
+    backgroundColor: '#e9f2fb',
+  },
+  previewTitle: {
+    marginTop: 10,
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 16,
+    color: '#111111',
+  },
+  previewText: {
+    marginTop: 6,
+    textAlign: 'center',
+    fontFamily: 'AzeretMono_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#52616f',
   },
 });

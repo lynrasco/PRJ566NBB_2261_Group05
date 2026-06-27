@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 18,
     backgroundColor: '#ffffff',
+    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
   },
   row: {
     minHeight: 82,
@@ -168,6 +169,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 22,
     backgroundColor: '#ffffff',
+    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
   },
   previewCardDark: {
     backgroundColor: '#121c2b',
