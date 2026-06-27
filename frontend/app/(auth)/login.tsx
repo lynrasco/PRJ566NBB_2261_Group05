@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 5,
         justifyContent: "center",
         alignItems: "center",
         padding: 20,
@@ -70,17 +69,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
     }
 })
-
-/*
-function LoginButton() {
-    const router = useRouter();
-    return (
-        <Pressable style={styles.button} onPress={() => router.push("/dashboard")}>
-            <Text style={styles.boldText}>Log In</Text>
-        </Pressable>
-    );
-}
-*/
 
 export default function Login() {
     const router = useRouter();

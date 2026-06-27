@@ -11,85 +11,33 @@ type Listing = {
   imageUrl?: string;
   url?: string;
 };
-/*
-const listings: Listing[] = [
-  {
-    id: 'best-fit',
-    marketplace: 'Best Fit',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-    price: '$57 - $70',
-  },
-  {
-    id: 'facebook-1',
-    marketplace: 'Facebook',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-  },
-  {
-    id: 'ebay',
-    marketplace: 'Ebay',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-  },
-  {
-    id: 'facebook-2',
-    marketplace: 'Facebook',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-  },
-  {
-    id: 'facebook-3',
-    marketplace: 'Facebook',
-    title: 'Elegant black heels designed to provide both style and confidence.',
-  },
-];
-*/
 
-/*
-export default function MarketListingsScreen() {
-  const [listings, setListings] = useState<Listing[]>([]);
-  const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
-  const imageSource = imageUri
-    ? { uri: imageUri }
-    : require('@/assets/images/partial-react-logo.png');
-  return (
-    <ScrollView
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-      style={styles.container}
-    >
-      <TouchableOpacity
-        accessibilityLabel="Go back"
-        onPress={() => router.back()}
-        style={styles.backButton}
-      >
-        <Text style={styles.backIcon}>←</Text>
-      </TouchableOpacity>
-
-      <View style={styles.list}>
-        <TouchableOpacity onPress={() => router.push('/edit-item')}>
-          <FeaturedListing listing={listings[0]} imageSource={imageSource} />
-        </TouchableOpacity>
-
-        {listings.slice(1).map((listing) => (
-          <MarketplaceListing key={listing.id} listing={listing} imageSource={imageSource} />
-        ))}
-      </View>
-    </ScrollView>
-  );
-}
-*/
 export default function MarketListingsScreen() {
   const { imageUri, listings } = useLocalSearchParams<{
     imageUri?: string;
     listings?: string;
   }>();
 
-  const parsedListings = listings ? JSON.parse(listings) : [];
-
+  //const parsedListings = listings ? JSON.parse(listings) : [];
+  const parsedListings = parseListings(listings);
   const imageSource = imageUri
     ? { uri: imageUri }
     : require('@/assets/images/partial-react-logo.png');
 
   const featured = parsedListings.length > 0 ? parsedListings[0] : null;
   const rest = parsedListings.length > 1 ? parsedListings.slice(1) : [];
+  const openEditItem = (listing: Listing) => {
+    router.push({
+    pathname: '/edit-item',
+    params: {
+      itemId: String(listing.id || ''),
+      title: String(listing.title || ''),
+      price: getNumericPriceString(listing.price),
+      imageUrl: String(listing.imageUrl || imageUri || ''),
+    },
+  });
+};
+
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -104,16 +52,19 @@ export default function MarketListingsScreen() {
       ) : (
         <View style={styles.list}>
           {featured && (
-            <FeaturedListing listing={featured} imageSource={imageSource} />
-          )}
+  <TouchableOpacity onPress={() => openEditItem(featured)}>
+    <FeaturedListing listing={featured} imageSource={imageSource} />
+  </TouchableOpacity>
+)}
 
-          {rest.map((listing: any) => (
-            <MarketplaceListing
-              key={listing.id}
-              listing={listing}
-              imageSource={imageSource}
-            />
-          ))}
+          {rest.map((listing: Listing) => (
+  <TouchableOpacity key={listing.id} onPress={() => openEditItem(listing)}>
+    <MarketplaceListing
+      listing={listing}
+      imageSource={imageSource}
+    />
+  </TouchableOpacity>
+))}
         </View>
       )}
 
@@ -241,6 +192,21 @@ function MarketplaceListing({
       </View>
     </View>
   );
+}
+function parseListings(listings?: string): Listing[] {
+  if (!listings) return [];
+
+  try {
+    const parsed = JSON.parse(listings);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function getNumericPriceString(price?: string) {
+  const match = String(price || '').match(/\d+(\.\d+)?/);
+  return match ? match[0] : '50';
 }
 
 const styles = StyleSheet.create({
