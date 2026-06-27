@@ -25,51 +25,27 @@ export default function ItemConditionScreen() {
     ? { uri: imageUri }
     : require('@/assets/images/partial-react-logo.png');
 
-  /*
-  const continueToListings = () => {
-    /*
-    if (!selectedCondition) {
-      return;
-    }
-    
-    router.push({
-      pathname: '/market-listings',
-      params: {
-        imageUri,
-        condition: selectedCondition.label,
-        conditionId: selectedCondition.conditionId,
-      },
-    });
-    
-  };
-  */
   const continueToListings = async () => {
-  if (!selectedCondition || !imageUri) return;
+    if (!selectedCondition || !imageUri) return;
 
-  try {
-    const imageData = await uploadImage(imageUri);
+    try {
+      const imageData = await uploadImage(imageUri);
+      const processedImage = await processImage(imageData);
+      const listings = await searchFromImage(processedImage || imageData, selectedCondition.conditionId);
 
-    await processImage(imageData);
-
-    const listings = await searchFromImage(
-      imageData,
-      selectedCondition.conditionId
-    );
-
-    router.push({
-      pathname: '/market-listings',
-      params: {
-        listings: JSON.stringify(listings),
-        imageUri,
-        conditionId: selectedCondition.conditionId,
-      },
-    });
-  } catch (err) {
-    console.error('Flow error:', err);
-  }
-};
-
-
+      router.push({
+        pathname: '/item-result',
+        params: {
+          listings: JSON.stringify(listings),
+          imageUri,
+          condition: selectedCondition.label,
+          conditionId: selectedCondition.conditionId,
+        },
+      });
+    } catch (err) {
+      console.error('Flow error:', err);
+    }
+  };
 
   return (
     <ScrollView
@@ -234,3 +210,4 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 });
+
