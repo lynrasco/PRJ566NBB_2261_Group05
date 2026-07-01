@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { readAsStringAsync } from 'expo-file-system/legacy';
 
-// Base URL for the backend - update this if running on a different host/port
-// For testing, replace localhost with your machine's IP address if running on a mobile device
 const API_BASE_URL = 'http://localhost:3000/api';
 
 const apiClient = axios.create({
@@ -32,6 +30,50 @@ export const getItemById = async (id: string) => {
     throw error;
   }
 };
+
+export const saveItemToMyItems = async (item: {
+  title?: string;
+  description?: string;
+  price?: number;
+  category?: string;
+  brand?: string;
+  condition?: string;
+  imageUrl?: string;
+}) => {
+  try {
+    const formData = new FormData();
+
+    appendFormValue(formData, 'title', item.title);
+    appendFormValue(formData, 'description', item.description);
+    appendFormValue(formData, 'price', item.price);
+    appendFormValue(formData, 'category', item.category);
+    appendFormValue(formData, 'brand', item.brand);
+    appendFormValue(formData, 'condition', item.condition);
+
+    if (item.imageUrl && !/^https?:\/\//i.test(item.imageUrl)) {
+      formData.append('image', {
+        uri: item.imageUrl,
+        name: 'item-image.jpg',
+        type: 'image/jpeg',
+      } as any);
+    }
+
+    const response = await apiClient.post('/items/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error saving item:', error);
+    throw error;
+  }
+};
+
+function appendFormValue(formData: FormData, key: string, value?: string | number) {
+  if (value == null || value === '') return;
+  formData.append(key, String(value));
+}
 
 export const uploadImage = async (imageUri: string) => {
   const imageBase64 = await readAsStringAsync(imageUri, {
@@ -84,39 +126,38 @@ export const searchFromImage = async (
       ? { imageUrl: imageInput, condition: conditionId, userDescription }
       : { ...imageInput, condition: conditionId, userDescription };
 
-
   const response = await apiClient.post('/ai/search-ebay', payload);
-  console.log("EBAY RAW RESPONSE:", response.data.ebayResults);
+  console.log('EBAY RAW RESPONSE:', response.data.ebayResults);
   const results = response.data?.ebayResults?.itemSummaries;
 
-if (!Array.isArray(results)) {
-  console.log("No eBay results:", response.data.ebayResults);
-  return [];
-}
+  if (!Array.isArray(results)) {
+    console.log('No eBay results:', response.data.ebayResults);
+    return [];
+  }
 
-return results.map((item: any) => ({
-  id: item.itemId,
-  marketplace: 'eBay',
-  title: item.title,
-  price: item.price
-    ? `${item.price.currency} ${item.price.value}`
-    : 'Price not available',
-  imageUrl: extractImage(item),
-  url: item.itemWebUrl,
-}));
-  /*
-  return response.data.ebayResults.itemSummaries.map((item: any) => ({r
+  return results.map((item: any) => ({
     id: item.itemId,
     marketplace: 'eBay',
     title: item.title,
-    price: item.price
-      ? `${item.price.currency} ${item.price.value}`
-      : 'Price not available',
-    imageUrl: item.image?.imageUrl,
+    brand: item.brand,
+    category: item.categoryName || item.categoryPath || item.categories?.[0]?.categoryName,
+    description:
+      item.shortDescription ||
+      item.subtitle ||
+      item.additionalProductIdentities?.[0]?.identifierValue ||
+      '',
+    condition: item.condition,
+    price: item.price ? `${item.price.currency} ${item.price.value}` : 'Price not available',
+    priceLow: item.priceLow,
+    priceHigh: item.priceHigh,
+    suggestedPrice: item.suggestedPrice,
+    confidence: item.confidence,
+    pricePositionPercent: item.pricePositionPercent,
+    imageUrl: extractImage(item),
     url: item.itemWebUrl,
   }));
-  */
 };
+
 function extractImage(item: any): string | null {
   return (
     item.thumbnailImages?.[0]?.imageUrl ||

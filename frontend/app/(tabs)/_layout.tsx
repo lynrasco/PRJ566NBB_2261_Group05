@@ -15,7 +15,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
         tabBarStyle: {
           position: 'absolute',
           bottom: 20,
@@ -32,6 +32,11 @@ export default function TabLayout() {
           paddingBottom: 10,
           justifyContent: 'center',
         },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '600',
+          marginTop: 2,
+        },
         tabBarItemStyle: {
           flex: 1,
           width: 70,
@@ -46,7 +51,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          tabBarIcon: ({ color }) => <IconSymbol size={50} name="house" color={color} />,
+          title: 'Home',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -54,14 +60,22 @@ export default function TabLayout() {
         options={{
           title: 'Camera',
           tabBarStyle: { display: 'none' },
-          tabBarIcon: ({ color }) => <IconSymbol size={50} name="plus.circle" color={color} />,
+          tabBarLabel: '',
+          tabBarIcon: ({ color }) => <IconSymbol size={34} name="camera.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="items"
+        options={{
+          title: 'Items',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="list.bullet" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <IconSymbol size={50} name="gearshape" color={color} />,
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="person" color={color} />,
           }}
         />
     </Tabs>
