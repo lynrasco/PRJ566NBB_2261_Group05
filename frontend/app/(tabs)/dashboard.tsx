@@ -9,12 +9,9 @@ import { useState, useCallback } from 'react';
 import { getAllItems } from '@/services/api';
 
 import { Ionicons } from '@expo/vector-icons';
-import { AzeretMono_400Regular, AzeretMono_700Bold } from '@expo-google-fonts/azeret-mono';
-import Slider from '@react-native-community/slider';
 
 export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [price, setPrice] = useState(57);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +44,17 @@ export default function DashboardScreen() {
     setModalVisible(true);
   };
 
+  const totalEstimatedValue = items.reduce((total, item) => {
+    const numericPrice =
+      typeof item.price === 'number'
+        ? item.price
+        : Number(String(item.price ?? '').replace(/[^0-9.-]/g, ''));
+
+    return Number.isFinite(numericPrice) ? total + numericPrice : total;
+  }, 0);
+
+  const totalEstimatedValueLabel = `$${Math.round(totalEstimatedValue).toLocaleString('en-US')}`;
+
   return (
   <>
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -54,6 +62,8 @@ export default function DashboardScreen() {
       <DashboardHeader
         userName="Linda"
         profileImage={require('@/assets/images/profile-picture.png')}
+        totalEstimatedValue={totalEstimatedValueLabel}
+        trendValue="+12%"
       />
 
       {/* Loading State */}
