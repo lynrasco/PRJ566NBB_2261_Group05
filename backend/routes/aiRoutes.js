@@ -6,7 +6,6 @@ const router = express.Router();
 
 const imageRepository = require("../repositories/imageRepository");
 const ebayService = require("../services/ebayService");
-const localPricingService = require("../services/localPricingService");
 
 const visionClient = new vision.ImageAnnotatorClient();
 
@@ -321,33 +320,5 @@ router.post("/search-ebay", async (req, res, next) => {
   }
 });
 
-router.post("/price-estimate", async (req, res, next) => {
-  try {
-    const { imageId, imageUrl, imageBase64, condition, userDescription } = req.body;
-    const resolved = await resolveImageContext({ imageId, imageUrl, imageBase64 });
-    const image = resolved.image;
-
-    const query = buildEbaySearchQuery({ image, userDescription });
-    const conditionId = normalizeEbayCondition(condition);
-    const ebayResults = await ebayService.searchItems(query, conditionId, 12);
-    const priceEstimate = await localPricingService.estimatePrice({
-      image,
-      condition: condition || "used",
-      userDescription,
-      ebayResults,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Price estimate completed successfully",
-      query,
-      conditionId,
-      ebayResults,
-      priceEstimate,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
 
 module.exports = router;

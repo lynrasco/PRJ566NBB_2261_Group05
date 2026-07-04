@@ -13,7 +13,7 @@ const userRoutes = require("./routes/userRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const ebayRoutes = require("./routes/ebayRoutes");
-
+const pricingRoutes = require("./routes/pricingRoutes");
 
 connectDB();
 
@@ -43,6 +43,8 @@ app.use("/api/items", itemRoutes);
 app.use("/api/ai", aiRoutes);
 
 app.use("/api/ebay", ebayRoutes);
+
+app.use("/api/pricing", pricingRoutes);
 
 
 app.use(errorHandler);
