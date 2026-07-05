@@ -4,15 +4,15 @@ import { ThemedText } from '@/components/themed-text';
 
 type BreakdownData = Record<string, number>;
 
-type AnalyticsSectionProps = {
+type AnalyticsChartProps = {
   categoryBreakdown?: BreakdownData;
   conditionBreakdown?: BreakdownData;
 };
 
-export default function AnalyticsSection({
+export default function AnalyticsCharts({
   categoryBreakdown = {},
   conditionBreakdown = {},
-}: AnalyticsSectionProps) {
+}: AnalyticsChartProps) {
   return (
     <View style={styles.container}>
       <ThemedText style={styles.chartTitle}>Analytics Charts</ThemedText>

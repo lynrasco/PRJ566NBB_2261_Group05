@@ -7,7 +7,7 @@ import { MainItemTile } from '@/components/main-item-tile';
 import { ListItem } from '@/components/list-item';
 import { useState, useCallback, useEffect } from 'react';
 import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics } from '@/services/api';
-import AnalyticsSection from '@/components/analytics-section';
+import AnalyticsCharts from '@/components/analytics-charts';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
@@ -203,7 +203,7 @@ export default function DashboardScreen() {
             </ThemedText>
           </View>
 
-           <AnalyticsSection
+           <AnalyticsCharts
               categoryBreakdown={summary.categoryBreakdown}
               conditionBreakdown={summary.conditionBreakdown}
             />
