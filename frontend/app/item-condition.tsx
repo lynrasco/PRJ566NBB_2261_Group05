@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useState } from 'react';
 import { uploadImage, processImage, searchFromImage } from '@/services/api';
+import AnalysisLoadingScreen, { type AnalysisStep } from '@/components/analysis-loading-screen';
 
 type ItemCondition = {
   label: string;
@@ -20,6 +21,9 @@ const conditions: ItemCondition[] = [
 export default function ItemConditionScreen() {
   const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
   const [selectedCondition, setSelectedCondition] = useState<ItemCondition | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState<AnalysisStep>('scanning');
 
   const imageSource = imageUri
     ? { uri: imageUri }
@@ -28,10 +32,38 @@ export default function ItemConditionScreen() {
   const continueToListings = async () => {
     if (!selectedCondition || !imageUri) return;
 
+    setIsLoading(true);
+    setLoadingProgress(0);
+
     try {
+      // Step 1: Scanning
+      setCurrentStep('scanning');
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setLoadingProgress(20);
+
+      // Step 2: Identifying
+      setCurrentStep('identifying');
       const imageData = await uploadImage(imageUri);
+      setLoadingProgress(35);
+
+      // Step 3: Searching
+      setCurrentStep('searching');
       const processedImage = await processImage(imageData);
-      const listings = await searchFromImage(processedImage || imageData, selectedCondition.conditionId);
+      setLoadingProgress(50);
+
+      // Step 4: Comparing
+      setCurrentStep('comparing');
+      setLoadingProgress(75);
+      const listings = await searchFromImage(
+        processedImage || imageData,
+        selectedCondition.conditionId
+      );
+      setLoadingProgress(90);
+
+      // Step 5: Calculating
+      setCurrentStep('calculating');
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setLoadingProgress(100);
 
       router.push({
         pathname: '/item-result',
@@ -44,8 +76,14 @@ export default function ItemConditionScreen() {
       });
     } catch (err) {
       console.error('Flow error:', err);
+      setIsLoading(false);
+      setLoadingProgress(0);
     }
   };
+
+  if (isLoading) {
+    return <AnalysisLoadingScreen progress={loadingProgress} currentStep={currentStep} />;
+  }
 
   return (
     <ScrollView
