@@ -1,136 +1,143 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+//import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type DimensionValue } from 'react-native';
+import { ThemedText } from '@/components/themed-text';
 
-export default function AnalyticsSection() {
-  const analytics = {
-    totalSavedItems: 12,
-    averageSuggestedPrice: 67,
-    marketplaceComparables: 34,
-    categoryBreakdown: {
-      Footwear: 5,
-      Accessories: 3,
-      Outerwear: 4,
-    },
-    conditionBreakdown: {
-      New: 6,
-      Used: 4,
-      'Like New': 2,
-    },
-  };
+type BreakdownData = Record<string, number>;
 
+type AnalyticsSectionProps = {
+  categoryBreakdown?: BreakdownData;
+  conditionBreakdown?: BreakdownData;
+};
+
+export default function AnalyticsSection({
+  categoryBreakdown = {},
+  conditionBreakdown = {},
+}: AnalyticsSectionProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Analytics</Text>
+      <ThemedText style={styles.chartTitle}>Analytics Charts</ThemedText>
 
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Ionicons name="cube-outline" size={18} color="#024883" />
-          <Text style={styles.statValue}>{analytics.totalSavedItems}</Text>
-          <Text style={styles.statLabel}>Items</Text>
-        </View>
+      <ChartCard
+        title="Category Breakdown"
+        data={categoryBreakdown}
+        emptyText="No category data yet"
+      />
 
-        <View style={styles.statCard}>
-          <Ionicons name="cash-outline" size={18} color="#024883" />
-          <Text style={styles.statValue}>${analytics.averageSuggestedPrice}</Text>
-          <Text style={styles.statLabel}>Avg Price</Text>
-        </View>
+      <ChartCard
+        title="Condition Breakdown"
+        data={conditionBreakdown}
+        emptyText="No condition data yet"
+      />
+    </View>
+  );
+}
 
-        <View style={styles.statCard}>
-          <Ionicons name="pricetag-outline" size={18} color="#024883" />
-          <Text style={styles.statValue}>{analytics.marketplaceComparables}</Text>
-          <Text style={styles.statLabel}>Listings</Text>
-        </View>
-      </View>
+function ChartCard({
+  title,
+  data,
+  emptyText,
+}: {
+  title: string;
+  data: BreakdownData;
+  emptyText: string;
+}) {
+  const entries = Object.entries(data)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Category Breakdown</Text>
+  const total = entries.reduce((sum, [, count]) => sum + count, 0);
+  const maxValue = Math.max(...entries.map(([, count]) => count), 1);
 
-        {Object.entries(analytics.categoryBreakdown).map(([key, value]) => (
-          <View key={key} style={styles.row}>
-            <Text style={styles.rowLabel}>{key}</Text>
-            <Text style={styles.rowValue}>{value}</Text>
-          </View>
-        ))}
-      </View>
+  return (
+    <View style={styles.chartCard}>
+      <ThemedText style={styles.cardTitle}>{title}</ThemedText>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Condition Breakdown</Text>
-        {Object.entries(analytics.conditionBreakdown).map(([key, value]) => (
-          <View key={key} style={styles.row}>
-            <Text style={styles.rowLabel}>{key}</Text>
-            <Text style={styles.rowValue}>{value}</Text>
-          </View>
-        ))}
-      </View>
+      {entries.length > 0 ? (
+        entries.map(([label, count]) => {
+          //const barWidth = `${Math.max(8, (count / maxValue) * 100)}%`;
+          const barWidth: DimensionValue = `${Math.max(8, (count / maxValue) * 100)}%`;
+          const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+
+          return (
+            <View key={label} style={styles.chartRow}>
+              <View style={styles.chartHeader}>
+                <ThemedText numberOfLines={1} style={styles.chartLabel}>
+                  {label}
+                </ThemedText>
+
+                <ThemedText style={styles.chartValue}>
+                  {count} ({percentage}%)
+                </ThemedText>
+              </View>
+
+              <View style={styles.barTrack}>
+                <View style={[styles.barFill, { width: barWidth }]} />
+              </View>
+            </View>
+          );
+        })
+      ) : (
+        <ThemedText style={styles.emptyText}>{emptyText}</ThemedText>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
-    paddingHorizontal: 20,
+    marginTop: 12,
   },
-  title: {
-    fontFamily: 'AzeretMono_700Bold',
-    fontSize: 18,
-    color: '#061421',
-    marginBottom: 16,
+  chartTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#30404d',
+    marginBottom: 8,
   },
-
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 18,
-  },
-  statCard: {
-    flex: 1,
-    marginHorizontal: 4,
-    borderRadius: 14,
+  chartCard: {
     backgroundColor: '#ffffff',
-    paddingVertical: 14,
-    alignItems: 'center',
-    elevation: 2,
-  },
-  statValue: {
-    marginTop: 6,
-    fontFamily: 'AzeretMono_700Bold',
-    fontSize: 16,
-    color: '#024883',
-  },
-  statLabel: {
-    fontFamily: 'AzeretMono_400Regular',
-    fontSize: 10,
-    color: '#58708b',
-  },
-
-  card: {
-    borderRadius: 16,
-    backgroundColor: '#ffffff',
-    padding: 16,
-    marginBottom: 14,
-    elevation: 2,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
   },
   cardTitle: {
-    fontFamily: 'AzeretMono_700Bold',
-    fontSize: 14,
-    marginBottom: 10,
-    color: '#061421',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#5f6f7a',
+    marginBottom: 8,
   },
-
-  row: {
+  chartRow: {
+    marginBottom: 10,
+  },
+  chartHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 5,
   },
-  rowLabel: {
-    fontFamily: 'AzeretMono_400Regular',
+  chartLabel: {
+    flex: 1,
     fontSize: 12,
-    color: '#49617a',
+    color: '#30404d',
   },
-  rowValue: {
-    fontFamily: 'AzeretMono_700Bold',
+  chartValue: {
+    marginLeft: 8,
     fontSize: 12,
+    fontWeight: '600',
     color: '#024883',
+  },
+  barTrack: {
+    height: 8,
+    borderRadius: 10,
+    backgroundColor: '#dce7f2',
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: 8,
+    borderRadius: 10,
+    backgroundColor: '#024883',
+  },
+  emptyText: {
+    fontSize: 12,
+    color: '#7b8793',
+    marginTop: 4,
   },
 });
