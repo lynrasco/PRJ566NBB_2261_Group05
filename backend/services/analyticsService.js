@@ -11,13 +11,9 @@ const buildBreakdown = (items, fieldName) => {
 };
 
 const getUserAnalytics = async (userId) => {
-  if (!userId) {
-    const error = new Error("User ID is required");
-    error.statusCode = 400;
-    throw error;
-  }
+  const query = userId ? { owner: userId } : {};
 
-  const items = await Item.find({ owner: userId })
+  const items = await Item.find(query)
     .sort({ uploadDate: -1 })
     .lean();
 

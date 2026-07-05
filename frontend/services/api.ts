@@ -1,9 +1,23 @@
-import axios from 'axios';
+import { create } from 'axios';
+import Constants from 'expo-constants';
 import { readAsStringAsync } from 'expo-file-system/legacy';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const getApiBaseUrl = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+  if (envUrl) return envUrl;
 
-const apiClient = axios.create({
+  const debuggerHost = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
+  if (debuggerHost) {
+    const host = debuggerHost.split(':')[0];
+    return `http://${host}:3000/api`;
+  }
+
+  return 'http://localhost:3000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+const apiClient = create({
   baseURL: API_BASE_URL,
   timeout: 60000,
   headers: {
@@ -27,6 +41,28 @@ export const getItemById = async (id: string) => {
     return response.data;
   } catch (error) {
     console.error(`Error fetching item ${id}:`, error);
+    throw error;
+  }
+};
+
+export const getDashboardAnalytics = async (userId?: string) => {
+  try {
+    const response = await apiClient.get('/analytics/me', {
+      params: userId ? { userId } : undefined,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching dashboard analytics:', error);
+    throw error;
+  }
+};
+
+export const getItemMarketAnalytics = async (itemId: string) => {
+  try {
+    const response = await apiClient.get(`/analytics/items/${itemId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching market analytics for item ${itemId}:`, error);
     throw error;
   }
 };

@@ -5,20 +5,19 @@ import { ThemedView } from '@/components/themed-view';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { MainItemTile } from '@/components/main-item-tile';
 import { ListItem } from '@/components/list-item';
-import { useState, useCallback } from 'react';
-import { getAllItems } from '@/services/api';
+import { useState, useCallback, useEffect } from 'react';
+import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics } from '@/services/api';
 
 import { Ionicons } from '@expo/vector-icons';
-import { AzeretMono_400Regular, AzeretMono_700Bold } from '@expo-google-fonts/azeret-mono';
-import Slider from '@react-native-community/slider';
 
 export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [price, setPrice] = useState(57);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [marketAnalytics, setMarketAnalytics] = useState<any>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -30,13 +29,26 @@ export default function DashboardScreen() {
     try {
       setLoading(true);
       setError(null);
-      const response = await getAllItems();
-      if (response.success && response.items) {
-        setItems(response.items);
+
+      const [itemsResponse, analyticsResponse] = await Promise.allSettled([
+        getAllItems(),
+        getDashboardAnalytics(),
+      ]);
+
+      if (itemsResponse.status === 'fulfilled' && itemsResponse.value?.success && itemsResponse.value?.items) {
+        setItems(itemsResponse.value.items);
+      } else {
+        throw new Error('Unable to load your items right now.');
+      }
+
+      if (analyticsResponse.status === 'fulfilled' && analyticsResponse.value?.success) {
+        setAnalytics(analyticsResponse.value.analytics);
+      } else {
+        setAnalytics(null);
       }
     } catch (err: any) {
-      console.error('Failed to fetch items:', err);
-      setError(err.message || 'Failed to load items');
+      console.error('Failed to fetch dashboard data:', err);
+      setError(err.message || 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -46,6 +58,56 @@ export default function DashboardScreen() {
     setSelectedItem(item);
     setModalVisible(true);
   };
+
+  useEffect(() => {
+    if (!items[0]?._id) {
+      setMarketAnalytics(null);
+      return;
+    }
+
+    let isActive = true;
+
+    const loadMarketAnalytics = async () => {
+      try {
+        const response = await getItemMarketAnalytics(items[0]._id);
+        if (isActive) {
+          setMarketAnalytics(response?.analytics || response);
+        }
+      } catch {
+        if (isActive) {
+          setMarketAnalytics(null);
+        }
+      }
+    };
+
+    loadMarketAnalytics();
+
+    return () => {
+      isActive = false;
+    };
+  }, [items]);
+
+  const summary = analytics || {
+    totalSavedItems: items.length,
+    averageSuggestedPrice: 0,
+    categoryBreakdown: {},
+    conditionBreakdown: {},
+    recentItems: items.slice(0, 5),
+  };
+
+  const categoryEntries = (
+    Object.entries(summary.categoryBreakdown || {}) as [string, number][]
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+
+  const conditionEntries = (
+    Object.entries(summary.conditionBreakdown || {}) as [string, number][]
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+
+  const recentItems = (summary.recentItems || []).slice(0, 4);
 
   return (
   <>
@@ -82,6 +144,66 @@ export default function DashboardScreen() {
         </ThemedView>
       )}
 
+{!loading && !error && (
+        <ThemedView style={styles.analyticsSection}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            Analytics Overview
+          </ThemedText>
+
+          <View style={styles.analyticsGrid}>
+            <View style={styles.analyticsCardPrimary}>
+              <ThemedText style={styles.metricsLabel}>Saved Items</ThemedText>
+              <ThemedText type="title" style={styles.metricsValue}>{summary.totalSavedItems}</ThemedText>
+              <ThemedText style={styles.metricsHint}>Items in your collection</ThemedText>
+            </View>
+
+            <View style={styles.analyticsCardPrimary}>
+              <ThemedText style={styles.metricsLabel}>Avg Suggested Price</ThemedText>
+              <ThemedText type="title" style={styles.metricsValue}>
+                {summary.averageSuggestedPrice ? `$${summary.averageSuggestedPrice}` : '$0'}
+              </ThemedText>
+              <ThemedText style={styles.metricsHint}>Across current suggestions</ThemedText>
+            </View>
+          </View>
+
+          <View style={styles.analyticsGridTwo}>
+            <View style={styles.analyticsCardSecondary}>
+              <ThemedText style={styles.metricsLabel}>Category Mix</ThemedText>
+              {categoryEntries.length > 0 ? categoryEntries.map(([label, count]) => (
+                <View key={label} style={styles.breakdownRow}>
+                  <ThemedText style={styles.breakdownLabel}>{label}</ThemedText>
+                  <ThemedText style={styles.breakdownValue}>{count}</ThemedText>
+                </View>
+              )) : (
+                <ThemedText style={styles.emptyBreakdown}>No categories yet</ThemedText>
+              )}
+            </View>
+
+            <View style={styles.analyticsCardSecondary}>
+              <ThemedText style={styles.metricsLabel}>Condition Mix</ThemedText>
+              {conditionEntries.length > 0 ? conditionEntries.map(([label, count]) => (
+                <View key={label} style={styles.breakdownRow}>
+                  <ThemedText style={styles.breakdownLabel}>{label}</ThemedText>
+                  <ThemedText style={styles.breakdownValue}>{count}</ThemedText>
+                </View>
+              )) : (
+                <ThemedText style={styles.emptyBreakdown}>No condition data yet</ThemedText>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.marketCard}>
+            <ThemedText style={styles.metricsLabel}>Market Snapshot</ThemedText>
+            <ThemedText style={styles.marketValue}>
+              {marketAnalytics?.comparablesCount ?? summary.marketplaceComparables ?? 0} comparable listings
+            </ThemedText>
+            <ThemedText style={styles.marketHint}>
+              Avg {marketAnalytics?.averageMarketPrice ? `$${marketAnalytics.averageMarketPrice}` : '$0'} • Low {marketAnalytics?.lowestMarketPrice ? `$${marketAnalytics.lowestMarketPrice}` : '$0'} • High {marketAnalytics?.highestMarketPrice ? `$${marketAnalytics.highestMarketPrice}` : '$0'}
+            </ThemedText>
+          </View>
+        </ThemedView>
+      )}
+
       {/* Main Item Tile - First Item (Featured) */}
       {!loading && !error && items.length > 0 && (
         <ThemedView style={styles.sectionContainer}>
@@ -96,6 +218,25 @@ export default function DashboardScreen() {
             image={items[0].imageUrl}
             onPress={() => handleItemPress(items[0])}
           />
+        </ThemedView>
+      )}
+
+      {!loading && !error && recentItems.length > 0 && (
+        <ThemedView style={styles.suggestedSection}>
+          <ThemedText type="subtitle" style={[styles.sectionTitle, { color: '#1a1a1a' }]}>
+            Recent Activity
+          </ThemedText>
+
+          {recentItems.map((item: any, index: number) => (
+            <ListItem
+              key={item._id || item.id || index}
+              title={item.title || 'Untitled'}
+              price={item.price ? `$${item.price}` : 'Price TBD'}
+              description={item.description || item.category || item.condition}
+              image={item.imageUrl}
+              onPress={() => handleItemPress(item)}
+            />
+          ))}
         </ThemedView>
       )}
 
@@ -205,6 +346,87 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     backgroundColor: '#ffffff',
+  },
+  analyticsSection: {
+    marginTop: 8,
+    marginHorizontal: 16,
+    padding: 16,
+    backgroundColor: '#f4f9ff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#dce7f2',
+  },
+  analyticsGrid: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  analyticsGridTwo: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  analyticsCardPrimary: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 12,
+  },
+  analyticsCardSecondary: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 12,
+  },
+  metricsLabel: {
+    fontSize: 12,
+    color: '#5f6f7a',
+    marginBottom: 6,
+  },
+  metricsValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#024883',
+  },
+  metricsHint: {
+    marginTop: 4,
+    fontSize: 11,
+    color: '#7b8793',
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  breakdownLabel: {
+    flex: 1,
+    fontSize: 12,
+    color: '#30404d',
+  },
+  breakdownValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#024883',
+  },
+  emptyBreakdown: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#7b8793',
+  },
+  marketCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 12,
+  },
+  marketValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  marketHint: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#7b8793',
   },
   sectionContainer: {
     marginVertical: 12,
