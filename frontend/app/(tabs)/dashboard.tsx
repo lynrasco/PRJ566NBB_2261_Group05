@@ -7,7 +7,7 @@ import { MainItemTile } from '@/components/main-item-tile';
 import { ListItem } from '@/components/list-item';
 import { useState, useCallback, useEffect } from 'react';
 import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics } from '@/services/api';
-
+import AnalyticsCharts from '@/components/analytics-charts';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
@@ -90,6 +90,7 @@ export default function DashboardScreen() {
   const summary = analytics || {
     totalSavedItems: items.length,
     averageSuggestedPrice: 0,
+    marketplaceComparables: 0,
     categoryBreakdown: {},
     conditionBreakdown: {},
     recentItems: items.slice(0, 5),
@@ -144,7 +145,7 @@ export default function DashboardScreen() {
         </ThemedView>
       )}
 
-{!loading && !error && (
+      {!loading && !error && (
         <ThemedView style={styles.analyticsSection}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Analytics Overview
@@ -201,6 +202,12 @@ export default function DashboardScreen() {
               Avg {marketAnalytics?.averageMarketPrice ? `$${marketAnalytics.averageMarketPrice}` : '$0'} • Low {marketAnalytics?.lowestMarketPrice ? `$${marketAnalytics.lowestMarketPrice}` : '$0'} • High {marketAnalytics?.highestMarketPrice ? `$${marketAnalytics.highestMarketPrice}` : '$0'}
             </ThemedText>
           </View>
+
+           <AnalyticsCharts
+              categoryBreakdown={summary.categoryBreakdown}
+              conditionBreakdown={summary.conditionBreakdown}
+            />
+
         </ThemedView>
       )}
 
@@ -441,6 +448,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginBottom: 12,
     marginLeft: 16,
+    color: '#024883',
   },
   centerContainer: {
     marginVertical: 60,

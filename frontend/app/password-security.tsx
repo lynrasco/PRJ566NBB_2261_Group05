@@ -38,6 +38,16 @@ export default function PasswordSecurityScreen() {
           Password & Security
         </Text>
 
+        <View style={styles.previewCard}>
+            <View style={styles.iconCircle}>
+                <Ionicons name="lock-closed-outline" size={28} color="#024883" />
+            </View>
+            <Text style={styles.previewTitle}>Security</Text>
+            <Text style={styles.previewText}>
+                Manage your password and device security settings.
+            </Text>
+        </View>
+
         <View style={styles.form}>
           <View style={styles.fieldGroup}>
             <Text selectable style={styles.label}>
@@ -70,12 +80,15 @@ export default function PasswordSecurityScreen() {
           <Text selectable style={styles.faceIdText}>
             Add face-id
           </Text>
-          <Switch
+          <View style={styles.switchWrapper}>
+            <Switch
             onValueChange={setFaceIdEnabled}
             thumbColor="#ffffff"
             trackColor={{ false: '#d9d9d9', true: '#34c759' }}
             value={faceIdEnabled}
-          />
+            ios_backgroundColor="#d9d9d9"
+            />
+          </View>
         </View>
 
         <Pressable
@@ -92,7 +105,7 @@ export default function PasswordSecurityScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#eef3f8',
   },
   content: {
     flexGrow: 1,
@@ -136,23 +149,28 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     borderRadius: 9,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 14,
     fontFamily: 'AzeretMono_400Regular',
     fontSize: 15,
     color: '#050505',
+    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
   },
   faceIdCard: {
-    minHeight: 78,
+    minHeight: 72,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 58,
+    marginHorizontal: 9,
     borderRadius: 16,
     backgroundColor: '#f7f7f7',
-    paddingLeft: 15,
-    paddingRight: 38,
-    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.14)',
+    paddingHorizontal: 18,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 3,
+    elevation: 3,
   },
   faceIdText: {
     fontFamily: 'AzeretMono_700Bold',
@@ -175,5 +193,40 @@ const styles = StyleSheet.create({
     fontFamily: 'AzeretMono_700Bold',
     fontSize: 16,
     color: '#ffffff',
+  },
+  switchWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewCard: {
+    alignItems: 'center',
+    marginBottom: 18,
+    paddingVertical: 24,
+    paddingHorizontal: 18,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
+  },
+  iconCircle: {
+    width: 58,
+    height: 58,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 29,
+    backgroundColor: '#e9f2fb',
+  },
+  previewTitle: {
+    marginTop: 12,
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 16,
+    color: '#111111',
+  },
+  previewText: {
+    marginTop: 7,
+    textAlign: 'center',
+    fontFamily: 'AzeretMono_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#52616f',
   },
 });

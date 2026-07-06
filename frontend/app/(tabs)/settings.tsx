@@ -2,14 +2,26 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+/*
 const SETTINGS_OPTIONS = [
   'Profile settings',
   'Password & security',
   'Languages',
   'Notifications',
   'Privacy',
+  'Theme',
   'About us',
 ];
+*/
+const SETTINGS_OPTIONS = [
+  { label: 'Profile settings', icon: 'person-outline' },
+  { label: 'Password & security', icon: 'lock-closed-outline' },
+  { label: 'Languages', icon: 'language-outline' },
+  { label: 'Notifications', icon: 'notifications-outline' },
+  { label: 'Privacy', icon: 'shield-checkmark-outline' },
+  { label: 'Theme', icon: 'color-palette-outline' },
+  { label: 'About us', icon: 'information-circle-outline' },
+] as const;
 
 export default function SettingsScreen() {
   const signOut = () => {
@@ -29,6 +41,21 @@ export default function SettingsScreen() {
 
     if (option === 'Languages') {
       router.push('/languages');
+      return;
+    }
+
+    if (option === 'Notifications') {
+      router.push('/notification-settings');
+      return;
+    }
+
+    if (option === 'Privacy') {
+      router.push('/privacy-settings');
+      return;
+    }
+
+    if (option === 'Theme') {
+      router.push('/theme-settings');
       return;
     }
 
@@ -55,22 +82,25 @@ export default function SettingsScreen() {
         <View style={styles.settingsCard}>
           {SETTINGS_OPTIONS.map((option, index) => {
             const isLast = index === SETTINGS_OPTIONS.length - 1;
-
             return (
-              <Pressable
-                key={option}
-                onPress={() => openSetting(option)}
-                style={({ pressed }) => [
-                  styles.settingsRow,
-                  !isLast && styles.rowBorder,
-                  pressed && styles.rowPressed,
-                ]}
-              >
-                <Text style={styles.rowText}>{option}</Text>
-                <Ionicons name="chevron-forward" size={16} color="#00213b" />
-              </Pressable>
-            );
-          })}
+            <Pressable
+            key={option.label}
+            onPress={() => openSetting(option.label)}
+            style={({ pressed }) => [
+              styles.settingsRow,
+              !isLast && styles.rowBorder,
+              pressed && styles.rowPressed,
+            ]}>
+            <View style={styles.rowLeft}>
+               <View style={styles.iconCircle}>
+                <Ionicons name={option.icon} size={18} color="#024883" />
+              </View>
+                <Text style={styles.rowText}>{option.label}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#00213b" />
+          </Pressable>
+          );
+        })}
         </View>
 
         <Pressable
@@ -134,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   settingsRow: {
-    minHeight: 49,
+    minHeight: 58,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -173,5 +203,20 @@ const styles = StyleSheet.create({
     fontFamily: 'AzeretMono_700Bold',
     fontSize: 14,
     color: '#024883',
+  },
+  rowLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 12,
+  },
+  iconCircle: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    borderRadius: 17,
+    backgroundColor: '#e9f2fb',
   },
 });
