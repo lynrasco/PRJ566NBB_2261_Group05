@@ -1,11 +1,12 @@
-import { StyleSheet, View, Image, ViewProps } from 'react-native';
+import { StyleSheet, View, Image, ViewProps, type ImageSourcePropType } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from './themed-text';
 
 export type DashboardHeaderProps = ViewProps & {
   userName?: string;
-  profileImage?: string;
+  //profileImage?: string;
+  profileImage?: ImageSourcePropType;
   totalEstimatedValue?: string;
   trendValue?: string;
 };
@@ -13,7 +14,7 @@ export type DashboardHeaderProps = ViewProps & {
 export function DashboardHeader({
   userName = 'Linda',
   profileImage,
-  totalEstimatedValue = '$660',
+  totalEstimatedValue = '$0',
   trendValue = '+12%',
   style,
   ...otherProps
@@ -47,10 +48,10 @@ export function DashboardHeader({
 
         <View style={styles.valueCard}>
           <View style={styles.valueTextGroup}>
-            <ThemedText style={styles.valueLabel} numberOfLines={1}>
+            <ThemedText style={styles.valueLabel} numberOfLines={1} adjustsFontSizeToFit>
               Total estimated value
             </ThemedText>
-            <ThemedText type="title" style={styles.valueAmount}>
+            <ThemedText type="title" style={styles.valueAmount} numberOfLines={1} adjustsFontSizeToFit>
               {totalEstimatedValue}
             </ThemedText>
           </View>
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
   valueLabel: {
     color: '#edf2fb',
     fontFamily: 'AzeretMono_700Bold',
-    fontSize: 14,
+    fontSize: 13,
     lineHeight: 18,
   },
   valueAmount: {

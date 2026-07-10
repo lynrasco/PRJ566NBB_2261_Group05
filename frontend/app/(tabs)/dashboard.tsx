@@ -9,6 +9,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics } from '@/services/api';
 import AnalyticsCharts from '@/components/analytics-charts';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -110,6 +111,12 @@ export default function DashboardScreen() {
 
   const recentItems = (summary.recentItems || []).slice(0, 4);
 
+  const totalEstimatedValue = items.reduce((sum, item) => {
+  return sum + getNumericPrice(item.suggestedPrice ?? item.estimatedPrice ?? item.price);
+  }, 0);
+  const formattedTotalEstimatedValue = `$${totalEstimatedValue.toFixed(2)}`;
+  //const selectedThumbnail = getItemThumbnail(selectedItem);
+
   return (
   <>
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -117,6 +124,7 @@ export default function DashboardScreen() {
       <DashboardHeader
         userName="Linda"
         profileImage={require('@/assets/images/profile-picture.png')}
+        totalEstimatedValue={formattedTotalEstimatedValue}
       />
 
       {/* Loading State */}
@@ -347,6 +355,19 @@ export default function DashboardScreen() {
     </Modal>
     </>
   );
+}
+
+function getNumericPrice(value: any) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const match = value.match(/\d+(\.\d+)?/);
+    return match ? Number(match[0]) : 0;
+  }
+
+  return 0;
 }
 
 const styles = StyleSheet.create({
