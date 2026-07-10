@@ -2,6 +2,7 @@ import { StyleSheet, View, Image, ViewProps, type ImageSourcePropType } from 're
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from './themed-text';
+import { useAppTheme } from '@/context/theme-context';
 
 export type DashboardHeaderProps = ViewProps & {
   userName?: string;
@@ -19,17 +20,30 @@ export function DashboardHeader({
   style,
   ...otherProps
 }: DashboardHeaderProps) {
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
+  /*
+  const gradientColors: [string, string] = isDark
+  ? ['#08111f', '#10243a']
+  : ['#07375f', '#044c84'];
+  */
+  const gradientColors: [string, string] = isDark
+  ? ['#10243a', '#1d3b5f']
+  : ['#07375f', '#044c84'];
+
   return (
     <LinearGradient
-      colors={['#07375f', '#044c84']}
+      colors={gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.container, style]}
+      style={[styles.container, isDark && styles.containerDark, style]}
     >
       <View style={styles.headerContent} {...otherProps}>
         <View style={styles.topRow}>
           <View style={styles.textSection}>
-            <ThemedText style={styles.greetingText}>Welcome back,</ThemedText>
+            <ThemedText style={[styles.greetingText, isDark && styles.greetingTextDark]}>
+              Welcome back,
+            </ThemedText>
             <View style={styles.nameRow}>
               <ThemedText type="title" style={styles.nameText}>
                 {userName}
@@ -46,7 +60,7 @@ export function DashboardHeader({
           )}
         </View>
 
-        <View style={styles.valueCard}>
+        <View style={[styles.valueCard, isDark && styles.valueCardDark]}>
           <View style={styles.valueTextGroup}>
             <ThemedText style={styles.valueLabel} numberOfLines={1} adjustsFontSizeToFit>
               Total estimated value
@@ -56,8 +70,8 @@ export function DashboardHeader({
             </ThemedText>
           </View>
 
-          <View style={styles.trendPill}>
-            <Ionicons name="trending-up" size={17} color="#78e6b4" />
+          <View style={[styles.trendPill, isDark && styles.trendPillDark]}>
+            <Ionicons name="trending-up" size={17} color={isDark ? '#8bbcff' : '#78e6b4'} />
             <ThemedText type="defaultSemiBold" style={styles.trendText}>
               {trendValue}
             </ThemedText>
@@ -76,6 +90,8 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 34,
     borderBottomRightRadius: 34,
     alignItems: 'stretch',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.12)',
   },
   headerContent: {
     flexDirection: 'column',
@@ -166,5 +182,25 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
     lineHeight: 18,
+  },
+  valueCardDark: {
+    backgroundColor: 'rgba(139, 188, 255, 0.12)',
+    borderColor: 'rgba(139, 188, 255, 0.28)',
+  },
+  greetingTextDark: {
+    color: '#b8c4d1',
+  },
+  trendPillDark: {
+    backgroundColor: '#0f1f33',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 188, 255, 0.35)',
+  },
+  containerDark: {
+    borderBottomColor: '#2d3a4a',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 8,
   },
 });
