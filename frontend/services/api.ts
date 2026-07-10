@@ -144,6 +144,25 @@ export const processImage = async (
   return response.data.image;
 };
 
+export const listItemToEbay = async (item: {
+  id?: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  category?: string;
+  brand?: string;
+  condition?: string;
+  imageUrl?: string;
+}) => {
+  try {
+    const response = await apiClient.post('/ebay/listings', item);
+    return response.data;
+  } catch (error) {
+    console.error('Error pushing item to eBay:', (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
 export const searchFromImage = async (
   imageInput:
     | string
