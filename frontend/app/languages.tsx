@@ -13,17 +13,17 @@ export default function LanguagesScreen() {
       showsVerticalScrollIndicator={false}
       style={[styles.screen, isDark && styles.screenDark,]}
     >
-      <Pressable
-        hitSlop={12}
-        onPress={() => router.back()}
-        style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
-      >
-        <Ionicons name="arrow-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
-      </Pressable>
+      <View style={styles.header}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
+        </Pressable>
 
-      <Text selectable style={[styles.title, isDark && styles.textDark,]}>
-        Languages
-      </Text>
+        <Text style={[styles.title, isDark && styles.textDark]}>
+          Languages
+        </Text>
+        
+        <View style={styles.headerSpacer} />
+      </View>
 
       <View style={[styles.previewCard, isDark && styles.cardDark,]}>
         <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
@@ -68,13 +68,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingTop: 78,
-    paddingHorizontal: 17,
-    paddingBottom: 60,
+    paddingTop: 58,
+    paddingHorizontal: 20,
+    paddingBottom: 80,
   },
   backButton: {
-    width: 45,
-    height: 31,
+    width: 36,
+    height: 36,
     alignItems: 'flex-start',
     justifyContent: 'center',
     marginLeft: 8,
@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.55,
   },
+  /*
   title: {
     marginTop: 72,
     textAlign: 'center',
@@ -90,12 +91,18 @@ const styles = StyleSheet.create({
     lineHeight: 35,
     color: '#050505',
   },
+  */
+  title: {
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 21,
+    color: '#111111',
+  },
   optionCard: {
     minHeight: 78,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 43,
+    marginTop: 0,
     borderRadius: 18,
     backgroundColor: '#ffffff',
     paddingLeft: 31,
@@ -115,7 +122,7 @@ const styles = StyleSheet.create({
   optionValueGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 28,
+    gap: 18,
   },
   optionValue: {
     fontFamily: 'AzeretMono_400Regular',
@@ -174,5 +181,14 @@ const styles = StyleSheet.create({
   },
   cardPressedDark: {
     backgroundColor: '#1d2d44',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 22,
+  },
+  headerSpacer: {
+    width: 36,
   },
 });

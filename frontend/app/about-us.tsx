@@ -18,17 +18,16 @@ export default function AboutUsScreen() {
   return (
     <View style={[styles.screen, isDark && styles.screenDark]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, isDark && styles.contentDark,]}>
-        <View style={styles.topBar}>
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={({ pressed }) => [styles.backButton, pressed && (isDark ? styles.iconPressedDark : styles.iconPressed),]}
-          >
-            <Ionicons name="arrow-back" size={22} color={isDark ? '#ffffff' : '#07111b'}/>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
           </Pressable>
+          
+          <Text style={[styles.title, isDark && styles.textDark]}>
+            About Us
+          </Text>
+          <View style={styles.headerSpacer}/>
         </View>
-
-        <Text style={[styles.title, isDark && styles.textDark]}>About us</Text>
 
         <View style={[styles.brandBlock, isDark && styles.cardDark]}>
           <Image
@@ -88,6 +87,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingBottom: 64,
   },
+  /*
   topBar: {
     minHeight: 28,
     flexDirection: 'row',
@@ -100,9 +100,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 14,
   },
+  */
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 22,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+  },
+  headerSpacer: {
+    width: 36,
+  },
+  title: {
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 21,
+    color: '#111111',
+  },
   iconPressed: {
     backgroundColor: '#eef3f8',
   },
+  /*
   title: {
     marginTop: 58,
     fontFamily: 'AzeretMono_700Bold',
@@ -110,6 +131,7 @@ const styles = StyleSheet.create({
     lineHeight: 31,
     color: '#050505',
   },
+  */
   brandBlock: {
     alignItems: 'center',
     marginTop: 34,

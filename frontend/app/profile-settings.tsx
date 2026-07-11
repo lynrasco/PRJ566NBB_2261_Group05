@@ -53,23 +53,15 @@ export default function ProfileSettingsScreen() {
           isDark && styles.contentDark,
         ]}
         >
-        <View style={styles.topBar}>
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={({ pressed }) => [styles.backButton, pressed && styles.iconPressed]}
-          >
-            <Ionicons name="arrow-back" size={22} color={isDark ? '#ffffff' : '#07111b'}/>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
           </Pressable>
-
-          <Pressable
-            onPress={saveProfile}
-            style={({ pressed }) => [styles.saveButton, isDark && styles.saveButtonDark, pressed && styles.savePressed,]}>
-            <Text style={styles.saveText}>Save</Text>
-          </Pressable>
+          <Text style={[styles.title, isDark && styles.textDark]}>
+            Profile Settings
+          </Text>
+          <View style={styles.headerSpacer} />
         </View>
-
-        <Text style={[styles.title, isDark && styles.textDark]}>Profile Settings</Text>
 
         <View style={[styles.previewCard, isDark && styles.cardDark]}>
             <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
@@ -81,9 +73,9 @@ export default function ProfileSettingsScreen() {
             </Text>
         </View>
 
-        <View style={styles.form}>
-          {PROFILE_FIELDS.map((field) => (
-            <View key={field.key} style={styles.fieldGroup}>
+        <View style={[styles.card, isDark && styles.cardDark]}>
+          {PROFILE_FIELDS.map((field, index) => (
+            <View key={field.key} style={[styles.row, index !== PROFILE_FIELDS.length - 1 && styles.rowBorder, isDark && styles.rowDark,]}>
               <Text style={[styles.label, isDark && styles.textDark,]}>{field.label}</Text>
               <TextInput
                 value={profile[field.key]}
@@ -103,6 +95,9 @@ export default function ProfileSettingsScreen() {
             </View>
           ))}
         </View>
+        <Pressable onPress={saveProfile} style={[styles.saveButton, isDark && styles.saveButtonDark,]}>
+          <Text style={styles.saveText}>Save Changes</Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -115,9 +110,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
+    /*
     paddingTop: 73,
     paddingHorizontal: 32,
     paddingBottom: 60,
+    */
+    paddingTop: 58,
+    paddingHorizontal: 20,
+    paddingBottom: 80,
   },
   topBar: {
     minHeight: 27,
@@ -135,6 +135,7 @@ const styles = StyleSheet.create({
   iconPressed: {
     backgroundColor: '#eef3f8',
   },
+  /*
   saveButton: {
     minWidth: 54,
     height: 20,
@@ -143,6 +144,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#024883',
     paddingHorizontal: 13,
+  },
+  */
+  saveButton: {
+    marginTop: 24,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#024883',
   },
   savePressed: {
     backgroundColor: '#002f59',
@@ -153,12 +163,19 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     color: '#ffffff',
   },
+  /*
   title: {
     marginTop: 68,
     fontFamily: 'AzeretMono_700Bold',
     fontSize: 24,
     lineHeight: 31,
     color: '#050505',
+  },
+  */
+  title: {
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 21,
+    color: '#111111',
   },
   form: {
     marginTop: 55,
@@ -175,13 +192,14 @@ const styles = StyleSheet.create({
     color: '#060606',
   },
   input: {
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: '#ffffff',
+    marginTop: 8,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#f4f6f8',
     paddingHorizontal: 12,
     fontFamily: 'AzeretMono_400Regular',
     fontSize: 13,
-    color: '#050505',
+    color: '#111',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
@@ -244,4 +262,30 @@ const styles = StyleSheet.create({
   saveButtonDark: {
     backgroundColor: '#1f6fb2',
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 22,
+  },
+  headerSpacer: {
+    width: 36,
+  },
+  row: {
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+  },
+  rowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#d7e0ea',
+  },
+  rowDark: {
+    backgroundColor: '#121c2b',
+  },
+  card: {
+    overflow: 'hidden',
+    borderRadius: 18,
+    backgroundColor: '#ffffff',
+    boxShadow: '0 2px 3px rgba(0,0,0,0.12)',
+},
 });

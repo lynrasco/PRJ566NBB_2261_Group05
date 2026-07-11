@@ -29,17 +29,15 @@ export default function PasswordSecurityScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Pressable
-          hitSlop={12}
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
-        >
-          <Ionicons name="arrow-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
-        </Pressable>
-
-        <Text selectable style={[styles.title, isDark && styles.textDark]}>
-          Password & Security
-        </Text>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
+          </Pressable>
+          <Text style={[styles.title, isDark && styles.textDark]}>
+            Password & Security
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
 
         <View style={[styles.previewCard, isDark && styles.cardDark]}>
             <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
@@ -53,8 +51,8 @@ export default function PasswordSecurityScreen() {
             </Text>
         </View>
 
-        <View style={styles.form}>
-          <View style={styles.fieldGroup}>
+        <View style={[styles.card, isDark && styles.cardDark]}>
+          <View style={[styles.row, styles.rowBorder, isDark && styles.rowDark,]}>
             <Text selectable style={[styles.label, isDark && styles.textDark,]}>
               Old Password:
             </Text>
@@ -67,7 +65,7 @@ export default function PasswordSecurityScreen() {
             />
           </View>
 
-          <View style={styles.fieldGroup}>
+          <View style={[styles.row, isDark && styles.rowDark]}>
             <Text selectable style={[styles.label, isDark && styles.textDark,]}>
               Change Password:
             </Text>
@@ -83,10 +81,11 @@ export default function PasswordSecurityScreen() {
 
         <View style={[styles.faceIdCard, isDark && styles.cardDark,]}>
           <Text selectable style={[styles.faceIdText, isDark && styles.textDark,]}>
-            Add face-id
+            Enable face-id
           </Text>
           <View style={styles.switchWrapper}>
             <Switch
+            value={faceIdEnabled}
             onValueChange={setFaceIdEnabled}
             trackColor={{
               false: isDark ? '#3b4d61' : '#d9d9d9',
@@ -116,10 +115,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingTop: 78,
-    paddingHorizontal: 16,
-    paddingBottom: 60,
+    paddingTop: 58,
+    paddingHorizontal: 20,
+    paddingBottom: 80,
   },
+  /*
   backButton: {
     width: 45,
     height: 31,
@@ -127,9 +127,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: 8,
   },
+  */
   pressed: {
     opacity: 0.55,
   },
+  /*
   title: {
     marginTop: 71,
     marginLeft: 13,
@@ -137,6 +139,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 35,
     color: '#050505',
+  },
+  */
+  title: {
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 21,
+    color: '#111111',
   },
   form: {
     marginTop: 51,
@@ -154,13 +162,14 @@ const styles = StyleSheet.create({
     color: '#050505',
   },
   input: {
-    height: 50,
-    borderRadius: 9,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 14,
+    marginTop: 8,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#f3f5f7',
+    paddingHorizontal: 12,
     fontFamily: 'AzeretMono_400Regular',
-    fontSize: 15,
-    color: '#050505',
+    fontSize: 13,
+    color: '#111111',
     boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
   },
   faceIdCard: {
@@ -247,7 +256,7 @@ const styles = StyleSheet.create({
   },
   inputDark: {
     backgroundColor: '#1d2d44',
-    color: '#ffffff',
+    color: '#f3f5f7',
   },
   iconCircleDark: {
     backgroundColor: '#1d2d44',
@@ -258,4 +267,41 @@ const styles = StyleSheet.create({
   mutedTextDark: {
     color: '#b8c4d1',
   },
+  header: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 22,
+},
+
+headerSpacer: {
+  width: 36,
+},
+
+backButton: {
+  width: 36,
+  height: 36,
+  justifyContent: 'center',
+},
+
+card: {
+  overflow: 'hidden',
+  borderRadius: 18,
+  backgroundColor: '#ffffff',
+  boxShadow: '0 2px 3px rgba(0,0,0,0.12)',
+},
+
+row: {
+  paddingHorizontal: 18,
+  paddingVertical: 16,
+},
+
+rowBorder: {
+  borderBottomWidth: StyleSheet.hairlineWidth,
+  borderBottomColor: '#d7e0ea',
+},
+
+rowDark: {
+  backgroundColor: '#121c2b',
+},
 });

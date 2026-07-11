@@ -17,8 +17,8 @@ const SETTINGS_OPTIONS = [
 ];
 */
 const SETTINGS_OPTIONS = [
-  { label: 'Profile settings', icon: 'person-outline' },
-  { label: 'Password & security', icon: 'lock-closed-outline' },
+  { label: 'Profile Settings', icon: 'person-outline' },
+  { label: 'Password & Security', icon: 'lock-closed-outline' },
   { label: 'Languages', icon: 'language-outline' },
   { label: 'Notifications', icon: 'notifications-outline' },
   { label: 'Privacy', icon: 'shield-checkmark-outline' },
@@ -54,12 +54,12 @@ export default function SettingsScreen() {
   };
 
   const openSetting = (option: string) => {
-    if (option === 'Profile settings') {
+    if (option === 'Profile Settings') {
       router.push('/profile-settings');
       return;
     }
 
-    if (option === 'Password & security') {
+    if (option === 'Password & Security') {
       router.push('/password-security');
       return;
     }
