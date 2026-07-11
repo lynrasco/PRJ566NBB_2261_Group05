@@ -3,8 +3,11 @@ import Slider from '@react-native-community/slider';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, KeyboardAvoidingView } from 'react-native';
 import { useState, useRef } from 'react';
 import { ThemedText } from '@/components/themed-text';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function EditItemScreen() {
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
   const params = useLocalSearchParams<{
     itemId?: string;
     title?: string;
@@ -63,7 +66,7 @@ export default function EditItemScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, isDark && styles.containerDark,]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
@@ -73,7 +76,7 @@ export default function EditItemScreen() {
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Text style={[styles.backIcon, isDark && styles.textDark,]}>←</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.saveButton} onPress={() => router.back()}>
@@ -83,14 +86,14 @@ export default function EditItemScreen() {
 
       <ScrollView
         ref={scrollViewRef}
-        contentContainerStyle={styles.contentContainer}
-        style={{ backgroundColor: '#fff' }}
+        style={[styles.scrollView, isDark && styles.scrollViewDark,]}
+        contentContainerStyle={[styles.contentContainer, isDark && styles.contentContainerDark,]}
         showsVerticalScrollIndicator={false}
       >
         {/* Product Image */}
         <View style={styles.imageWrapper}>
           <View style={styles.imageShadowContainer}>
-            <View style={styles.imageContainer}>
+            <View style={[styles.imageContainer, isDark && styles.imageContainerDark,]}>
               <Image source={imageSource} style={styles.image} />
             </View>
           </View>
@@ -98,50 +101,50 @@ export default function EditItemScreen() {
 
         {/* Title */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Title:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Title:</ThemedText>
           <TextInput
-            style={styles.input}
+            style={[styles.input, isDark && styles.inputDark,]}
             value={title}
             onChangeText={setTitle}
             placeholder="Enter product title"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? '#7e90a4' : '#999'}
           />
         </View>
 
         {/* Brand */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Brand:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Brand:</ThemedText>
           <TextInput
-            style={styles.input}
+            style={[styles.input, isDark && styles.inputDark,]}
             value={brand}
             onChangeText={setBrand}
             placeholder="Enter brand name"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? '#7e90a4' : '#999'}
           />
         </View>
 
         {/* Category */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Category:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Category:</ThemedText>
           <TextInput
-            style={styles.input}
+            style={[styles.input, isDark && styles.inputDark,]}
             value={category}
             onChangeText={setCategory}
             placeholder="Enter category"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? '#7e90a4' : '#999'}
           />
         </View>
 
         {/* Description */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Description:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Description:</ThemedText>
           <TextInput
             ref={descriptionRef}
-            style={[styles.input, styles.descriptionInput]}
+            style={[styles.input, isDark && styles.inputDark,]}
             value={description}
             onChangeText={setDescription}
             placeholder="Enter product description"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? '#7e90a4' : '#999'}
             multiline
             numberOfLines={5}
             onFocus={handleDescriptionFocus}
@@ -150,12 +153,12 @@ export default function EditItemScreen() {
 
         {/* Price */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={{color: '#000'}}>Price:</ThemedText>
-          <Text style={styles.priceDisplay}>${parseFloat(price.toFixed(2))}</Text>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Price:</ThemedText>
+          <Text style={[styles.priceDisplay, isDark && styles.accentTextDark,]}>${parseFloat(price.toFixed(2))}</Text>
 
           {/* Price Range Slider */}
           <View style={styles.priceRangeContainer}>
-            <Text style={styles.priceRangeMin}>${parseFloat(minPrice.toFixed(2))}</Text>
+            <Text style={[styles.priceRangeMin, isDark && styles.mutedTextDark,]}>${parseFloat(minPrice.toFixed(2))}</Text>
 
             <View style={styles.sliderWrapper}>
               <Slider
@@ -164,13 +167,13 @@ export default function EditItemScreen() {
                 maximumValue={maxPrice}
                 value={price}
                 onValueChange={setPrice}
-                minimumTrackTintColor="#0d3b66"
-                maximumTrackTintColor="#c0c0c0"
-                thumbTintColor="#0d3b66"
+                minimumTrackTintColor={isDark ? '#8bbcff' : '#0d3b66'}
+                maximumTrackTintColor={isDark ? '#2d3a4a' : '#c0c0c0'}
+                thumbTintColor={isDark ? '#8bbcff' : '#0d3b66'}
               />
             </View>
 
-            <Text style={styles.priceRangeMax}>${parseFloat(maxPrice.toFixed(2))}</Text>
+            <Text style={[styles.priceRangeMax, isDark && styles.mutedTextDark,]}>${parseFloat(maxPrice.toFixed(2))}</Text>
           </View>
         </View>
 
@@ -334,5 +337,40 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 20,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  containerDark: {
+    backgroundColor: '#08111f',
+  },
+  scrollViewDark: {
+    backgroundColor: '#08111f',
+  },
+  contentContainerDark: {
+    backgroundColor: '#08111f',
+  },
+  fieldLabel: {
+    color: '#000',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  imageContainerDark: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#2d3a4a',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  accentTextDark: {
+    color: '#8bbcff',
+  },
+  inputDark: {
+    backgroundColor: '#121c2b',
+    borderColor: '#2d3a4a',
+    borderWidth: 1,
+    color: '#ffffff',
   },
 });

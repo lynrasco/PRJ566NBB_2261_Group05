@@ -286,14 +286,14 @@ export default function DashboardScreen() {
           style={StyleSheet.absoluteFill}
           onPress={() => setModalVisible(false)}
         />
-         <View style={styles.modalContent}>
+        <View style={[styles.modalContent, isDark && styles.modalContentDark,]}>
 
           <View style={styles.modalBar}>
             <Pressable onPress={() => setModalVisible(false)}>
-              <Ionicons name="trash-outline" size={25} color="black" />
+              <Ionicons name="trash-outline" size={25} color={isDark ? '#ffffff' : '#000000'}/>
             </Pressable>
 
-            <Pressable style={styles.editButton} 
+            <Pressable style={[styles.editButton, isDark && styles.editButtonDark,]}
               hitSlop={15}
               onPress={() => {
               setModalVisible(false);
@@ -317,38 +317,50 @@ export default function DashboardScreen() {
             </Pressable>
           </View>
           {selectedItem?.imageUrl && (
-            <Image source={{ uri: selectedItem.imageUrl }} style={styles.modalImage} />
+            <Image source={{ uri: selectedItem.imageUrl }} style={[styles.modalImage, isDark && styles.modalImageDark,]} />
           )}
 
-          <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13, textAlign: 'center', marginBottom: 12}}>{selectedItem?.title}</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[{fontSize: 13, textAlign: 'center', marginBottom: 12,},isDark && styles.textDark,]}>
+              {selectedItem?.title}
+          </ThemedText>
           {selectedItem?.brand && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Brand:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.brand}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Brand:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                {selectedItem.brand}
+              </ThemedText>
             </>
           )}
           {selectedItem?.category && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Category:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.category}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Category:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                {selectedItem.category}
+              </ThemedText>
             </>
           )}
           {selectedItem?.description && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Description:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.description}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Description:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                {selectedItem.description}
+              </ThemedText>
             </>
           )}
           {selectedItem?.condition && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Condition:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.condition}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Condition:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                {selectedItem.condition}
+              </ThemedText>
             </>
           )}
           {selectedItem?.price && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Price:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>${selectedItem.price}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Price:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                ${selectedItem.price}
+              </ThemedText>
             </>
           )}
         </View>
@@ -635,6 +647,8 @@ const styles = StyleSheet.create({
   },
   modalContentDark: {
     backgroundColor: '#121c2b',
+    borderWidth: 1,
+    borderColor: '#2d3a4a',
   },
   mutedTextDark: {
     color: '#b8c4d1',
@@ -656,6 +670,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginLeft: 0,
     color: '#1a1a1a',
+  },
+  editButtonDark:{
+    backgroundColor:'#024883',
+  },
+  modalImageDark: {
+    backgroundColor: '#ffffff',
   },
 });
 
