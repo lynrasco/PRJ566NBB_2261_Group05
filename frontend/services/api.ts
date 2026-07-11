@@ -85,6 +85,7 @@ export const saveItemToMyItems = async (item: {
     appendFormValue(formData, 'category', item.category);
     appendFormValue(formData, 'brand', item.brand);
     appendFormValue(formData, 'condition', item.condition);
+    appendFormValue(formData, 'imageUrl', item.imageUrl);
 
     if (item.imageUrl && !/^https?:\/\//i.test(item.imageUrl)) {
       formData.append('image', {
@@ -204,5 +205,10 @@ function extractImage(item: any): string | null {
     null
   );
 }
+
+export const deleteItem = async (itemId: string) => {
+  const response = await apiClient.delete(`/items/${itemId}`);
+  return response.data;
+};
 
 export default apiClient;

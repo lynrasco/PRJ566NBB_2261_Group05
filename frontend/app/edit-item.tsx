@@ -45,6 +45,7 @@ export default function EditItemScreen() {
   const [maxPrice, setMaxPrice] = useState(
     initialPrice > 0 ? Math.ceil(initialPrice * 1.5) : 100
   );
+  const [saving, setSaving] = useState(false);
 
   const imageSource = params.imageUrl
     ? { uri: params.imageUrl }
@@ -64,6 +65,8 @@ export default function EditItemScreen() {
     }, 100);
   };
 
+
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, isDark && styles.containerDark,]}
@@ -79,9 +82,13 @@ export default function EditItemScreen() {
           <Text style={[styles.backIcon, isDark && styles.textDark,]}>←</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.saveButton} onPress={() => router.back()}>
-          <Text style={styles.saveButtonText}>Save</Text>
+        <TouchableOpacity
+          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+          disabled={saving}
+          >
+            <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
         </TouchableOpacity>
+
       </View>
 
       <ScrollView
@@ -372,5 +379,8 @@ const styles = StyleSheet.create({
     borderColor: '#2d3a4a',
     borderWidth: 1,
     color: '#ffffff',
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
 });

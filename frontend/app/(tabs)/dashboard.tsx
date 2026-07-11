@@ -6,10 +6,11 @@ import { DashboardHeader } from '@/components/dashboard-header';
 import { MainItemTile } from '@/components/main-item-tile';
 import { ListItem } from '@/components/list-item';
 import { useState, useCallback, useEffect } from 'react';
-import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics } from '@/services/api';
+import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics, deleteItem } from '@/services/api';
 import AnalyticsCharts from '@/components/analytics-charts';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/context/theme-context';
+import { Alert } from 'react-native';
 
 export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -58,6 +59,7 @@ export default function DashboardScreen() {
   };
 
   const handleItemPress = (item: any) => {
+    console.log(item);
     setSelectedItem(item);
     setModalVisible(true);
   };
@@ -117,6 +119,39 @@ export default function DashboardScreen() {
   return sum + getNumericPrice(item.suggestedPrice ?? item.estimatedPrice ?? item.price);
   }, 0);
   const formattedTotalEstimatedValue = `$${totalEstimatedValue.toFixed(2)}`;
+
+  const handleDeleteItem = () => {
+    //if (!selectedItem?._id) return;
+    const itemId = selectedItem?._id || selectedItem?.id;
+    if (!itemId) return;
+
+    Alert.alert(
+      'Delete Item',
+      'Are you sure you want to delete this listing?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            console.log(selectedItem);
+            console.log(selectedItem?._id);
+            try {
+              //await deleteItem(selectedItem._id);
+              await deleteItem(itemId);
+              setModalVisible(false);
+              fetchItems();
+            } catch (err) {
+              console.error(err);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
   <>
@@ -242,7 +277,6 @@ export default function DashboardScreen() {
           <ThemedText type="subtitle" style={[ styles.sectionTitle, { color: isDark ? '#ffffff' : '#1a1a1a', marginBottom: 5 }, ]}>
             Recent Activity
           </ThemedText>
-
           {recentItems.map((item: any, index: number) => (
             <ListItem
               key={item._id || item.id || index}
@@ -289,7 +323,7 @@ export default function DashboardScreen() {
         <View style={[styles.modalContent, isDark && styles.modalContentDark,]}>
 
           <View style={styles.modalBar}>
-            <Pressable onPress={() => setModalVisible(false)}>
+            <Pressable onPress={handleDeleteItem}>
               <Ionicons name="trash-outline" size={25} color={isDark ? '#ffffff' : '#000000'}/>
             </Pressable>
 
@@ -313,7 +347,7 @@ export default function DashboardScreen() {
               }
             }}
             >
-              <ThemedText type="default" style={{fontSize: 12}}>Edit</ThemedText>
+              <ThemedText type="default" style={styles.editButtonText}>Edit</ThemedText>
             </Pressable>
           </View>
           {selectedItem?.imageUrl && (
@@ -676,6 +710,11 @@ const styles = StyleSheet.create({
   },
   modalImageDark: {
     backgroundColor: '#ffffff',
+  },
+  editButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontFamily: "AzeretMono_400Regular",
   },
 });
 

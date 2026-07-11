@@ -66,7 +66,7 @@ router.post(
 
         try {
 
-            const { title, description, price, category, brand, condition } = req.body;
+            const { title, description, price, category, brand, condition, imageUrl } = req.body;
 
             const newItem = new Item({
 
@@ -78,8 +78,9 @@ router.post(
                 condition,
 
                 imageUrl: req.file
-                    ? req.file.path
-                    : null
+                    //? req.file.path
+                    ? `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`
+                    : imageUrl || null,
             });
 
             const savedItem = await newItem.save();

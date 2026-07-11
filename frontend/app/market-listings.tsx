@@ -23,7 +23,7 @@ export default function MarketListingsScreen() {
   const parsedListings = parseListings(listings);
   const imageSource = imageUri
     ? { uri: imageUri }
-    : require('@/assets/images/partial-react-logo.png');
+    : require('@/assets/images/no-img-available.jpg');
 
   const featured = parsedListings.length > 0 ? parsedListings[0] : null;
   const rest = parsedListings.length > 1 ? parsedListings.slice(1) : [];
@@ -96,7 +96,7 @@ function FeaturedListing({
         source={
           listing.imageUrl
           ? { uri: listing.imageUrl }
-          : require('@/assets/images/partial-react-logo.png')
+          : require('@/assets/images/no-img-available.jpg')
         }
         style={styles.featuredImage}
         />
@@ -124,7 +124,7 @@ function MarketplaceListing({
         source={
           listing.imageUrl
           ? { uri: listing.imageUrl }
-          : require('@/assets/images/partial-react-logo.png')
+          : require('@/assets/images/no-img-available.jpg')
         } style={styles.thumbnail}
         />
         <Text style={[styles.listingTitle, isDark && styles.textDark,]}>{listing.title}</Text>

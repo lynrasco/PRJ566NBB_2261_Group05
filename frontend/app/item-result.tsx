@@ -78,7 +78,7 @@ export default function ItemResultScreen() {
         description: primaryListing.description,
         condition: primaryListing.condition || condition,
         price: getNumericPrice(displayPrice),
-        imageUrl: imageUri,
+        imageUrl: primaryListing.imageUrl || imageUri,
       });
       router.replace('/(tabs)/items');
     } catch (error) {
