@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useAppTheme } from '@/context/theme-context';
 
 const TEAM_MEMBERS = [
   'Joseph Fuh Che',
@@ -11,59 +12,62 @@ const TEAM_MEMBERS = [
 ];
 
 export default function AboutUsScreen() {
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
+
   return (
-    <View style={styles.screen}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <View style={[styles.screen, isDark && styles.screenDark]}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, isDark && styles.contentDark,]}>
         <View style={styles.topBar}>
           <Pressable
             onPress={() => router.back()}
             hitSlop={12}
-            style={({ pressed }) => [styles.backButton, pressed && styles.iconPressed]}
+            style={({ pressed }) => [styles.backButton, pressed && (isDark ? styles.iconPressedDark : styles.iconPressed),]}
           >
-            <Ionicons name="arrow-back" size={22} color="#07111b" />
+            <Ionicons name="arrow-back" size={22} color={isDark ? '#ffffff' : '#07111b'}/>
           </Pressable>
         </View>
 
-        <Text style={styles.title}>About us</Text>
+        <Text style={[styles.title, isDark && styles.textDark]}>About us</Text>
 
-        <View style={styles.brandBlock}>
+        <View style={[styles.brandBlock, isDark && styles.cardDark]}>
           <Image
             source={require('@/assets/images/flipvalue-logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.brandName}>FlipValue</Text>
-          <Text style={styles.teamName}>by iSALAJ Inc</Text>
+         <Text style={[styles.brandName, isDark && styles.accentTextDark]}>FlipValue</Text>
+          <Text style={[styles.teamName, isDark && styles.mutedTextDark]}>by iSALAJ Inc</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Our mission</Text>
-          <Text style={styles.bodyText}>
+          <Text style={[styles.sectionTitle, isDark && styles.textDark]}>Our mission</Text>
+          <Text style={[styles.bodyText, isDark && styles.mutedTextDark]}>
             FlipValue helps resellers and thrifters make smarter pricing decisions by
             identifying item details and comparing them with similar resale listings.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What we do</Text>
+          <Text style={[styles.sectionTitle, isDark && styles.textDark]}>What we do</Text>
           <View style={styles.pointRow}>
-            <Ionicons name="scan-outline" size={18} color="#024883" />
-            <Text style={styles.pointText}>Recognize brands, styles, and materials.</Text>
+            <Ionicons name="scan-outline" size={18} color={isDark ? '#8bbcff' : '#024883'} />
+            <Text style={[styles.pointText, isDark && styles.mutedTextDark]}>Recognize brands, styles, and materials.</Text>
           </View>
           <View style={styles.pointRow}>
-            <Ionicons name="pricetag-outline" size={18} color="#024883" />
-            <Text style={styles.pointText}>Suggest fair resale price ranges.</Text>
+            <Ionicons name="pricetag-outline" size={18} color={isDark ? '#8bbcff' : '#024883'} />
+            <Text style={[styles.pointText, isDark && styles.mutedTextDark]}>Suggest fair resale price ranges.</Text>
           </View>
           <View style={styles.pointRow}>
-            <Ionicons name="trending-up-outline" size={18} color="#024883" />
-            <Text style={styles.pointText}>Support better listings and fewer pricing mistakes.</Text>
+            <Ionicons name="trending-up-outline" size={18} color={isDark ? '#8bbcff' : '#024883'} />
+            <Text style={[styles.pointText, isDark && styles.mutedTextDark]}>Support better listings and fewer pricing mistakes.</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Project team</Text>
+          <Text style={[styles.sectionTitle, isDark && styles.textDark]}>Project team</Text>
           {TEAM_MEMBERS.map((member) => (
-            <Text key={member} style={styles.memberText}>
+            <Text key={member} style={[styles.memberText, isDark && styles.mutedTextDark,]}>
               {member}
             </Text>
           ))}
@@ -167,5 +171,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     color: '#314760',
+  },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  contentDark: {
+    backgroundColor: '#08111f',
+  },
+  cardDark: {
+    backgroundColor: '#121c2b',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  accentTextDark: {
+    color: '#8bbcff',
+  },
+  iconPressedDark: {
+    backgroundColor: '#1d2d44',
   },
 });

@@ -11,6 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useAppTheme } from '@/context/theme-context';
 
 const PROFILE_FIELDS = [
   { key: 'username', label: 'Username:' },
@@ -36,42 +37,46 @@ export default function ProfileSettingsScreen() {
   const saveProfile = () => {
     router.back();
   };
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', default: undefined })}
-      style={styles.screen}
+      style={[styles.screen, isDark && styles.screenDark]}
     >
       <ScrollView
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
+        contentContainerStyle={[
+          styles.content,
+          isDark && styles.contentDark,
+        ]}
+        >
         <View style={styles.topBar}>
           <Pressable
             onPress={() => router.back()}
             hitSlop={12}
             style={({ pressed }) => [styles.backButton, pressed && styles.iconPressed]}
           >
-            <Ionicons name="arrow-back" size={22} color="#07111b" />
+            <Ionicons name="arrow-back" size={22} color={isDark ? '#ffffff' : '#07111b'}/>
           </Pressable>
 
           <Pressable
             onPress={saveProfile}
-            style={({ pressed }) => [styles.saveButton, pressed && styles.savePressed]}
-          >
+            style={({ pressed }) => [styles.saveButton, isDark && styles.saveButtonDark, pressed && styles.savePressed,]}>
             <Text style={styles.saveText}>Save</Text>
           </Pressable>
         </View>
 
-        <Text style={styles.title}>Profile Settings</Text>
+        <Text style={[styles.title, isDark && styles.textDark]}>Profile Settings</Text>
 
-        <View style={styles.previewCard}>
-            <View style={styles.iconCircle}>
-                <Ionicons name="person-outline" size={28} color="#024883" />
+        <View style={[styles.previewCard, isDark && styles.cardDark]}>
+            <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
+                <Ionicons name="person-outline" size={28} color={isDark ? '#8bbcff' : '#024883'} />
             </View>
-            <Text style={styles.previewTitle}>Profile</Text>
-            <Text style={styles.previewText}>
+            <Text style={[styles.previewTitle, isDark && styles.textDark,]}>Profile</Text>
+            <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
                 Update your personal information.
             </Text>
         </View>
@@ -79,7 +84,7 @@ export default function ProfileSettingsScreen() {
         <View style={styles.form}>
           {PROFILE_FIELDS.map((field) => (
             <View key={field.key} style={styles.fieldGroup}>
-              <Text style={styles.label}>{field.label}</Text>
+              <Text style={[styles.label, isDark && styles.textDark,]}>{field.label}</Text>
               <TextInput
                 value={profile[field.key]}
                 onChangeText={(value) => updateField(field.key, value)}
@@ -93,7 +98,7 @@ export default function ProfileSettingsScreen() {
                       : 'default'
                 }
                 textContentType={field.key === 'email' ? 'emailAddress' : 'none'}
-                style={styles.input}
+                style={[styles.input, isDark && styles.inputDark,]}
               />
             </View>
           ))}
@@ -213,5 +218,30 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: '#52616f',
+  },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  contentDark: {
+    backgroundColor: '#08111f',
+  },
+  cardDark: {
+    backgroundColor: '#121c2b',
+  },
+  inputDark: {
+    backgroundColor: '#1d2d44',
+    color: '#ffffff',
+  },
+  iconCircleDark: {
+    backgroundColor: '#1d2d44',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  saveButtonDark: {
+    backgroundColor: '#1f6fb2',
   },
 });

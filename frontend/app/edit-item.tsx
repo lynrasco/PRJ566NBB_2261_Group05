@@ -15,6 +15,7 @@ export default function EditItemScreen() {
     imageUrl?: string;
   }>();
 
+  /*
   const [title, setTitle] = useState(params.title || 'Viable Black by SM');
   const [brand, setBrand] = useState(params.brand || 'Steve Madden');
   const [category, setCategory] = useState(params.category || 'Footwear');
@@ -25,6 +26,22 @@ export default function EditItemScreen() {
   const parsedPrice = parseFloat(params.price || '50');
   const [minPrice, setMinPrice] = useState(Math.max(5, Math.floor(parsedPrice * 0.5)));
   const [maxPrice, setMaxPrice] = useState(Math.ceil(parsedPrice * 1.5));
+  */
+  const initialPrice = Number.isFinite(Number(params.price))
+  ? Number(params.price)
+  : 0;
+
+  const [title, setTitle] = useState(params.title || '');
+  const [brand, setBrand] = useState(params.brand || '');
+  const [category, setCategory] = useState(params.category || '');
+  const [description, setDescription] = useState(params.description || '');
+  const [price, setPrice] = useState(initialPrice);
+  const [minPrice, setMinPrice] = useState(
+    initialPrice > 0 ? Math.max(5, Math.floor(initialPrice * 0.5)) : 0
+  );
+  const [maxPrice, setMaxPrice] = useState(
+    initialPrice > 0 ? Math.ceil(initialPrice * 1.5) : 100
+  );
 
   const imageSource = params.imageUrl
     ? { uri: params.imageUrl }
@@ -45,7 +62,7 @@ export default function EditItemScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}

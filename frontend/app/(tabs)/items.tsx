@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { getAllItems } from '@/services/api';
+import { useAppTheme } from '@/context/theme-context';
 
 type UserItem = {
   _id?: string;
@@ -35,6 +36,8 @@ export default function ItemsScreen() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   useFocusEffect(
     useCallback(() => {
@@ -96,17 +99,17 @@ export default function ItemsScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, isDark && styles.screenDark]}>
       <FlatList
         data={filteredItems}
         keyExtractor={(item, index) => item._id || item.id || `${item.title}-${index}`}
         numColumns={2}
         columnWrapperStyle={styles.cardRow}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, isDark && styles.contentDark,]}
         ListHeaderComponent={
           <View>
-            <Text style={styles.title}>My items</Text>
-            <Text style={styles.summary}>
+            <Text style={[styles.title, isDark && styles.textDark]}>My items</Text>
+            <Text style={[styles.summary, isDark && styles.mutedTextDark]}>
               {soldItems.length} valued items · ${totalValue.toLocaleString()} total
             </Text>
 
@@ -117,9 +120,9 @@ export default function ItemsScreen() {
                   <Pressable
                     key={filter}
                     onPress={() => setActiveFilter(filter)}
-                    style={[styles.filterChip, isActive && styles.filterChipActive]}
+                    style={[styles.filterChip, isDark && styles.filterChipDark, isActive && styles.filterChipActive,]}
                   >
-                    <Text style={[styles.filterText, isActive && styles.filterTextActive]}>
+                    <Text style={[styles.filterText, isDark && styles.filterTextDark, isActive && styles.filterTextActive,]}>
                       {filter}
                     </Text>
                   </Pressable>
@@ -133,11 +136,11 @@ export default function ItemsScreen() {
             {loading ? (
               <>
                 <ActivityIndicator color="#024883" />
-                <Text style={styles.stateText}>Loading items...</Text>
+                <Text style={[styles.stateText, isDark && styles.mutedTextDark]}>Loading items...</Text>
               </>
             ) : error ? (
               <>
-                <Text style={styles.errorText}>{error}</Text>
+                <Text style={[styles.errorText, isDark && styles.errorTextDark]}>{error}</Text>
                 <Pressable onPress={fetchItems} style={styles.retryButton}>
                   <Text style={styles.retryText}>Retry</Text>
                 </Pressable>
@@ -147,21 +150,21 @@ export default function ItemsScreen() {
             )}
           </View>
         }
-        renderItem={({ item }) => <SoldItemCard item={item} onPress={() => openItem(item)} />}
+        renderItem={({ item }) => <SoldItemCard item={item} onPress={() => openItem(item)} isDark={isDark}/>}
         showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
 
-function SoldItemCard({ item, onPress }: { item: UserItem; onPress: () => void }) {
+function SoldItemCard({ item, onPress, isDark, }: { item: UserItem; onPress: () => void; isDark: boolean; }) {
   const price = getNumericPrice(item.price);
   const confidence = Math.round(
     item.confidence || item.matchScore || item.valueScore || 85 + (price % 10)
   );
 
   return (
-    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={styles.card}>
+    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={[styles.card, isDark && styles.cardDark,]}>
       {item.imageUrl ? (
         <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
       ) : (
@@ -170,10 +173,10 @@ function SoldItemCard({ item, onPress }: { item: UserItem; onPress: () => void }
         </View>
       )}
 
-      <Text numberOfLines={2} style={styles.cardTitle}>
+      <Text numberOfLines={2} style={[styles.cardTitle, isDark && styles.textDark,]}>
         {item.title || 'Untitled item'}
       </Text>
-      <Text numberOfLines={1} style={styles.brand}>
+      <Text numberOfLines={1} style={[styles.brand, isDark && styles.mutedTextDark,]}>
         {item.brand || item.category || 'Sold item'}
       </Text>
 
@@ -181,7 +184,7 @@ function SoldItemCard({ item, onPress }: { item: UserItem; onPress: () => void }
         <View style={styles.pricePill}>
           <Text style={styles.priceText}>${price}</Text>
         </View>
-        <Text style={styles.confidence}>{confidence}%</Text>
+        <Text style={[styles.confidence, isDark && styles.mutedTextDark,]}>{confidence}%</Text>
       </View>
     </TouchableOpacity>
   );
@@ -343,5 +346,32 @@ const styles = StyleSheet.create({
     fontFamily: 'AzeretMono_700Bold',
     fontSize: 11,
     color: '#ffffff',
+  },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  contentDark: {
+    backgroundColor: '#08111f',
+  },
+  cardDark: {
+    backgroundColor: '#121c2b',
+  },
+  placeholderDark: {
+    backgroundColor: '#1d2d44',
+  },
+  filterChipDark: {
+    backgroundColor: '#1d2d44',
+  },
+  filterTextDark: {
+    color: '#b8c4d1',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  errorTextDark: {
+    color: '#ff9b9b',
   },
 });

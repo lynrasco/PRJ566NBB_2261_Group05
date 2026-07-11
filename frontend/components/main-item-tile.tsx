@@ -1,5 +1,6 @@
 import { StyleSheet, View, Image, TouchableOpacity, type TouchableOpacityProps } from 'react-native';
 import { ThemedText } from './themed-text';
+import { useAppTheme } from '@/context/theme-context';
 
 export type MainItemTileProps = TouchableOpacityProps & {
   image?: string;
@@ -19,14 +20,17 @@ export function MainItemTile({
   style,
   ...otherProps
 }: MainItemTileProps) {
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
-      style={[styles.container, style]}
+      style={[styles.container, isDark && styles.containerDark, style]}
       {...otherProps}
     >
-      <View style={styles.imageContainer}>
+      <View style={[styles.imageContainer, isDark && styles.imageContainerDark]}>
         {image && (
           <Image
             source={typeof image === 'string' ? { uri: image } : image}
@@ -38,22 +42,22 @@ export function MainItemTile({
       <View style={styles.contentContainer}>
         <View style={styles.titleSection}>
           <View style={styles.titleWrapper}>
-            <ThemedText type="defaultSemiBold" style={[styles.title, { color: '#1a1a1a' }]}>
+            <ThemedText type="defaultSemiBold" style={[styles.title, isDark && styles.textDark]}>
               {title}
             </ThemedText>
             {brand && (
-              <ThemedText style={styles.brand}>{brand}</ThemedText>
+              <ThemedText style={[styles.brand, isDark && styles.mutedTextDark]}>{brand}</ThemedText>
             )}
           </View>
           {priceRange && (
-            <ThemedText type="defaultSemiBold" style={styles.priceRange}>
+            <ThemedText type="defaultSemiBold" style={[styles.priceRange, isDark && styles.accentTextDark]}>
               {priceRange}
             </ThemedText>
           )}
         </View>
 
         {description && (
-          <ThemedText style={styles.description} numberOfLines={3}>
+          <ThemedText style={[styles.description, isDark && styles.mutedTextDark]} numberOfLines={3}>
             {description}
           </ThemedText>
         )}
@@ -115,5 +119,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
     lineHeight: 18,
+  },
+  accentTextDark: {
+    color: '#8bbcff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  imageContainerDark: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2d3a4a',
+  },
+  containerDark: {
+    backgroundColor: '#1d2d44',
+    borderWidth: 1,
+    borderColor: '#2d3a4a',
+    shadowOpacity: 0.25,
   },
 });

@@ -2,7 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
-
+import { useCallback, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { getAllItems } from '@/services/api';
 /*
 const SETTINGS_OPTIONS = [
   'Profile settings',
@@ -27,6 +29,25 @@ const SETTINGS_OPTIONS = [
 export default function SettingsScreen() {
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const [items, setItems] = useState<any[]>([]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchItems();
+    }, [])
+  );
+
+  const fetchItems = async () => {
+    try {
+      const response = await getAllItems();
+      if (response.success && Array.isArray(response.items)) {
+        setItems(response.items);
+      } else {
+        setItems([]);
+      }
+    } catch {
+      setItems([]);
+    }
+  };
 
   const signOut = () => {
     router.replace('/(auth)/login');
@@ -81,7 +102,7 @@ export default function SettingsScreen() {
           />
           <Text style={styles.name}>Linda Carter</Text>
           <Text style={[styles.meta, isDark && styles.metaDark]}>
-            @lindaflips · 5 items valued
+            @lindaflips · {items.length} {items.length === 1 ? 'item' : 'items'} valued
           </Text>
         </View>
 

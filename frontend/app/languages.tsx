@@ -1,45 +1,60 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function LanguagesScreen() {
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
+
   return (
     <ScrollView
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, isDark && styles.contentDark, ]}
       showsVerticalScrollIndicator={false}
-      style={styles.screen}
+      style={[styles.screen, isDark && styles.screenDark,]}
     >
       <Pressable
         hitSlop={12}
         onPress={() => router.back()}
         style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
       >
-        <Ionicons name="arrow-back" size={24} color="#111111" />
+        <Ionicons name="arrow-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
       </Pressable>
 
-      <Text selectable style={styles.title}>
+      <Text selectable style={[styles.title, isDark && styles.textDark,]}>
         Languages
       </Text>
 
-      <View style={styles.previewCard}>
-        <View style={styles.iconCircle}>
-            <Ionicons name="language-outline" size={28} color="#024883" />
+      <View style={[styles.previewCard, isDark && styles.cardDark,]}>
+        <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
+            <Ionicons name="language-outline" size={28} color={isDark ? '#8bbcff' : '#024883'}/>
         </View>
-        <Text style={styles.previewTitle}>App language</Text>
-        <Text style={styles.previewText}>
+       <Text style={[styles.previewTitle, isDark && styles.textDark,]}>
+        App language
+        </Text>
+        <Text style={[styles.previewText, isDark && styles.mutedTextDark]}>
             Choose the language used throughout the app.
         </Text>
       </View>
 
-      <Pressable style={({ pressed }) => [styles.optionCard, pressed && styles.cardPressed]}>
-        <Text selectable style={styles.optionLabel}>
+      <Pressable
+        style={({ pressed }) => [
+          styles.optionCard,
+          isDark && styles.cardDark,
+          pressed &&
+          (isDark
+            ? styles.cardPressedDark
+            : styles.cardPressed),
+        ]}
+      >
+        <Text selectable style={[styles.optionLabel, isDark && styles.textDark]}>
           App Language
         </Text>
         <View style={styles.optionValueGroup}>
-          <Text selectable style={styles.optionValue}>
+          <Text selectable style={[styles.optionValue, isDark && styles.mutedTextDark]}>
             English
           </Text>
-          <Ionicons name="chevron-forward" size={22} color="#111111" />
+          <Ionicons name="chevron-forward" size={22} color={isDark ? '#b8c4d1' : '#111111'}/>
         </View>
       </Pressable>
     </ScrollView>
@@ -138,5 +153,26 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: '#52616f',
+  },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  contentDark: {
+    backgroundColor: '#08111f',
+  },
+  cardDark: {
+    backgroundColor: '#121c2b',
+  },
+  iconCircleDark: {
+    backgroundColor: '#1d2d44',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  cardPressedDark: {
+    backgroundColor: '#1d2d44',
   },
 });

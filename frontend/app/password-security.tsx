@@ -12,17 +12,20 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function PasswordSecurityScreen() {
   const [faceIdEnabled, setFaceIdEnabled] = useState(true);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', default: undefined })}
-      style={styles.screen}
+      style={[styles.screen, isDark && styles.screenDark]}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, isDark && styles.contentDark,]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -31,26 +34,28 @@ export default function PasswordSecurityScreen() {
           onPress={() => router.back()}
           style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
         >
-          <Ionicons name="arrow-back" size={24} color="#111111" />
+          <Ionicons name="arrow-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
         </Pressable>
 
-        <Text selectable style={styles.title}>
+        <Text selectable style={[styles.title, isDark && styles.textDark]}>
           Password & Security
         </Text>
 
-        <View style={styles.previewCard}>
-            <View style={styles.iconCircle}>
-                <Ionicons name="lock-closed-outline" size={28} color="#024883" />
+        <View style={[styles.previewCard, isDark && styles.cardDark]}>
+            <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
+                <Ionicons name="lock-closed-outline" size={28} color={isDark ? '#8bbcff' : '#024883'}/>
             </View>
-            <Text style={styles.previewTitle}>Security</Text>
-            <Text style={styles.previewText}>
+            <Text style={[styles.previewTitle, isDark && styles.textDark,]}>
+              Security
+            </Text>
+            <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
                 Manage your password and device security settings.
             </Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.fieldGroup}>
-            <Text selectable style={styles.label}>
+            <Text selectable style={[styles.label, isDark && styles.textDark,]}>
               Old Password:
             </Text>
             <TextInput
@@ -58,12 +63,12 @@ export default function PasswordSecurityScreen() {
               textContentType="password"
               autoCapitalize="none"
               autoCorrect={false}
-              style={styles.input}
+              style={[styles.input, isDark && styles.inputDark,]}
             />
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text selectable style={styles.label}>
+            <Text selectable style={[styles.label, isDark && styles.textDark,]}>
               Change Password:
             </Text>
             <TextInput
@@ -71,22 +76,24 @@ export default function PasswordSecurityScreen() {
               textContentType="newPassword"
               autoCapitalize="none"
               autoCorrect={false}
-              style={styles.input}
+              style={[styles.input, isDark && styles.inputDark,]}
             />
           </View>
         </View>
 
-        <View style={styles.faceIdCard}>
-          <Text selectable style={styles.faceIdText}>
+        <View style={[styles.faceIdCard, isDark && styles.cardDark,]}>
+          <Text selectable style={[styles.faceIdText, isDark && styles.textDark,]}>
             Add face-id
           </Text>
           <View style={styles.switchWrapper}>
             <Switch
             onValueChange={setFaceIdEnabled}
-            thumbColor="#ffffff"
-            trackColor={{ false: '#d9d9d9', true: '#34c759' }}
-            value={faceIdEnabled}
-            ios_backgroundColor="#d9d9d9"
+            trackColor={{
+              false: isDark ? '#3b4d61' : '#d9d9d9',
+              true: '#34c759',
+            }}
+            thumbColor={isDark ? '#d9e2ec' : '#ffffff'}
+            ios_backgroundColor={isDark ? '#3b4d61' : '#d9d9d9'}
             />
           </View>
         </View>
@@ -228,5 +235,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: '#52616f',
+  },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  contentDark: {
+    backgroundColor: '#08111f',
+  },
+  cardDark: {
+    backgroundColor: '#121c2b',
+  },
+  inputDark: {
+    backgroundColor: '#1d2d44',
+    color: '#ffffff',
+  },
+  iconCircleDark: {
+    backgroundColor: '#1d2d44',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
   },
 });

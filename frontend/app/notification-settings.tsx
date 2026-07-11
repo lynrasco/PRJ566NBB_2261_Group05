@@ -2,40 +2,45 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function NotificationSettingsScreen() {
   const [pushEnabled, setPushEnabled] = useState(true);
   const [priceAlerts, setPriceAlerts] = useState(true);
   const [marketUpdates, setMarketUpdates] = useState(false);
   const [securityAlerts, setSecurityAlerts] = useState(true);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, isDark && styles.screenDark]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#111111" />
+            <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
           </Pressable>
-          <Text style={styles.title}>Notifications</Text>
+          <Text style={[styles.title, isDark && styles.textDark]}>
+            Notifications
+          </Text>
           <View style={styles.headerSpacer} />
         </View>
-
-        <View style={styles.previewCard}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="notifications-outline" size={30} color="#024883" />
+        <View style={[styles.previewCard, isDark && styles.cardDark]}>
+          <View style={[styles.iconCircle, isDark && styles.iconCircleDark, ]}>
+            <Ionicons name="notifications-outline" size={30} color={isDark ? '#8bbcff' : '#024883'}/>
           </View>
-          <Text style={styles.previewTitle}>Stay updated</Text>
-          <Text style={styles.previewText}>
+          <Text style={[styles.previewTitle, isDark && styles.textDark]}>Get notified</Text>
+          <Text style={[styles.previewText, isDark && styles.mutedTextDark]}>
             Choose which alerts FlipValue can send about your items and account.
           </Text>
         </View>
 
-        <View style={styles.card}>
+        <View style={[styles.card, isDark && styles.cardDark]}>
           <NotificationRow
             title="Enable notifications"
             subtitle="Allow FlipValue to send alerts."
             value={pushEnabled}
             onValueChange={setPushEnabled}
+            isDark={isDark}
           />
 
           <NotificationRow
@@ -44,6 +49,7 @@ export default function NotificationSettingsScreen() {
             value={priceAlerts}
             onValueChange={setPriceAlerts}
             disabled={!pushEnabled}
+            isDark={isDark}
           />
 
           <NotificationRow
@@ -52,6 +58,7 @@ export default function NotificationSettingsScreen() {
             value={marketUpdates}
             onValueChange={setMarketUpdates}
             disabled={!pushEnabled}
+            isDark={isDark}
           />
 
           <NotificationRow
@@ -61,6 +68,7 @@ export default function NotificationSettingsScreen() {
             onValueChange={setSecurityAlerts}
             disabled={!pushEnabled}
             isLast
+            isDark={isDark}
           />
         </View>
       </ScrollView>
@@ -75,6 +83,7 @@ function NotificationRow({
   onValueChange,
   disabled = false,
   isLast = false,
+  isDark,
 }: {
   title: string;
   subtitle: string;
@@ -82,20 +91,32 @@ function NotificationRow({
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
   isLast?: boolean;
+  isDark: boolean;
 }) {
   return (
-    <View style={[styles.row, !isLast && styles.rowBorder, disabled && styles.rowDisabled]}>
+    <View style={[styles.row, isDark && styles.rowDark, !isLast && styles.rowBorder, disabled && styles.rowDisabled, ]}>
       <View style={styles.rowCopy}>
-        <Text style={styles.rowTitle}>{title}</Text>
-        <Text style={styles.rowSubtitle}>{subtitle}</Text>
+        <Text style={[styles.rowTitle, isDark && styles.textDark]}>{title}</Text>
+        <Text style={[styles.rowSubtitle, isDark && styles.mutedTextDark]}>{subtitle}</Text>
       </View>
 
       <Switch
         value={disabled ? false : value}
         onValueChange={onValueChange}
         disabled={disabled}
-        trackColor={{ false: '#cbd7e2', true: '#9fb6cd' }}
-        thumbColor={disabled ? '#b8c4d1' : value ? '#024883' : '#f4f4f4'}
+        trackColor={{
+          false: isDark ? '#3b4d61' : '#cbd7e2',
+          true: '#9fb6cd',
+        }}
+        thumbColor={
+          disabled
+          ? '#b8c4d1'
+          : value
+            ? '#024883'
+            : isDark
+              ? '#d9e2ec'
+              : '#f4f4f4'
+        }
       />
     </View>
   );
@@ -197,5 +218,23 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: '#52616f',
+  },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  cardDark: {
+    backgroundColor: '#121c2b',
+  },
+  rowDark: {
+    backgroundColor: '#121c2b',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  iconCircleDark: {
+    backgroundColor: '#1d2d44',
   },
 });
