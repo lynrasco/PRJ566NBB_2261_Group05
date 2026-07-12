@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, KeyboardAvoidingView } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, KeyboardAvoidingView } from 'react-native';
 import { useState, useRef } from 'react';
 import { ThemedText } from '@/components/themed-text';
 import { useAppTheme } from '@/context/theme-context';
@@ -65,6 +65,46 @@ export default function EditItemScreen() {
     }, 100);
   };
 
+  const handleSave = async () => {
+  if (!params.itemId) {
+    Alert.alert('Error', 'Item ID is missing.');
+    return;
+  }
+
+  try {
+    setSaving(true);
+
+    const response = await fetch(`http://localhost:3000/api/items/${params.itemId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        category,
+        brand,
+        price,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update item.');
+    }
+
+    Alert.alert('Success', 'Item updated successfully.');
+    router.back();
+  } catch (error) {
+    Alert.alert(
+      'Error',
+      error instanceof Error ? error.message : 'Something went wrong.'
+    );
+  } finally {
+    setSaving(false);
+  }
+};
 
 
   return (
@@ -85,6 +125,7 @@ export default function EditItemScreen() {
         <TouchableOpacity
           style={[styles.saveButton, saving && styles.saveButtonDisabled]}
           disabled={saving}
+          onPress={handleSave}
           >
             <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
         </TouchableOpacity>
