@@ -39,6 +39,50 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+// UPDATE item
+router.put("/:id", async (req, res, next) => {
+  try {
+    const allowedUpdates = {
+      title: req.body.title,
+      description: req.body.description,
+      imageUrl: req.body.imageUrl,
+      category: req.body.category,
+      brand: req.body.brand,
+      condition: req.body.condition,
+      price: req.body.price,
+    };
+
+    Object.keys(allowedUpdates).forEach((key) => {
+      if (allowedUpdates[key] === undefined) {
+        delete allowedUpdates[key];
+      }
+    });
+
+    if (allowedUpdates.price !== undefined) {
+      allowedUpdates.price = Number(allowedUpdates.price);
+    }
+
+    const updatedItem = await itemRepository.updateItemById(
+      req.params.id,
+      allowedUpdates
+    );
+
+    if (!updatedItem) {
+      const error = new Error("Item not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Item updated successfully",
+      item: updatedItem,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // DELETE item
 router.delete("/:id", async (req, res, next) => {
   try {
