@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, Modal, View, Text, Pressable, Image, ActivityIndicator } from 'react-native';
+import { Alert, StyleSheet, ScrollView, Modal, View, Text, Pressable, Image, ActivityIndicator } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -7,6 +7,7 @@ import { MainItemTile } from '@/components/main-item-tile';
 import { ListItem } from '@/components/list-item';
 import { useState, useCallback, useEffect } from 'react';
 import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics, deleteItem } from '@/services/api';
+import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics, listItemToEbay } from '@/services/api';
 import AnalyticsCharts from '@/components/analytics-charts';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/context/theme-context';
@@ -62,6 +63,44 @@ export default function DashboardScreen() {
     console.log(item);
     setSelectedItem(item);
     setModalVisible(true);
+  };
+
+  const handlePushToEbay = async (item: any) => {
+    const itemId = item._id || item.id || String(Date.now());
+
+    try {
+      const payload = {
+        id: itemId,
+        title: item.title,
+        description: item.description,
+        price: item.price,
+        category: item.category,
+        brand: item.brand,
+        condition: item.condition,
+        imageUrl: item.imageUrl,
+      };
+
+      const response = await listItemToEbay(payload);
+
+      if (response?.success) {
+        Alert.alert('eBay Listing', 'Item successfully sent to eBay.');
+      } else {
+        throw new Error(response?.message || 'Unable to list item.');
+      }
+    } catch (error: any) {
+      console.error('Failed to push item to eBay:', error);
+      const responseError = error?.response?.data;
+      const ebayDetail =
+        responseError?.details?.errors?.[0]?.longMessage ||
+        responseError?.details?.errors?.[0]?.message ||
+        responseError?.details?.message;
+      const message =
+        ebayDetail ||
+        responseError?.message ||
+        error?.message ||
+        'Failed to push item to eBay.';
+      Alert.alert('eBay Listing Failed', message);
+    }
   };
 
   useEffect(() => {
@@ -285,6 +324,7 @@ export default function DashboardScreen() {
               description={item.description || item.category || item.condition}
               image={item.imageUrl}
               onPress={() => handleItemPress(item)}
+              onArrowPress={() => handlePushToEbay(item)}
             />
           ))}
         </ThemedView>
@@ -305,6 +345,7 @@ export default function DashboardScreen() {
               description={item.description}
               image={item.imageUrl}
               onPress={() => handleItemPress(item)}
+              onArrowPress={() => handlePushToEbay(item)}
             />
           ))}
         </ThemedView>

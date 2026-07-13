@@ -39,7 +39,71 @@ const handleListingsSearch = async (req, res, next) => {
   }
 };
 
+const handleCreateListing = async (req, res, next) => {
+  try {
+    const item = req.body;
+
+    if (!item || !item.title) {
+      const error = new Error("Listing item information is required");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const result = await ebayService.createListing(item);
+
+    res.status(201).json({
+      success: true,
+      message: "Listing request sent to eBay",
+      result,
+    });
+  } catch (error) {
+    const statusCode = error?.statusCode || 500;
+    console.error("Failed to create eBay listing:", {
+      message: error?.message,
+      stage: error?.stage,
+      ebayStatus: error?.ebayStatus,
+      details: JSON.stringify(error?.details, null, 2),
+    });
+
+    res.status(statusCode).json({
+      success: false,
+      message: error?.message || "Failed to create eBay listing",
+      stage: error?.stage,
+      ebayStatus: error?.ebayStatus,
+      details: error?.details,
+    });
+  }
+};
+
+const handleSellerPolicies = async (req, res) => {
+  try {
+    const result = await ebayService.getSellerPolicies();
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    const statusCode = error?.statusCode || 500;
+    console.error("Failed to fetch eBay seller policies:", {
+      message: error?.message,
+      stage: error?.stage,
+      ebayStatus: error?.ebayStatus,
+      details: error?.details,
+    });
+
+    res.status(statusCode).json({
+      success: false,
+      message: error?.message || "Failed to fetch eBay seller policies",
+      stage: error?.stage,
+      ebayStatus: error?.ebayStatus,
+      details: error?.details,
+    });
+  }
+};
+
 router.post("/", handleListingsSearch);
-router.post("/listings", handleListingsSearch);
+router.get("/seller-policies", handleSellerPolicies);
+router.post("/listings", handleCreateListing);
 
 module.exports = router;

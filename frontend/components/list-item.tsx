@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, TouchableOpacity, type TouchableOpacityProps } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, Pressable, type TouchableOpacityProps } from 'react-native';
 import { ThemedText } from './themed-text';
 import { useAppTheme } from '@/context/theme-context';
 
@@ -7,6 +7,7 @@ export type ListItemProps = TouchableOpacityProps & {
   title: string;
   price: string;
   description?: string;
+  onArrowPress?: () => void;
 };
 
 export function ListItem({
@@ -15,6 +16,7 @@ export function ListItem({
   price,
   description,
   onPress,
+  onArrowPress,
   style,
   ...otherProps
 }: ListItemProps) {
@@ -43,6 +45,15 @@ export function ListItem({
             <View style={[styles.arrowButton, isDark && styles.arrowButtonDark]}>
               <ThemedText style={[styles.arrow, isDark && styles.accentTextDark]}>→</ThemedText>
             </View>
+            {onArrowPress ? (
+              <Pressable onPress={onArrowPress} hitSlop={10} style={styles.arrowButton}>
+                <ThemedText style={styles.arrow}>→</ThemedText>
+              </Pressable>
+            ) : (
+              <View style={styles.arrowButton}>
+                <ThemedText style={styles.arrow}>→</ThemedText>
+              </View>
+            )}
           </View>
           {description && (
             <ThemedText style={[styles.description, isDark && styles.mutedTextDark]} numberOfLines={2}>
