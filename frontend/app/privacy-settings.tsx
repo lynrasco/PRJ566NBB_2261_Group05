@@ -2,38 +2,46 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function PrivacySettingsScreen() {
   const [personalizedSuggestions, setPersonalizedSuggestions] = useState(true);
   const [shareAnalytics, setShareAnalytics] = useState(false);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   return (
-    <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <View style={[styles.screen, isDark && styles.screenDark]}>
+      <ScrollView contentContainerStyle={[styles.content, isDark && styles.contentDark,]} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#111111" />
+            <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
           </Pressable>
-          <Text style={styles.title}>Privacy</Text>
+          <Text style={[styles.title, isDark && styles.textDark]}>
+            Privacy
+          </Text>
           <View style={styles.headerSpacer} />
         </View>
 
-        <View style={styles.previewCard}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="shield-checkmark-outline" size={30} color="#024883" />
+        <View style={[styles.previewCard, isDark && styles.cardDark]}>
+          <View style={[styles.iconCircle, isDark && styles.iconCircleDark, ]}>
+            <Ionicons name="shield-checkmark-outline" size={30} color={isDark ? '#8bbcff' : '#024883'}/>
           </View>
-          <Text style={styles.previewTitle}>Control your data</Text>
-          <Text style={styles.previewText}>
+          <Text style={[styles.previewTitle, isDark && styles.textDark]}>
+            Control your data
+          </Text>
+          <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
             Manage how FlipValue uses your profile, item history, and app activity.
           </Text>
         </View>
 
-        <View style={styles.card}>
+        <View style={[styles.previewCard, isDark && styles.cardDark]}>
           <PrivacyRow
             title="Personalized suggestions"
             subtitle="Use item history to improve price recommendations."
             value={personalizedSuggestions}
             onValueChange={setPersonalizedSuggestions}
+            isDark={isDark}
           />
           <PrivacyRow
             title="Share app analytics"
@@ -41,6 +49,7 @@ export default function PrivacySettingsScreen() {
             value={shareAnalytics}
             onValueChange={setShareAnalytics}
             isLast
+            isDark={isDark}
           />
         </View>
       </ScrollView>
@@ -54,26 +63,37 @@ function PrivacyRow({
   value,
   onValueChange,
   isLast = false,
+  isDark,
 }: {
   title: string;
   subtitle: string;
   value: boolean;
   onValueChange: (value: boolean) => void;
   isLast?: boolean;
+  isDark: boolean;
 }) {
   return (
     <View style={[styles.row, !isLast && styles.rowBorder]}>
       <View style={styles.rowCopy}>
-        <Text style={styles.rowTitle}>{title}</Text>
-        <Text style={styles.rowSubtitle}>{subtitle}</Text>
+        <Text style={[styles.rowTitle, isDark && styles.textDark]}>{title}</Text>
+        <Text style={[styles.rowSubtitle, isDark && styles.mutedTextDark,]}>{subtitle}</Text>
       </View>
 
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: '#cbd7e2', true: '#9fb6cd' }}
-        thumbColor={value ? '#024883' : '#f4f4f4'}
-      />
+        trackColor={{
+          false: isDark ? '#3b4d61' : '#cbd7e2',
+          true: '#9fb6cd',
+        }}
+        thumbColor={
+          value
+          ? '#024883'
+          : isDark
+            ? '#d9e2ec'
+            : '#f4f4f4'
+        }
+        />
     </View>
   );
 }
@@ -171,5 +191,26 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: '#52616f',
+  },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  contentDark: {
+    backgroundColor: '#08111f',
+  },
+  cardDark: {
+    backgroundColor: '#121c2b',
+  },
+  rowDark: {
+    backgroundColor: '#121c2b',
+  },
+  iconCircleDark: {
+    backgroundColor: '#1d2d44',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
   },
 });

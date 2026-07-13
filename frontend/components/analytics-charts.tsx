@@ -1,6 +1,7 @@
 //import { StyleSheet, View } from 'react-native';
 import { StyleSheet, View, type DimensionValue } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
+import { useAppTheme } from '@/context/theme-context';
 
 type BreakdownData = Record<string, number>;
 
@@ -13,9 +14,14 @@ export default function AnalyticsCharts({
   categoryBreakdown = {},
   conditionBreakdown = {},
 }: AnalyticsChartProps) {
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
+
   return (
     <View style={styles.container}>
-      <ThemedText style={styles.chartTitle}>Analytics Charts</ThemedText>
+      <ThemedText type="subtitle" style={[styles.chartTitle, isDark && styles.textDark]}>
+        Analytics Charts
+      </ThemedText>
 
       <ChartCard
         title="Category Breakdown"
@@ -47,10 +53,14 @@ function ChartCard({
 
   const total = entries.reduce((sum, [, count]) => sum + count, 0);
   const maxValue = Math.max(...entries.map(([, count]) => count), 1);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   return (
-    <View style={styles.chartCard}>
-      <ThemedText style={styles.cardTitle}>{title}</ThemedText>
+    <View style={[styles.chartCard, isDark && styles.chartCardDark]}>
+      <ThemedText style={[styles.cardTitle, isDark && styles.mutedTextDark]}>
+        {title}
+      </ThemedText>
 
       {entries.length > 0 ? (
         entries.map(([label, count]) => {
@@ -61,18 +71,17 @@ function ChartCard({
           return (
             <View key={label} style={styles.chartRow}>
               <View style={styles.chartHeader}>
-                <ThemedText numberOfLines={1} style={styles.chartLabel}>
+                <ThemedText style={[styles.chartLabel, isDark && styles.mutedTextDark]}>
                   {label}
                 </ThemedText>
-
-                <ThemedText style={styles.chartValue}>
+                <ThemedText style={[styles.chartValue, isDark && styles.accentTextDark]}>
                   {count} ({percentage}%)
                 </ThemedText>
               </View>
 
-              <View style={styles.barTrack}>
-                <View style={[styles.barFill, { width: barWidth }]} />
-              </View>
+              <View style={[styles.barTrack, isDark && styles.barTrackDark]}>
+                <View style={[styles.barFill, isDark && styles.barFillDark, { width: barWidth },]}/>
+                </View>
             </View>
           );
         })
@@ -87,11 +96,18 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 12,
   },
+  /*
   chartTitle: {
     fontSize: 13,
     fontWeight: '700',
     color: '#30404d',
     marginBottom: 8,
+  },
+  */
+  chartTitle: {
+    marginBottom: 16,
+    marginLeft: 0,
+    color: '#1a1a1a',
   },
   chartCard: {
     backgroundColor: '#ffffff',
@@ -139,5 +155,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#7b8793',
     marginTop: 4,
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  accentTextDark: {
+    color: '#8bbcff',
+  },
+  chartCardDark: {
+    backgroundColor: '#1d2d44',
+  },
+  barTrackDark: {
+    backgroundColor: '#2d3a4a',
+  },
+  barFillDark: {
+    backgroundColor: '#8bbcff',
   },
 });

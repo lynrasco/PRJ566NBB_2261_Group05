@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 //import { getEbayListings } from '@/services/api';
 import { useState, useEffect } from 'react';
+import { useAppTheme } from '@/context/theme-context';
 
 type Listing = {
   id: string;
@@ -22,7 +23,7 @@ export default function MarketListingsScreen() {
   const parsedListings = parseListings(listings);
   const imageSource = imageUri
     ? { uri: imageUri }
-    : require('@/assets/images/partial-react-logo.png');
+    : require('@/assets/images/no-img-available.jpg');
 
   const featured = parsedListings.length > 0 ? parsedListings[0] : null;
   const rest = parsedListings.length > 1 ? parsedListings.slice(1) : [];
@@ -37,23 +38,28 @@ export default function MarketListingsScreen() {
     },
   });
 };
-
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={[styles.container, isDark && styles.containerDark]}
+      contentContainerStyle={[
+        styles.contentContainer,isDark && styles.contentContainerDark,
+      ]}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Text style={styles.backIcon}>←</Text>
+       <Text style={[styles.backIcon, isDark && styles.textDark]}>←</Text>
       </TouchableOpacity>
 
       {parsedListings.length === 0 ? (
-        <Text style={{ textAlign: 'center', marginTop: 40 }}>
+        <Text style={[{textAlign:'center', marginTop:40,}, isDark && styles.mutedTextDark,]}>
           No listings received
         </Text>
       ) : (
         <View style={styles.list}>
           {featured && (
   <TouchableOpacity onPress={() => openEditItem(featured)}>
-    <FeaturedListing listing={featured} imageSource={imageSource} />
+    <FeaturedListing listing={featured} imageSource={imageSource} isDark={isDark}/>
   </TouchableOpacity>
 )}
 
@@ -62,6 +68,7 @@ export default function MarketListingsScreen() {
     <MarketplaceListing
       listing={listing}
       imageSource={imageSource}
+      isDark={isDark}
     />
   </TouchableOpacity>
 ))}
@@ -71,100 +78,30 @@ export default function MarketListingsScreen() {
     </ScrollView>
   );
 }
-/*
-export default function MarketListingsScreen() {
-  const [listings, setListings] = useState<Listing[]>([]);
-  const { imageUri, conditionId } = useLocalSearchParams<{
-    imageUri?: string;
-    condition?: string;
-    conditionId?: string;
-  }>();
-
-  useEffect(() => {
-    const loadListings = async () => {
-      try {
-        const data = await getEbayListings('black heels', conditionId);
-        //console.log('EBAY LISTINGS:', data);
-
-        // To log all listings from Ebay for testing:
-        console.log('EBAY LISTINGS:', JSON.stringify(data, null, 2));
-        setListings(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    loadListings();
-  }, [conditionId]);
-
-  const imageSource = imageUri
-    ? { uri: imageUri }
-    : require('@/assets/images/partial-react-logo.png');
-
-  const featured = listings.length > 0 ? listings[0] : null;
-  const rest = listings.length > 1 ? listings.slice(1) : [];
-
-  return (
-    <ScrollView
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-      style={styles.container}
-    >
-      <TouchableOpacity
-        accessibilityLabel="Go back"
-        onPress={() => router.back()}
-        style={styles.backButton}
-      >
-        <Text style={styles.backIcon}>←</Text>
-      </TouchableOpacity>
-
-      {listings.length === 0 ? (
-        <Text style={{ textAlign: 'center', marginTop: 40 }}>
-          Waiting for eBay listings...
-        </Text>
-      ) : (
-        <View style={styles.list}>
-          {featured && (
-            <TouchableOpacity onPress={() => router.push('/edit-item')}>
-              <FeaturedListing listing={featured} imageSource={imageSource} />
-            </TouchableOpacity>
-          )}
-
-          {rest.map((listing) => (
-            <MarketplaceListing
-              key={listing.id}
-              listing={listing}
-              imageSource={imageSource}
-            />
-          ))}
-        </View>
-      )}
-    </ScrollView>
-  );
-}
-*/
 
 function FeaturedListing({
   listing,
   imageSource,
+  isDark,
 }: {
   listing: Listing;
   imageSource: { uri: string } | number;
+  isDark: boolean;
 }) {
   return (
     <View style={styles.featuredWrapper}>
       <Text style={styles.marketplaceLabel}>{listing.marketplace}</Text>
-      <View style={styles.featuredCard} pointerEvents="none">
+      <View style={[styles.featuredCard, isDark && styles.cardDark,]} pointerEvents="none">
         <Image
         source={
           listing.imageUrl
           ? { uri: listing.imageUrl }
-          : require('@/assets/images/partial-react-logo.png')
+          : require('@/assets/images/no-img-available.jpg')
         }
         style={styles.featuredImage}
         />
-        <Text style={styles.featuredPrice}>{listing.price}</Text>
-        <Text style={styles.featuredTitle}>{listing.title}</Text>
+        <Text style={[styles.featuredPrice, isDark && styles.textDark,]}>{listing.price}</Text>
+        <Text style={[styles.featuredTitle, isDark && styles.mutedTextDark,]}>{listing.title}</Text>
       </View>
     </View>
   );
@@ -173,22 +110,24 @@ function FeaturedListing({
 function MarketplaceListing({
   listing,
   imageSource,
+  isDark,
 }: {
   listing: Listing;
   imageSource: { uri: string } | number;
+  isDark: boolean;
 }) {
   return (
     <View style={styles.listingWrapper}>
-      <Text style={styles.marketplaceLabel}>{listing.marketplace}</Text>
-      <View style={styles.listingCard}>
+      <Text style={[styles.marketplaceLabel, isDark && styles.accentTextDark,]}>{listing.marketplace}</Text>
+      <View style={[styles.listingCard, isDark && styles.cardDark,]}>
         <Image
         source={
           listing.imageUrl
           ? { uri: listing.imageUrl }
-          : require('@/assets/images/partial-react-logo.png')
+          : require('@/assets/images/no-img-available.jpg')
         } style={styles.thumbnail}
         />
-        <Text style={styles.listingTitle}>{listing.title}</Text>
+        <Text style={[styles.listingTitle, isDark && styles.textDark,]}>{listing.title}</Text>
       </View>
     </View>
   );
@@ -301,7 +240,7 @@ const styles = StyleSheet.create({
     width: 55,
     height: 55,
     borderRadius: 3,
-    backgroundColor: '#eeeeee',
+    backgroundColor: '#1d2d44',
     resizeMode: 'cover',
   },
   listingTitle: {
@@ -312,6 +251,27 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 12,
     color: '#111111',
+  },
+  containerDark:{
+    backgroundColor:'#08111f',
+  },
+  contentContainerDark:{
+    backgroundColor:'#08111f',
+  },
+  cardDark:{
+    backgroundColor:'#121c2b',
+  },
+  textDark:{
+    color:'#ffffff',
+  },
+  mutedTextDark:{
+    color:'#b8c4d1',
+  },
+  accentTextDark:{
+    color:'#8bbcff',
+  },
+  thumbnailDark:{
+    backgroundColor:'#1d2d44',
   },
 });
 

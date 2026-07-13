@@ -6,9 +6,12 @@ import { DashboardHeader } from '@/components/dashboard-header';
 import { MainItemTile } from '@/components/main-item-tile';
 import { ListItem } from '@/components/list-item';
 import { useState, useCallback, useEffect } from 'react';
+import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics, deleteItem } from '@/services/api';
 import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics, listItemToEbay } from '@/services/api';
 import AnalyticsCharts from '@/components/analytics-charts';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '@/context/theme-context';
+import { Alert } from 'react-native';
 
 export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -18,6 +21,8 @@ export default function DashboardScreen() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [marketAnalytics, setMarketAnalytics] = useState<any>(null);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   useFocusEffect(
     useCallback(() => {
@@ -55,6 +60,7 @@ export default function DashboardScreen() {
   };
 
   const handleItemPress = (item: any) => {
+    console.log(item);
     setSelectedItem(item);
     setModalVisible(true);
   };
@@ -148,13 +154,52 @@ export default function DashboardScreen() {
 
   const recentItems = (summary.recentItems || []).slice(0, 4);
 
+  const totalEstimatedValue = items.reduce((sum, item) => {
+  return sum + getNumericPrice(item.suggestedPrice ?? item.estimatedPrice ?? item.price);
+  }, 0);
+  const formattedTotalEstimatedValue = `$${totalEstimatedValue.toFixed(2)}`;
+
+  const handleDeleteItem = () => {
+    //if (!selectedItem?._id) return;
+    const itemId = selectedItem?._id || selectedItem?.id;
+    if (!itemId) return;
+
+    Alert.alert(
+      'Delete Item',
+      'Are you sure you want to delete this listing?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            console.log(selectedItem);
+            console.log(selectedItem?._id);
+            try {
+              //await deleteItem(selectedItem._id);
+              await deleteItem(itemId);
+              setModalVisible(false);
+              fetchItems();
+            } catch (err) {
+              console.error(err);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
   <>
-    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[styles.scrollView, isDark && styles.scrollViewDark]} showsVerticalScrollIndicator={false}>
       {/* Dashboard Header */}
       <DashboardHeader
         userName="Linda"
         profileImage={require('@/assets/images/profile-picture.png')}
+        totalEstimatedValue={formattedTotalEstimatedValue}
       />
 
       {/* Loading State */}
@@ -184,46 +229,46 @@ export default function DashboardScreen() {
       )}
 
       {!loading && !error && (
-        <ThemedView style={styles.analyticsSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
+        <ThemedView style={[styles.analyticsSection, isDark && styles.analyticsSectionDark]}>
+          <ThemedText type="subtitle" style={[styles.analyticsTitle, isDark && styles.textDark]}>
             Analytics Overview
           </ThemedText>
 
           <View style={styles.analyticsGrid}>
-            <View style={styles.analyticsCardPrimary}>
-              <ThemedText style={styles.metricsLabel}>Saved Items</ThemedText>
-              <ThemedText type="title" style={styles.metricsValue}>{summary.totalSavedItems}</ThemedText>
-              <ThemedText style={styles.metricsHint}>Items in your collection</ThemedText>
+            <View style={[styles.analyticsCardPrimary, isDark && styles.cardDark]}>
+              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Saved Items</ThemedText>
+              <ThemedText type="title" style={[styles.metricsValue, isDark && styles.accentTextDark]}>{summary.totalSavedItems}</ThemedText>
+              <ThemedText style={[styles.metricsHint, isDark && styles.mutedTextDark]}>Items in your collection</ThemedText>
             </View>
 
-            <View style={styles.analyticsCardPrimary}>
-              <ThemedText style={styles.metricsLabel}>Avg Suggested Price</ThemedText>
-              <ThemedText type="title" style={styles.metricsValue}>
+            <View style={[styles.analyticsCardPrimary, isDark && styles.cardDark]}>
+              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Avg Suggested Price</ThemedText>
+              <ThemedText type="title" style={[styles.metricsValue, isDark && styles.accentTextDark]}>
                 {summary.averageSuggestedPrice ? `$${summary.averageSuggestedPrice}` : '$0'}
               </ThemedText>
-              <ThemedText style={styles.metricsHint}>Across current suggestions</ThemedText>
+              <ThemedText style={[styles.metricsHint, isDark && styles.mutedTextDark]}>Across current suggestions</ThemedText>
             </View>
           </View>
 
           <View style={styles.analyticsGridTwo}>
-            <View style={styles.analyticsCardSecondary}>
-              <ThemedText style={styles.metricsLabel}>Category Mix</ThemedText>
+            <View style={[styles.analyticsCardSecondary, isDark && styles.cardDark]}>
+              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Category Mix</ThemedText>
               {categoryEntries.length > 0 ? categoryEntries.map(([label, count]) => (
                 <View key={label} style={styles.breakdownRow}>
-                  <ThemedText style={styles.breakdownLabel}>{label}</ThemedText>
-                  <ThemedText style={styles.breakdownValue}>{count}</ThemedText>
+                  <ThemedText style={[styles.breakdownLabel, isDark && styles.mutedTextDark]}>{label}</ThemedText>
+                  <ThemedText style={[styles.breakdownValue, isDark && styles.accentTextDark]}>{count}</ThemedText>
                 </View>
               )) : (
                 <ThemedText style={styles.emptyBreakdown}>No categories yet</ThemedText>
               )}
             </View>
 
-            <View style={styles.analyticsCardSecondary}>
-              <ThemedText style={styles.metricsLabel}>Condition Mix</ThemedText>
+            <View style={[styles.analyticsCardSecondary, isDark && styles.cardDark]}>
+              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Condition Mix</ThemedText>
               {conditionEntries.length > 0 ? conditionEntries.map(([label, count]) => (
                 <View key={label} style={styles.breakdownRow}>
-                  <ThemedText style={styles.breakdownLabel}>{label}</ThemedText>
-                  <ThemedText style={styles.breakdownValue}>{count}</ThemedText>
+                  <ThemedText style={[styles.breakdownLabel, isDark && styles.mutedTextDark]}>{label}</ThemedText>
+                  <ThemedText style={[styles.breakdownValue, isDark && styles.accentTextDark]}>{count}</ThemedText>
                 </View>
               )) : (
                 <ThemedText style={styles.emptyBreakdown}>No condition data yet</ThemedText>
@@ -231,12 +276,12 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          <View style={styles.marketCard}>
-            <ThemedText style={styles.metricsLabel}>Market Snapshot</ThemedText>
-            <ThemedText style={styles.marketValue}>
+          <View style={[styles.marketCard, isDark && styles.cardDark]}>
+            <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Market Snapshot</ThemedText>
+            <ThemedText style={[styles.marketValue, isDark && styles.accentTextDark]}>
               {marketAnalytics?.comparablesCount ?? summary.marketplaceComparables ?? 0} comparable listings
             </ThemedText>
-            <ThemedText style={styles.marketHint}>
+            <ThemedText style={[styles.marketHint, isDark && styles.mutedTextDark]}>
               Avg {marketAnalytics?.averageMarketPrice ? `$${marketAnalytics.averageMarketPrice}` : '$0'} • Low {marketAnalytics?.lowestMarketPrice ? `$${marketAnalytics.lowestMarketPrice}` : '$0'} • High {marketAnalytics?.highestMarketPrice ? `$${marketAnalytics.highestMarketPrice}` : '$0'}
             </ThemedText>
           </View>
@@ -251,8 +296,8 @@ export default function DashboardScreen() {
 
       {/* Main Item Tile - First Item (Featured) */}
       {!loading && !error && items.length > 0 && (
-        <ThemedView style={styles.sectionContainer}>
-          <ThemedText type="subtitle" style={[styles.sectionTitle, { color: '#1a1a1a', marginBottom: 5}]}>
+        <ThemedView style={[styles.sectionContainer, isDark && styles.sectionContainerDark]}>
+          <ThemedText type="subtitle" style={[ styles.sectionTitle, { color: isDark ? '#ffffff' : '#1a1a1a', marginBottom: 5 }, ]}>
             Previous Listing
           </ThemedText>
           <MainItemTile
@@ -267,11 +312,10 @@ export default function DashboardScreen() {
       )}
 
       {!loading && !error && recentItems.length > 0 && (
-        <ThemedView style={styles.suggestedSection}>
-          <ThemedText type="subtitle" style={[styles.sectionTitle, { color: '#1a1a1a' }]}>
+        <ThemedView style={[styles.suggestedSection, isDark && styles.suggestedSectionDark]}>
+          <ThemedText type="subtitle" style={[ styles.sectionTitle, { color: isDark ? '#ffffff' : '#1a1a1a', marginBottom: 5 }, ]}>
             Recent Activity
           </ThemedText>
-
           {recentItems.map((item: any, index: number) => (
             <ListItem
               key={item._id || item.id || index}
@@ -288,8 +332,8 @@ export default function DashboardScreen() {
 
       {/* Suggested Listings - Remaining Items */}
       {!loading && !error && items.length > 1 && (
-        <ThemedView style={styles.suggestedSection}>
-          <ThemedText type="subtitle" style={[styles.sectionTitle, { color: '#1a1a1a' }]}>
+        <ThemedView style={[styles.suggestedSection, isDark && styles.suggestedSectionDark]}>
+          <ThemedText type="subtitle" style={[ styles.sectionTitle, { color: isDark ? '#ffffff' : '#1a1a1a', marginBottom: 5 }, ]}>
             Suggested Listings
           </ThemedText>
 
@@ -307,24 +351,24 @@ export default function DashboardScreen() {
         </ThemedView>
       )}
 
-      <ThemedView style={{ height: 100, backgroundColor: '#ffffff' }} />
+      <ThemedView style={[styles.bottomSpacer, isDark && styles.bottomSpacerDark]} />
     </ScrollView>
 
     {/* Item Detail Modal */}
     <Modal visible={modalVisible} transparent animationType="none" onRequestClose={() => setModalVisible(false)}>
       <View style={styles.modalOverlay}>
         <Pressable
-          style={StyleSheet.absoluteFill} 
+          style={StyleSheet.absoluteFill}
           onPress={() => setModalVisible(false)}
         />
-         <View style={styles.modalContent}>
+        <View style={[styles.modalContent, isDark && styles.modalContentDark,]}>
 
           <View style={styles.modalBar}>
-            <Pressable onPress={() => setModalVisible(false)}>
-              <Ionicons name="trash-outline" size={25} color="black" />
+            <Pressable onPress={handleDeleteItem}>
+              <Ionicons name="trash-outline" size={25} color={isDark ? '#ffffff' : '#000000'}/>
             </Pressable>
 
-            <Pressable style={styles.editButton} 
+            <Pressable style={[styles.editButton, isDark && styles.editButtonDark,]}
               hitSlop={15}
               onPress={() => {
               setModalVisible(false);
@@ -344,42 +388,54 @@ export default function DashboardScreen() {
               }
             }}
             >
-              <ThemedText type="default" style={{fontSize: 12}}>Edit</ThemedText>
+              <ThemedText type="default" style={styles.editButtonText}>Edit</ThemedText>
             </Pressable>
           </View>
           {selectedItem?.imageUrl && (
-            <Image source={{ uri: selectedItem.imageUrl }} style={styles.modalImage} />
+            <Image source={{ uri: selectedItem.imageUrl }} style={[styles.modalImage, isDark && styles.modalImageDark,]} />
           )}
 
-          <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13, textAlign: 'center', marginBottom: 12}}>{selectedItem?.title}</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[{fontSize: 13, textAlign: 'center', marginBottom: 12,},isDark && styles.textDark,]}>
+              {selectedItem?.title}
+          </ThemedText>
           {selectedItem?.brand && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Brand:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.brand}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Brand:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                {selectedItem.brand}
+              </ThemedText>
             </>
           )}
           {selectedItem?.category && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Category:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.category}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Category:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                {selectedItem.category}
+              </ThemedText>
             </>
           )}
           {selectedItem?.description && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Description:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.description}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Description:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                {selectedItem.description}
+              </ThemedText>
             </>
           )}
           {selectedItem?.condition && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Condition:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>{selectedItem.condition}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Condition:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                {selectedItem.condition}
+              </ThemedText>
             </>
           )}
           {selectedItem?.price && (
             <>
-              <ThemedText type="defaultSemiBold" style={{color: '#000', fontSize: 13}}>Price:</ThemedText>
-              <ThemedText type="default" style={{color: '#000', fontSize: 10, marginBottom: 10, lineHeight: 11}}>${selectedItem.price}</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Price:</ThemedText>
+              <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
+                ${selectedItem.price}
+              </ThemedText>
             </>
           )}
         </View>
@@ -387,6 +443,19 @@ export default function DashboardScreen() {
     </Modal>
     </>
   );
+}
+
+function getNumericPrice(value: any) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const match = value.match(/\d+(\.\d+)?/);
+    return match ? Number(match[0]) : 0;
+  }
+
+  return 0;
 }
 
 const styles = StyleSheet.create({
@@ -628,6 +697,65 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 15,
     fontFamily: "AzeretMono_700Bold",
-  }
+  },
+  scrollViewDark: {
+    backgroundColor: '#08111f',
+  },
+  analyticsSectionDark: {
+    backgroundColor: '#121c2b',
+    borderColor: '#2d3a4a',
+  },
+  cardDark: {
+    backgroundColor: '#1d2d44',
+  },
+  sectionContainerDark: {
+    backgroundColor: '#08111f',
+  },
+  suggestedSectionDark: {
+    backgroundColor: '#08111f',
+  },
+  centerContainerDark: {
+    backgroundColor: '#08111f',
+  },
+  emptyContainerDark: {
+    backgroundColor: '#08111f',
+  },
+  modalContentDark: {
+    backgroundColor: '#121c2b',
+    borderWidth: 1,
+    borderColor: '#2d3a4a',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  accentTextDark: {
+    color: '#8bbcff',
+  },
+  bottomSpacer: {
+    height: 100,
+    backgroundColor: '#ffffff',
+  },
+  bottomSpacerDark: {
+    backgroundColor: '#08111f',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  analyticsTitle: {
+    marginBottom: 16,
+    marginLeft: 0,
+    color: '#1a1a1a',
+  },
+  editButtonDark:{
+    backgroundColor:'#024883',
+  },
+  modalImageDark: {
+    backgroundColor: '#ffffff',
+  },
+  editButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontFamily: "AzeretMono_400Regular",
+  },
 });
 
