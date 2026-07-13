@@ -1,7 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-
+import { useAppTheme } from '@/context/theme-context';
+import { useCallback, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { getAllItems } from '@/services/api';
 /*
 const SETTINGS_OPTIONS = [
   'Profile settings',
@@ -14,8 +17,8 @@ const SETTINGS_OPTIONS = [
 ];
 */
 const SETTINGS_OPTIONS = [
-  { label: 'Profile settings', icon: 'person-outline' },
-  { label: 'Password & security', icon: 'lock-closed-outline' },
+  { label: 'Profile Settings', icon: 'person-outline' },
+  { label: 'Password & Security', icon: 'lock-closed-outline' },
   { label: 'Languages', icon: 'language-outline' },
   { label: 'Notifications', icon: 'notifications-outline' },
   { label: 'Privacy', icon: 'shield-checkmark-outline' },
@@ -24,17 +27,39 @@ const SETTINGS_OPTIONS = [
 ] as const;
 
 export default function SettingsScreen() {
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
+  const [items, setItems] = useState<any[]>([]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchItems();
+    }, [])
+  );
+
+  const fetchItems = async () => {
+    try {
+      const response = await getAllItems();
+      if (response.success && Array.isArray(response.items)) {
+        setItems(response.items);
+      } else {
+        setItems([]);
+      }
+    } catch {
+      setItems([]);
+    }
+  };
+
   const signOut = () => {
     router.replace('/(auth)/login');
   };
 
   const openSetting = (option: string) => {
-    if (option === 'Profile settings') {
+    if (option === 'Profile Settings') {
       router.push('/profile-settings');
       return;
     }
 
-    if (option === 'Password & security') {
+    if (option === 'Password & Security') {
       router.push('/password-security');
       return;
     }
@@ -65,21 +90,23 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, isDark && styles.screenDark]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        <View style={styles.profileHeader}>
+        <View style={[styles.profileHeader, isDark && styles.profileHeaderDark]}>
           <Image
             source={require('@/assets/images/profile-picture.png')}
             style={styles.avatar}
           />
           <Text style={styles.name}>Linda Carter</Text>
-          <Text style={styles.meta}>@lindaflips · 5 items valued</Text>
+          <Text style={[styles.meta, isDark && styles.metaDark]}>
+            @lindaflips · {items.length} {items.length === 1 ? 'item' : 'items'} valued
+          </Text>
         </View>
 
-        <View style={styles.settingsCard}>
+        <View style={[styles.settingsCard, isDark && styles.settingsCardDark]}>
           {SETTINGS_OPTIONS.map((option, index) => {
             const isLast = index === SETTINGS_OPTIONS.length - 1;
             return (
@@ -88,16 +115,20 @@ export default function SettingsScreen() {
             onPress={() => openSetting(option.label)}
             style={({ pressed }) => [
               styles.settingsRow,
+              isDark && styles.settingsRowDark,
               !isLast && styles.rowBorder,
-              pressed && styles.rowPressed,
+              isDark && !isLast && styles.rowBorderDark,
+              pressed && (isDark ? styles.rowPressedDark : styles.rowPressed),
             ]}>
             <View style={styles.rowLeft}>
-               <View style={styles.iconCircle}>
-                <Ionicons name={option.icon} size={18} color="#024883" />
-              </View>
-                <Text style={styles.rowText}>{option.label}</Text>
+               <View style={[styles.iconCircle, isDark && styles.iconCircleDark]}>
+                <Ionicons name={option.icon} size={18} color={isDark ? '#8bbcff' : '#024883'} />
+               </View>
+                <Text style={[styles.rowText, isDark && styles.rowTextDark]}>
+                  {option.label}
+                </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#00213b" />
+            <Ionicons name="chevron-forward" size={16} color={isDark ? '#b8c4d1' : '#00213b'} />
           </Pressable>
           );
         })}
@@ -105,9 +136,14 @@ export default function SettingsScreen() {
 
         <Pressable
           onPress={signOut}
-          style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutPressed]}
-        >
-          <Text style={styles.signOutText}>Sign out</Text>
+          style={({ pressed }) => [
+            styles.signOutButton,
+            isDark && styles.signOutButtonDark,
+            pressed && (isDark ? styles.signOutPressedDark : styles.signOutPressed),
+          ]}>
+          <Text style={[styles.signOutText, isDark && styles.signOutTextDark]}>
+            Sign out
+          </Text>
         </Pressable>
       </ScrollView>
     </View>
@@ -218,5 +254,46 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderRadius: 17,
     backgroundColor: '#e9f2fb',
+  },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  profileHeaderDark: {
+    backgroundColor: '#10243a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2d3a4a',
+  },
+  metaDark: {
+    color: '#b8c4d1',
+  },
+  settingsCardDark: {
+    backgroundColor: '#121c2b',
+    borderWidth: 1,
+    borderColor: '#2d3a4a',
+  },
+  settingsRowDark: {
+    backgroundColor: '#121c2b',
+  },
+  rowBorderDark: {
+    borderBottomColor: '#2d3a4a',
+  },
+  rowPressedDark: {
+    backgroundColor: '#1d2d44',
+  },
+  rowTextDark: {
+    color: '#ffffff',
+  },
+  iconCircleDark: {
+    backgroundColor: 'rgba(139, 188, 255, 0.12)',
+  },
+  signOutButtonDark: {
+    backgroundColor: '#121c2b',
+    borderColor: '#2d3a4a',
+  },
+  signOutPressedDark: {
+    backgroundColor: '#1d2d44',
+  },
+  signOutTextDark: {
+    color: '#8bbcff',
   },
 });

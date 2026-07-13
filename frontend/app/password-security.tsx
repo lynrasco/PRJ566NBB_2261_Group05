@@ -12,45 +12,48 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function PasswordSecurityScreen() {
   const [faceIdEnabled, setFaceIdEnabled] = useState(true);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.select({ ios: 'padding', default: undefined })}
-      style={styles.screen}
+      style={[styles.screen, isDark && styles.screenDark]}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, isDark && styles.contentDark,]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Pressable
-          hitSlop={12}
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
-        >
-          <Ionicons name="arrow-back" size={24} color="#111111" />
-        </Pressable>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
+          </Pressable>
+          <Text style={[styles.title, isDark && styles.textDark]}>
+            Password & Security
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
 
-        <Text selectable style={styles.title}>
-          Password & Security
-        </Text>
-
-        <View style={styles.previewCard}>
-            <View style={styles.iconCircle}>
-                <Ionicons name="lock-closed-outline" size={28} color="#024883" />
+        <View style={[styles.previewCard, isDark && styles.cardDark]}>
+            <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
+                <Ionicons name="lock-closed-outline" size={28} color={isDark ? '#8bbcff' : '#024883'}/>
             </View>
-            <Text style={styles.previewTitle}>Security</Text>
-            <Text style={styles.previewText}>
+            <Text style={[styles.previewTitle, isDark && styles.textDark,]}>
+              Security
+            </Text>
+            <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
                 Manage your password and device security settings.
             </Text>
         </View>
 
-        <View style={styles.form}>
-          <View style={styles.fieldGroup}>
-            <Text selectable style={styles.label}>
+        <View style={[styles.card, isDark && styles.cardDark]}>
+          <View style={[styles.row, styles.rowBorder, isDark && styles.rowDark,]}>
+            <Text selectable style={[styles.label, isDark && styles.textDark,]}>
               Old Password:
             </Text>
             <TextInput
@@ -58,12 +61,12 @@ export default function PasswordSecurityScreen() {
               textContentType="password"
               autoCapitalize="none"
               autoCorrect={false}
-              style={styles.input}
+              style={[styles.input, isDark && styles.inputDark,]}
             />
           </View>
 
-          <View style={styles.fieldGroup}>
-            <Text selectable style={styles.label}>
+          <View style={[styles.row, isDark && styles.rowDark]}>
+            <Text selectable style={[styles.label, isDark && styles.textDark,]}>
               Change Password:
             </Text>
             <TextInput
@@ -71,22 +74,25 @@ export default function PasswordSecurityScreen() {
               textContentType="newPassword"
               autoCapitalize="none"
               autoCorrect={false}
-              style={styles.input}
+              style={[styles.input, isDark && styles.inputDark,]}
             />
           </View>
         </View>
 
-        <View style={styles.faceIdCard}>
-          <Text selectable style={styles.faceIdText}>
-            Add face-id
+        <View style={[styles.faceIdCard, isDark && styles.cardDark,]}>
+          <Text selectable style={[styles.faceIdText, isDark && styles.textDark,]}>
+            Enable face-id
           </Text>
           <View style={styles.switchWrapper}>
             <Switch
-            onValueChange={setFaceIdEnabled}
-            thumbColor="#ffffff"
-            trackColor={{ false: '#d9d9d9', true: '#34c759' }}
             value={faceIdEnabled}
-            ios_backgroundColor="#d9d9d9"
+            onValueChange={setFaceIdEnabled}
+            trackColor={{
+              false: isDark ? '#3b4d61' : '#d9d9d9',
+              true: '#34c759',
+            }}
+            thumbColor={isDark ? '#d9e2ec' : '#ffffff'}
+            ios_backgroundColor={isDark ? '#3b4d61' : '#d9d9d9'}
             />
           </View>
         </View>
@@ -109,10 +115,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingTop: 78,
-    paddingHorizontal: 16,
-    paddingBottom: 60,
+    paddingTop: 58,
+    paddingHorizontal: 20,
+    paddingBottom: 80,
   },
+  /*
   backButton: {
     width: 45,
     height: 31,
@@ -120,9 +127,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: 8,
   },
+  */
   pressed: {
     opacity: 0.55,
   },
+  /*
   title: {
     marginTop: 71,
     marginLeft: 13,
@@ -130,6 +139,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 35,
     color: '#050505',
+  },
+  */
+  title: {
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 21,
+    color: '#111111',
   },
   form: {
     marginTop: 51,
@@ -147,13 +162,14 @@ const styles = StyleSheet.create({
     color: '#050505',
   },
   input: {
-    height: 50,
-    borderRadius: 9,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 14,
+    marginTop: 8,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#f3f5f7',
+    paddingHorizontal: 12,
     fontFamily: 'AzeretMono_400Regular',
-    fontSize: 15,
-    color: '#050505',
+    fontSize: 13,
+    color: '#111111',
     boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
   },
   faceIdCard: {
@@ -229,4 +245,63 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: '#52616f',
   },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  contentDark: {
+    backgroundColor: '#08111f',
+  },
+  cardDark: {
+    backgroundColor: '#121c2b',
+  },
+  inputDark: {
+    backgroundColor: '#1d2d44',
+    color: '#f3f5f7',
+  },
+  iconCircleDark: {
+    backgroundColor: '#1d2d44',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  header: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 22,
+},
+
+headerSpacer: {
+  width: 36,
+},
+
+backButton: {
+  width: 36,
+  height: 36,
+  justifyContent: 'center',
+},
+
+card: {
+  overflow: 'hidden',
+  borderRadius: 18,
+  backgroundColor: '#ffffff',
+  boxShadow: '0 2px 3px rgba(0,0,0,0.12)',
+},
+
+row: {
+  paddingHorizontal: 18,
+  paddingVertical: 16,
+},
+
+rowBorder: {
+  borderBottomWidth: StyleSheet.hairlineWidth,
+  borderBottomColor: '#d7e0ea',
+},
+
+rowDark: {
+  backgroundColor: '#121c2b',
+},
 });

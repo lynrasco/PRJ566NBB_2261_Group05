@@ -3,6 +3,7 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { useState } from 'react';
 import { uploadImage, processImage, searchFromImage } from '@/services/api';
 import AnalysisLoadingScreen, { type AnalysisStep } from '@/components/analysis-loading-screen';
+import { useAppTheme } from '@/context/theme-context';
 
 type ItemCondition = {
   label: string;
@@ -24,6 +25,8 @@ export default function ItemConditionScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState<AnalysisStep>('scanning');
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   const imageSource = imageUri
     ? { uri: imageUri }
@@ -87,9 +90,9 @@ export default function ItemConditionScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={[styles.contentContainer, isDark && styles.contentContainerDark,]}
       showsVerticalScrollIndicator={false}
-      style={styles.container}
+      style={[styles.container, isDark && styles.containerDark]}
     >
       <View style={styles.header}>
         <TouchableOpacity
@@ -97,19 +100,22 @@ export default function ItemConditionScreen() {
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Text style={[styles.backIcon, isDark && styles.textDark]}>
+            ←
+          </Text>
         </TouchableOpacity>
-        <Text style={styles.brand}>FlipValue</Text>
+        <Text style={[styles.brand, isDark && styles.textDark]}>FlipValue</Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      <View style={styles.imageCard}>
+      <View style={[styles.imageCard, isDark && styles.imageCardDark,]}>
         <Image source={imageSource} style={styles.itemImage} />
       </View>
 
-      <Text style={styles.title}>Item condition</Text>
-      <Text style={styles.subtitle}>Select the condition that best matches the item.</Text>
-
+      <Text style={[styles.title, isDark && styles.textDark]}>Item condition</Text>
+      <Text style={[styles.subtitle, isDark && styles.mutedTextDark,]}>
+        Select the condition that best matches the item.
+      </Text>
       <View style={styles.conditionList}>
         {conditions.map((condition) => {
           const isSelected = selectedCondition === condition;
@@ -119,9 +125,13 @@ export default function ItemConditionScreen() {
               accessibilityRole="button"
               key={condition.conditionId}
               onPress={() => setSelectedCondition(condition)}
-              style={[styles.conditionButton, isSelected && styles.conditionButtonSelected]}
+              style={[styles.conditionButton,
+                isDark && styles.conditionButtonDark,
+                isSelected && styles.conditionButtonSelected,
+                isDark && isSelected && styles.conditionButtonSelectedDark,
+              ]}
             >
-              <Text style={[styles.conditionText, isSelected && styles.conditionTextSelected]}>
+              <Text style={[styles.conditionText, isDark && styles.textDark, isSelected && styles.conditionTextSelected, isDark && isSelected && styles.conditionTextSelectedDark,]}>
                 {condition.label}
               </Text>
             </TouchableOpacity>
@@ -246,6 +256,32 @@ const styles = StyleSheet.create({
     fontFamily: 'AzeretMono_700Bold',
     fontSize: 14,
     color: '#ffffff',
+  },
+  containerDark: {
+    backgroundColor: '#08111f',
+  },
+  contentContainerDark: {
+    backgroundColor: '#08111f',
+  },
+  imageCardDark: {
+    backgroundColor: '#121c2b',
+  },
+  conditionButtonDark: {
+    backgroundColor: '#121c2b',
+    borderColor: '#2d3a4a',
+  },
+  conditionButtonSelectedDark: {
+    backgroundColor: '#1d2d44',
+    borderColor: '#8bbcff',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  conditionTextSelectedDark: {
+    color: '#8bbcff',
   },
 });
 

@@ -5,6 +5,9 @@ const EBAY_MARKETPLACE_ID = process.env.EBAY_MARKETPLACE_ID || "EBAY_US";
 const EBAY_CURRENCY = process.env.EBAY_CURRENCY || "USD";
 const EBAY_LOCALE = process.env.EBAY_LOCALE || "en-US";
 const EBAY_DEFAULT_CATEGORY_ID = process.env.EBAY_DEFAULT_CATEGORY_ID;
+const EBAY_CLOTHING_CATEGORY_ID = process.env.EBAY_CLOTHING_CATEGORY_ID || "15724";
+const EBAY_BAGS_CATEGORY_ID = process.env.EBAY_BAGS_CATEGORY_ID || "169291";
+const EBAY_ACCESSORIES_CATEGORY_ID = process.env.EBAY_ACCESSORIES_CATEGORY_ID || "4254";
 const EBAY_MERCHANT_LOCATION_KEY = process.env.EBAY_MERCHANT_LOCATION_KEY;
 const EBAY_PAYMENT_POLICY_ID = process.env.EBAY_PAYMENT_POLICY_ID;
 const EBAY_RETURN_POLICY_ID = process.env.EBAY_RETURN_POLICY_ID;
@@ -20,6 +23,8 @@ const FALLBACK_IMAGE_URL = process.env.EBAY_FALLBACK_IMAGE_URL || "https://picsu
 
 let tokenCache = null;
 let sellerTokenCache = null;
+
+const EBAY_DEBUG_SELLER_TOKEN = String(process.env.EBAY_DEBUG_SELLER_TOKEN || "").toLowerCase() === "true";
 
 class EbayApiError extends Error {
   constructor(message, { statusCode = 502, ebayStatus, stage, details } = {}) {
@@ -98,6 +103,37 @@ const getSellerApiHeaders = (accessToken) => ({
   "X-EBAY-C-MARKETPLACE-ID": EBAY_MARKETPLACE_ID,
 });
 
+const getTokenFingerprint = (token) => {
+  const normalized = typeof token === "string"
+    ? token.trim().replace(/^Bearer\s+/i, "")
+    : "";
+
+  if (!normalized) {
+    return {
+      tokenLength: 0,
+      firstCharCode: null,
+      lastCharCode: null,
+    };
+  }
+
+  return {
+    tokenLength: normalized.length,
+    firstCharCode: normalized.charCodeAt(0),
+    lastCharCode: normalized.charCodeAt(normalized.length - 1),
+  };
+};
+
+const logSellerTokenDebug = (source, token) => {
+  if (!EBAY_DEBUG_SELLER_TOKEN) return;
+
+  console.log("eBay seller token debug:", {
+    source,
+    environment: EBAY_ENVIRONMENT,
+    marketplace: EBAY_MARKETPLACE_ID,
+    ...getTokenFingerprint(token),
+  });
+};
+
 const normalizePositivePrice = (price) => {
   const numericPrice = Number(price);
 
@@ -171,6 +207,60 @@ const normalizeEbayCondition = (condition) => {
   return normalized.includes("new") ? "NEW" : "USED_EXCELLENT";
 };
 
+const normalizeConditionForCategory = (ebayCondition, categoryId) => {
+  const fashionCategoryIds = new Set([
+    String(EBAY_CLOTHING_CATEGORY_ID),
+    String(EBAY_BAGS_CATEGORY_ID),
+    String(EBAY_ACCESSORIES_CATEGORY_ID),
+  ]);
+
+  if (!fashionCategoryIds.has(String(categoryId))) {
+    return ebayCondition;
+  }
+
+  if (ebayCondition === "NEW") {
+    return "NEW";
+  }
+
+  if (ebayCondition === "NEW_OTHER" || ebayCondition === "LIKE_NEW") {
+    return "PRE_OWNED_EXCELLENT";
+  }
+
+  if (ebayCondition.startsWith("USED_") || ebayCondition.startsWith("PRE_OWNED_")) {
+    return ebayCondition.includes("FAIR") || ebayCondition.includes("ACCEPTABLE")
+      ? "PRE_OWNED_FAIR"
+      : "PRE_OWNED_EXCELLENT";
+  }
+
+  if (ebayCondition === "FOR_PARTS_OR_NOT_WORKING") {
+    return "PRE_OWNED_FAIR";
+  }
+
+  return "PRE_OWNED_EXCELLENT";
+};
+
+const isFashionCategory = (categoryId) => {
+  const id = String(categoryId || "");
+  return id === String(EBAY_CLOTHING_CATEGORY_ID)
+    || id === String(EBAY_BAGS_CATEGORY_ID)
+    || id === String(EBAY_ACCESSORIES_CATEGORY_ID);
+};
+
+const isInvalidConditionForCategoryError = (error) => {
+  const rawMessage = [
+    error?.message,
+    error?.details?.message,
+    error?.details?.errors?.[0]?.message,
+    error?.details?.errors?.[0]?.longMessage,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return rawMessage.includes("invalid item condition")
+    || rawMessage.includes("condition id is invalid");
+};
+
 const inferEbayCategoryId = (item) => {
   if (item.categoryId) return item.categoryId;
 
@@ -178,11 +268,93 @@ const inferEbayCategoryId = (item) => {
   const title = typeof item.title === "string" ? item.title.toLowerCase() : "";
   const searchableText = `${category} ${title}`;
 
-  if (/\b(bag|handbag|purse|tote|crossbody|satchel|clutch)\b/.test(searchableText)) {
-    return "169291";
+  if (/\b(bag|handbag|purse|tote|crossbody|satchel|clutch|backpack|duffel|luggage)\b/.test(searchableText)) {
+    return EBAY_BAGS_CATEGORY_ID;
   }
 
-  return EBAY_DEFAULT_CATEGORY_ID;
+  if (/\b(accessory|accessories|belt|wallet|watch|jewelry|necklace|bracelet|ring|earring|sunglasses|scarf|hat|cap|gloves)\b/.test(searchableText)) {
+    return EBAY_ACCESSORIES_CATEGORY_ID;
+  }
+
+  if (/\b(clothing|apparel|shirt|t\s?-?shirt|tee|blouse|dress|skirt|pants|trousers|jeans|shorts|hoodie|sweater|cardigan|jacket|coat|suit|blazer|activewear|leggings|top)\b/.test(searchableText)) {
+    return EBAY_CLOTHING_CATEGORY_ID;
+  }
+
+  const error = new Error(
+    "Unsupported listing category. FlipValue currently supports only clothing, bags, and accessories for eBay listings."
+  );
+  error.statusCode = 400;
+  throw error;
+};
+
+const inferDepartment = (item) => {
+  const category = typeof item.category === "string" ? item.category.toLowerCase() : "";
+  const title = typeof item.title === "string" ? item.title.toLowerCase() : "";
+  const text = `${category} ${title}`;
+
+  if (/\b(men|mens|man|male|gent|gents|boy|boys)\b/.test(text)) {
+    return "Men";
+  }
+
+  if (/\b(women|womens|woman|female|lady|ladies|girl|girls)\b/.test(text)) {
+    return "Women";
+  }
+
+  if (/\b(kid|kids|child|children|youth|toddler|infant|baby)\b/.test(text)) {
+    return "Kids";
+  }
+
+  return "Unisex Adults";
+};
+
+const inferExteriorMaterial = (item) => {
+  const category = typeof item.category === "string" ? item.category.toLowerCase() : "";
+  const title = typeof item.title === "string" ? item.title.toLowerCase() : "";
+  const description = typeof item.description === "string" ? item.description.toLowerCase() : "";
+  const text = `${category} ${title} ${description}`;
+
+  if (/\bleather\b/.test(text)) return "Leather";
+  if (/\bsuede\b/.test(text)) return "Suede";
+  if (/\bcanvas\b/.test(text)) return "Canvas";
+  if (/\bnylon\b/.test(text)) return "Nylon";
+  if (/\bpolyester\b/.test(text)) return "Polyester";
+  if (/\bdenim\b/.test(text)) return "Denim";
+  if (/\bstraw\b/.test(text)) return "Straw";
+  if (/\bvelvet\b/.test(text)) return "Velvet";
+
+  // Conservative default for fashion bags/accessories when material is not provided.
+  return "Leather";
+};
+
+const inferStyle = (item) => {
+  const category = typeof item.category === "string" ? item.category.toLowerCase() : "";
+  const title = typeof item.title === "string" ? item.title.toLowerCase() : "";
+  const description = typeof item.description === "string" ? item.description.toLowerCase() : "";
+  const text = `${category} ${title} ${description}`;
+
+  if (/\bcrossbody\b/.test(text)) return "Crossbody";
+  if (/\btote\b/.test(text)) return "Tote";
+  if (/\bsatchel\b/.test(text)) return "Satchel";
+  if (/\bclutch\b/.test(text)) return "Clutch";
+  if (/\bshoulder\b/.test(text)) return "Shoulder Bag";
+  if (/\bbackpack\b/.test(text)) return "Backpack";
+  if (/\bwallet\b/.test(text)) return "Wallet";
+
+  return "Top Handle Bag";
+};
+
+const inferModel = (item) => {
+  if (typeof item.model === "string" && item.model.trim()) {
+    return item.model.trim();
+  }
+
+  const title = typeof item.title === "string" ? item.title.trim() : "";
+  if (!title) {
+    return "Not Specified";
+  }
+
+  const collapsed = title.replace(/\s+/g, " ");
+  return collapsed.length > 80 ? collapsed.slice(0, 80).trim() : collapsed;
 };
 
 const normalizeListingItem = (item) => {
@@ -199,6 +371,9 @@ const normalizeListingItem = (item) => {
     throw error;
   }
 
+  const categoryId = inferEbayCategoryId(item);
+  const baseCondition = normalizeEbayCondition(item.condition);
+
   return {
     ...item,
     title,
@@ -206,11 +381,18 @@ const normalizeListingItem = (item) => {
       ? item.description.trim()
       : title,
     brand: typeof item.brand === "string" && item.brand.trim() ? item.brand.trim() : "Unbranded",
+    model: inferModel(item),
+    color: typeof item.color === "string" && item.color.trim() ? item.color.trim() : "Multicolor",
+    department: typeof item.department === "string" && item.department.trim() ? item.department.trim() : inferDepartment(item),
+    exteriorMaterial: typeof item.exteriorMaterial === "string" && item.exteriorMaterial.trim()
+      ? item.exteriorMaterial.trim()
+      : inferExteriorMaterial(item),
+    style: typeof item.style === "string" && item.style.trim() ? item.style.trim() : inferStyle(item),
     condition: typeof item.condition === "string" && item.condition.trim() ? item.condition.trim() : "Used",
-    ebayCondition: normalizeEbayCondition(item.condition),
+    ebayCondition: normalizeConditionForCategory(baseCondition, categoryId),
     quantity: Math.max(1, Number.parseInt(item.quantity, 10) || 1),
     price: normalizePositivePrice(item.price),
-    categoryId: inferEbayCategoryId(item),
+    categoryId,
   };
 };
 
@@ -312,11 +494,14 @@ const searchItems = async (query, conditionId = null, limit = 12) => {
 
 const getEbaySellerToken = async () => {
   if (sellerTokenCache && sellerTokenCache.expireAt > Date.now()) {
+    logSellerTokenDebug("cache", sellerTokenCache.accessToken);
     return sellerTokenCache.accessToken;
   }
 
   if (EBAY_SELLER_REFRESH_TOKEN && EBAY_SELLER_REFRESH_TOKEN.trim()) {
-    return await refreshEbaySellerToken(EBAY_SELLER_REFRESH_TOKEN.trim());
+    const refreshedToken = await refreshEbaySellerToken(EBAY_SELLER_REFRESH_TOKEN.trim());
+    logSellerTokenDebug("refresh_token", refreshedToken);
+    return refreshedToken;
   }
 
   const sellerToken = process.env.EBAY_SELLER_TOKEN;
@@ -330,6 +515,8 @@ const getEbaySellerToken = async () => {
   if (!normalizedToken) {
     throw new Error('EBAY_SELLER_TOKEN is empty after trimming.');
   }
+
+  logSellerTokenDebug("seller_token", normalizedToken);
 
   return normalizedToken;
 };
@@ -393,6 +580,16 @@ const createInventoryItem = async (sku, item, accessToken) => {
       description: item.description || item.title,
       aspects: {
         Brand: item.brand ? [item.brand] : ['Unknown'],
+        Color: item.color ? [item.color] : ["Multicolor"],
+        Department: item.department ? [item.department] : ["Unisex Adults"],
+        ...(String(item.categoryId) === String(EBAY_BAGS_CATEGORY_ID) || String(item.categoryId) === String(EBAY_ACCESSORIES_CATEGORY_ID)
+          ? {
+            "Exterior Material": [item.exteriorMaterial || "Leather"],
+            "Exterior Color": [item.color || "Multicolor"],
+            Style: [item.style || "Top Handle Bag"],
+          }
+          : {}),
+        ...(item.model ? { Model: [item.model] } : {}),
       },
       imageUrls: [imageUrl],
     },
@@ -576,12 +773,49 @@ const publishOffer = async (offerId, accessToken) => {
 
 const createListing = async (item) => {
   const accessToken = await getEbaySellerToken();
-  const listingItem = normalizeListingItem(item);
-  const sku = listingItem.id || `flipvalue-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  let listingItem = normalizeListingItem(item);
+  const baseSku = listingItem.id
+    ? String(listingItem.id).replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 40)
+    : "flipvalue";
+  const sku = `${baseSku}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
   await createInventoryItem(sku, listingItem, accessToken);
   const offer = await createOffer(sku, listingItem, accessToken);
-  const publishResult = await publishOffer(offer.offerId, accessToken);
+
+  let publishResult;
+  try {
+    publishResult = await publishOffer(offer.offerId, accessToken);
+  } catch (error) {
+    if (!isFashionCategory(listingItem.categoryId) || !isInvalidConditionForCategoryError(error)) {
+      throw error;
+    }
+
+    const fallbackConditions = ["NEW", "PRE_OWNED_EXCELLENT", "PRE_OWNED_FAIR", "USED_EXCELLENT"]
+      .filter((condition) => condition !== listingItem.ebayCondition);
+
+    let recovered = false;
+    for (const fallbackCondition of fallbackConditions) {
+      try {
+        listingItem = {
+          ...listingItem,
+          ebayCondition: fallbackCondition,
+        };
+
+        await createInventoryItem(sku, listingItem, accessToken);
+        publishResult = await publishOffer(offer.offerId, accessToken);
+        recovered = true;
+        break;
+      } catch (retryError) {
+        if (!isInvalidConditionForCategoryError(retryError)) {
+          throw retryError;
+        }
+      }
+    }
+
+    if (!recovered) {
+      throw error;
+    }
+  }
 
   return { sku, offerId: offer.offerId, publishResult };
 };

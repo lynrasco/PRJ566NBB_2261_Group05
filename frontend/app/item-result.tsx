@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
+import { useAppTheme } from '@/context/theme-context';
 import { saveItemToMyItems } from '@/services/api';
 
 type Listing = {
@@ -31,7 +31,8 @@ export default function ItemResultScreen() {
   }>();
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
   const marketplaceListings = parseMarketplaceListings(listings);
   const primaryListing = marketplaceListings[0];
   const previewListings = marketplaceListings.slice(0, 3);
@@ -77,7 +78,7 @@ export default function ItemResultScreen() {
         description: primaryListing.description,
         condition: primaryListing.condition || condition,
         price: getNumericPrice(displayPrice),
-        imageUrl: imageUri,
+        imageUrl: primaryListing.imageUrl || imageUri,
       });
       router.replace('/(tabs)/items');
     } catch (error) {
@@ -89,54 +90,54 @@ export default function ItemResultScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, isDark && styles.screenDark,]}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        style={styles.scrollView}
+        style={[styles.scrollView, isDark && styles.scrollViewDark,]}
       >
-        <View style={styles.hero}>
+        <View style={[styles.hero, isDark && styles.heroDark,]}>
           <Image source={imageSource} style={styles.heroImage} />
           <Pressable
             accessibilityLabel="Go back"
             onPress={() => router.back()}
-            style={[styles.iconCircle, styles.backButton]}
+            style={[[styles.iconCircle, isDark && styles.iconCircleDark,], styles.backButton]}
           >
             <Ionicons color="#ffffff" name="chevron-back" size={17} />
           </Pressable>
-          <Pressable accessibilityLabel="Share item" style={[styles.iconCircle, styles.shareButton]}>
+          <Pressable accessibilityLabel="Share item" style={[styles.iconCircle, isDark && styles.iconCircleDark, styles.shareButton]}>
             <Ionicons color="#ffffff" name="share-social-outline" size={16} />
           </Pressable>
         </View>
 
-        <View style={[styles.card, styles.priceCard]}>
+        <View style={[styles.card, styles.priceCard, isDark && styles.cardDark,]}>
           <View style={styles.titleRow}>
             <View style={styles.titleBlock}>
-              <Text adjustsFontSizeToFit minimumFontScale={0.8} numberOfLines={2} selectable style={styles.itemTitle}>
+              <Text adjustsFontSizeToFit minimumFontScale={0.8} numberOfLines={2} selectable style={[styles.itemTitle, isDark && styles.textDark,]}>
                 {displayTitle}
               </Text>
-              <Text numberOfLines={1} selectable style={styles.brand}>
+              <Text numberOfLines={1} selectable style={[styles.brand, isDark && styles.mutedTextDark, ]}>
                 {displayBrand}
               </Text>
             </View>
-            <View style={styles.categoryPill}>
-              <Text adjustsFontSizeToFit minimumFontScale={0.72} numberOfLines={1} selectable style={styles.categoryText}>
+            <View style={[styles.categoryPill, isDark && styles.categoryPillDark,]}>
+              <Text adjustsFontSizeToFit minimumFontScale={0.72} numberOfLines={1} selectable style={[styles.categoryText, isDark && styles.mutedTextDark, ]}>
                 {displayCategory}
               </Text>
             </View>
           </View>
 
-          <View style={styles.suggestedBox}>
-            <Text selectable style={styles.suggestedLabel}>
+          <View style={[styles.suggestedBox, isDark && styles.suggestedBoxDark,]}>
+            <Text selectable style={[styles.suggestedLabel, isDark && styles.mutedTextDark, ]}>
               AI suggested price
             </Text>
             <Text
               selectable
-              style={[styles.suggestedPrice, displayPrice == null && styles.unavailablePrice]}
+              style={[styles.suggestedPrice, isDark && styles.suggestedPriceDark, displayPrice == null && styles.unavailablePrice,]}
             >
               {formatPrice(displayPrice) || UI_PLACEHOLDERS.price}
             </Text>
-            <View style={styles.confidencePill}>
+            <View style={[styles.confidencePill, isDark && styles.confidencePillDark,]}>
               <Ionicons color="#21b66c" name="checkmark" size={9} />
               <Text selectable style={styles.confidenceText}>
                 {formatConfidence(displayConfidence)} confidence
@@ -145,31 +146,31 @@ export default function ItemResultScreen() {
           </View>
 
           <View style={styles.rangeLabels}>
-            <Text selectable style={styles.rangeText}>
+            <Text selectable style={[styles.rangeText, isDark && styles.mutedTextDark, ]}>
               Low {formatPrice(displayLowPrice)}
             </Text>
-            <Text selectable style={styles.rangeText}>
+            <Text selectable style={[styles.rangeText, isDark && styles.mutedTextDark, ]}>
               High {formatPrice(displayHighPrice)}
             </Text>
           </View>
-          <View style={styles.sliderTrack}>
-            <View style={[styles.sliderFill, { width: `${displayPricePosition}%` }]} />
-            <View style={[styles.sliderThumb, { left: `${displayPricePosition}%` }]} />
+          <View style={[styles.sliderTrack, isDark && styles.sliderTrackDark,]}>
+            <View style={[styles.sliderFill, isDark && styles.sliderFillDark, { width: `${displayPricePosition}%` },]}/>
+            <View style={[styles.sliderThumb, isDark && styles.sliderThumbDark, { left: `${displayPricePosition}%` },]}/>
           </View>
         </View>
 
-        <View style={[styles.card, styles.descriptionCard]}>
-          <Text selectable style={styles.sectionTitle}>
+        <View style={[styles.card, styles.descriptionCard, isDark && styles.cardDark,]}>
+          <Text selectable style={[styles.sectionTitle,isDark && styles.textDark, ]}>
             Description
           </Text>
-          <Text selectable style={styles.description}>
+          <Text selectable style={[styles.description, isDark && styles.mutedTextDark,]}>
             {displayDescription}
           </Text>
         </View>
 
-        <View style={[styles.card, styles.listingCard]}>
+        <View style={[styles.card, styles.listingCard, isDark && styles.cardDark,]}>
           <View style={styles.listingHeader}>
-            <Text selectable style={styles.listingTitle}>
+            <Text selectable style={[styles.listingTitle, isDark && styles.textDark]}>
               {marketplaceListings.length > 0
                 ? `Based on ${marketplaceListings.length} live listings`
                 : 'No comparable listings available yet'}
@@ -185,21 +186,21 @@ export default function ItemResultScreen() {
                 <View key={listing.id || `${listing.title}-${index}`} style={styles.previewRow}>
                   <View style={[styles.marketDot, { backgroundColor: dotColors[index % dotColors.length] }]} />
                   <View style={styles.previewTextBlock}>
-                    <Text numberOfLines={1} selectable style={styles.previewTitle}>
+                    <Text numberOfLines={1} selectable style={[styles.previewTitle, isDark && styles.textDark,]}>
                       {listing.title || 'Listing title unavailable'}
                     </Text>
-                    <Text numberOfLines={1} selectable style={styles.previewMeta}>
+                    <Text numberOfLines={1} selectable style={[styles.previewMeta, isDark && styles.mutedTextDark,]}>
                       {[listing.marketplace, listing.condition].filter(Boolean).join(' · ') ||
                         'Listing details unavailable'}
                     </Text>
                   </View>
-                  <Text selectable style={styles.previewPrice}>
+                  <Text selectable style={[styles.previewPrice, isDark && styles.categoryTextDark,]}>
                     {formatPrice(listing.price) || '--'}
                   </Text>
                 </View>
               ))
             ) : (
-              <Text selectable style={styles.emptyText}>
+              <Text selectable style={[styles.emptyText, isDark && styles.mutedTextDark, ]}>
                 No comparable listings available yet
               </Text>
             )}
@@ -210,16 +211,23 @@ export default function ItemResultScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={() => router.replace('/(tabs)/dashboard')}
-            style={styles.discardButton}
+            style={[styles.discardButton, isDark && styles.discardButtonDark,]}
           >
-            <Text style={styles.discardText}>Discard</Text>
+            <Text style={[ styles.discardText, isDark && styles.discardTextDark,]}>
+              Discard
+            </Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
             disabled={!hasListing || isSaving}
             onPress={saveToMyItems}
-            style={[styles.saveButton, (!hasListing || isSaving) && styles.saveButtonDisabled]}
-          >
+            style={[styles.saveButton,
+              (!hasListing || isSaving) &&
+              (isDark
+                ? styles.saveButtonDisabledDark
+                : styles.saveButtonDisabled),
+              ]}
+              >
             <Text style={styles.saveText}>{isSaving ? 'Saving...' : 'Save to my items'}</Text>
           </Pressable>
         </View>
@@ -230,28 +238,30 @@ export default function ItemResultScreen() {
         )}
       </ScrollView>
 
-      <BottomNav />
+      <BottomNav isDark={isDark}/>
     </View>
   );
 }
 
-function BottomNav() {
+function BottomNav({ isDark }: { isDark: boolean}) {
   return (
-    <View style={styles.bottomNav}>
+    <View style={[styles.bottomNav, isDark && styles.bottomNavDark]}>
       <Pressable onPress={() => router.replace('/(tabs)/dashboard')} style={styles.navItem}>
-        <Ionicons color="#6d7d8b" name="home-outline" size={17} />
-        <Text style={styles.navLabel}>Home</Text>
+       <Ionicons color={isDark ? '#b8c4d1' : '#6d7d8b'} name="home-outline" size={17}/>
+         <Text style={[styles.navLabel, isDark && styles.navLabelDark, ]}>
+          Home
+         </Text>
       </Pressable>
       <Pressable onPress={() => router.replace('/(tabs)/camera')} style={styles.cameraNavButton}>
-        <Ionicons color="#ffffff" name="camera-outline" size={21} />
+        <Ionicons color={isDark ? '#b8c4d1' : '#6d7d8b'} name="camera-outline" size={21} />
       </Pressable>
       <Pressable onPress={() => router.replace('/(tabs)/items')} style={styles.navItem}>
-        <Ionicons color="#6d7d8b" name="list-outline" size={18} />
-        <Text style={styles.navLabel}>Items</Text>
+        <Ionicons color={isDark ? '#b8c4d1' : '#6d7d8b'} name="list-outline" size={18} />
+        <Text style={[styles.navLabel, isDark && styles.navLabelDark]}>Items</Text>
       </Pressable>
       <Pressable onPress={() => router.replace('/(tabs)/settings')} style={styles.navItem}>
-        <Ionicons color="#6d7d8b" name="person-outline" size={18} />
-        <Text style={styles.navLabel}>Profile</Text>
+        <Ionicons color={isDark ? '#b8c4d1' : '#6d7d8b'} name="person-outline" size={18} />
+        <Text style={[styles.navLabel, isDark && styles.navLabelDark]}>Profile</Text>
       </Pressable>
     </View>
   );
@@ -684,7 +694,7 @@ const styles = StyleSheet.create({
   },
   navLabel: {
     fontFamily: 'AzeretMono_700Bold',
-    fontSize: 10,
+    fontSize: 9,
     color: '#6d7d8b',
   },
   cameraNavButton: {
@@ -696,4 +706,67 @@ const styles = StyleSheet.create({
     backgroundColor: '#255b89',
     boxShadow: '0 18px 34px rgba(31, 88, 136, 0.25)',
   },
+  screenDark: {
+    backgroundColor: '#08111f',
+  },
+  scrollViewDark: {
+    backgroundColor: '#08111f',
+  },
+  cardDark:{
+    backgroundColor:"#121c2b",
+  },
+  iconCircleDark: {
+    backgroundColor: 'rgba(18,28,43,0.85)',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  categoryPillDark:{
+    backgroundColor:"#233244",
+  },
+  categoryTextDark: {
+    color: '#8bbcff',
+  },
+  suggestedBoxDark:{
+    backgroundColor:"#1a2635",
+  },
+  suggestedPriceDark: {
+    color: '#8bbcff',
+  },
+  confidencePillDark: {
+    backgroundColor: '#183828',
+  },
+  sliderTrackDark: {
+    backgroundColor: '#2d3a4a',
+  },
+  sliderFillDark: {
+    backgroundColor: '#8bbcff',
+  },
+  sliderThumbDark: {
+    backgroundColor: '#121c2b',
+    borderColor: '#8bbcff',
+  },
+  discardButtonDark: {
+    backgroundColor: '#121c2b',
+    borderColor: '#2d3a4a',
+  },
+  discardTextDark: {
+    color: '#8bbcff',
+  },
+  saveButtonDisabledDark: {
+    backgroundColor: '#3b4d61',
+  },
+  bottomNavDark: {
+    backgroundColor: '#121c2b',
+    borderTopColor: '#2d3a4a',
+  },
+  navLabelDark: {
+    color: '#b8c4d1',
+  },
+  heroDark:{
+    backgroundColor:"#10243a",
+  }
 });

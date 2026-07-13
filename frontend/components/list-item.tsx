@@ -1,5 +1,6 @@
 import { StyleSheet, View, Image, TouchableOpacity, Pressable, type TouchableOpacityProps } from 'react-native';
 import { ThemedText } from './themed-text';
+import { useAppTheme } from '@/context/theme-context';
 
 export type ListItemProps = TouchableOpacityProps & {
   image?: string;
@@ -19,11 +20,14 @@ export function ListItem({
   style,
   ...otherProps
 }: ListItemProps) {
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
-      style={[styles.container, style]}
+      style={[styles.container, isDark && styles.containerDark, style]}
       {...otherProps}
     >
       <View style={styles.content}>
@@ -35,9 +39,12 @@ export function ListItem({
         )}
         <View style={styles.textContainer}>
           <View style={styles.headerRow}>
-            <ThemedText type="defaultSemiBold" style={[styles.title, { color: '#1a1a1a' }]}>
+            <ThemedText type="defaultSemiBold" style={[styles.title, isDark && styles.textDark]}>
               {title}
             </ThemedText>
+            <View style={[styles.arrowButton, isDark && styles.arrowButtonDark]}>
+              <ThemedText style={[styles.arrow, isDark && styles.accentTextDark]}>→</ThemedText>
+            </View>
             {onArrowPress ? (
               <Pressable onPress={onArrowPress} hitSlop={10} style={styles.arrowButton}>
                 <ThemedText style={styles.arrow}>→</ThemedText>
@@ -49,12 +56,12 @@ export function ListItem({
             )}
           </View>
           {description && (
-            <ThemedText style={styles.description} numberOfLines={2}>
+            <ThemedText style={[styles.description, isDark && styles.mutedTextDark]} numberOfLines={2}>
               {description}
             </ThemedText>
           )}
           <View style={styles.priceContainer}>
-            <ThemedText type="defaultSemiBold" style={styles.price}>
+            <ThemedText type="defaultSemiBold" style={[styles.price, isDark && styles.accentTextDark]}>
               {price}
             </ThemedText>
           </View>
@@ -127,5 +134,24 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 14,
     color: '#1a1a1a',
+  },
+  accentTextDark: {
+    color: '#8bbcff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  arrowButtonDark: {
+    backgroundColor: 'rgba(139, 188, 255, 0.12)',
+    borderRadius: 12,
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  containerDark: {
+    backgroundColor: '#1d2d44',
+    borderWidth: 1,
+    borderColor: '#2d3a4a',
+    shadowOpacity: 0.25,
   },
 });

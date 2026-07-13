@@ -8,12 +8,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function CameraScreen() {
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>('back');
   const [isTakingPhoto, setIsTakingPhoto] = useState(false);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === 'dark';
 
   async function askForCameraPermission() {
     await requestPermission();
@@ -44,15 +47,15 @@ export default function CameraScreen() {
   }
 
   if (!permission) {
-    return <View style={styles.container} />;
+    return <View style={[styles.container, isDark && styles.containerDark]}></View>;
   }
 
   if (!permission.granted) {
     return (
-      <View style={styles.permissionContainer}>
+      <View style={[styles.permissionContainer, isDark && styles.containerDark,]}>
         <Text style={styles.brand}>FlipValue</Text>
-        <Text style={styles.permissionTitle}>Camera access needed</Text>
-        <Text style={styles.permissionText}>
+        <Text style={[styles.permissionTitle, isDark && styles.textDark,]}>Camera access needed</Text>
+        <Text style={[styles.permissionText, isDark && styles.mutedTextDark,]}>
           Allow camera access to capture an item photo for resale pricing.
         </Text>
         <Pressable
@@ -79,46 +82,46 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, isDark && styles.headerDark,]}>
         <TouchableOpacity
           accessibilityLabel="Close camera"
           onPress={() => router.back()}
-          style={styles.closeButton}
+          style={[styles.closeButton, isDark && styles.closeButtonDark,]}
         >
-          <Text style={styles.closeIcon}>x</Text>
+          <Text style={[styles.closeIcon, isDark && styles.textDark,]}>x</Text>
         </TouchableOpacity>
-        <Text style={styles.brand}>FlipValue</Text>
+        <Text style={[styles.brand, isDark && styles.textDark, ]}>FlipValue</Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      <View style={styles.captureArea}>
+      <View style={[styles.captureArea, isDark && styles.captureAreaDark,]}>
         <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
 
-        <View pointerEvents="none" style={styles.frame}>
-          <View style={[styles.corner, styles.topLeft]} />
-          <View style={[styles.corner, styles.topRight]} />
-          <View style={[styles.corner, styles.bottomLeft]} />
-          <View style={[styles.corner, styles.bottomRight]} />
+        <View pointerEvents="none" style={[styles.frame, isDark && styles.frameDark,]}>
+          <View style={[styles.corner, isDark && styles.cornerDark, styles.topLeft,]} />
+          <View style={[styles.corner, isDark && styles.cornerDark, styles.topRight,]} />
+          <View style={[styles.corner, isDark && styles.cornerDark, styles.bottomLeft,]} />
+          <View style={[styles.corner, isDark && styles.cornerDark, styles.bottomRight,]} />
         </View>
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, isDark && styles.footerDark,]}>
         <TouchableOpacity
           accessibilityLabel="Flip camera"
           onPress={() => setFacing((current) => (current === 'back' ? 'front' : 'back'))}
           style={styles.flipButton}
         >
-          <Text style={styles.flipIcon}>↺</Text>
+          <Text style={[styles.flipIcon, isDark && styles.textDark,]}>↺</Text>
         </TouchableOpacity>
         <TouchableOpacity
           accessibilityLabel="Capture image"
           disabled={isTakingPhoto}
           onPress={takePhoto}
-          style={[styles.captureButton, isTakingPhoto && styles.captureButtonDisabled]}
+          style={[styles.captureButton, isDark && styles.captureButtonDark, isTakingPhoto && styles.captureButtonDisabled,]}
         >
-          <View style={styles.captureLens} />
+          <View style={[styles.captureLens, isDark && styles.captureLensDark,]} />
         </TouchableOpacity>
-        <View style={styles.aiBadge}>
+        <View style={[styles.aiBadge, isDark && styles.aiBadgeDark,]} >
           <Text style={styles.aiBadgeText}>AI</Text>
         </View>
       </View>
@@ -314,5 +317,41 @@ const styles = StyleSheet.create({
     fontFamily: 'AzeretMono_700Bold',
     fontSize: 10,
     color: '#b79324',
+  },
+  containerDark: {
+    backgroundColor: '#08111f',
+  },
+  headerDark: {
+    backgroundColor: '#08111f',
+  },
+  footerDark: {
+    backgroundColor: '#08111f',
+  },
+  captureAreaDark: {
+    backgroundColor: '#121c2b',
+  },
+  textDark: {
+    color: '#ffffff',
+  },
+  mutedTextDark: {
+    color: '#b8c4d1',
+  },
+  closeButtonDark: {
+    borderColor: '#ffffff',
+  },
+  cornerDark: {
+    borderColor: '#ffffff',
+  },
+  captureButtonDark: {
+    borderColor: '#ffffff',
+  },
+  captureLensDark: {
+    borderColor: '#ffffff',
+  },
+  aiBadgeDark: {
+    backgroundColor: '#1d2d44',
+  },
+  frameDark: {
+    borderColor: '#ffffff',
   },
 });
