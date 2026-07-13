@@ -6,12 +6,16 @@ import { DashboardHeader } from '@/components/dashboard-header';
 import { MainItemTile } from '@/components/main-item-tile';
 import { ListItem } from '@/components/list-item';
 import { useState, useCallback, useEffect } from 'react';
-import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics, deleteItem } from '@/services/api';
-import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics, listItemToEbay } from '@/services/api';
+import {
+  getAllItems,
+  getDashboardAnalytics,
+  getItemMarketAnalytics,
+  deleteItem,
+  listItemToEbay,
+} from '@/services/api';
 import AnalyticsCharts from '@/components/analytics-charts';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/context/theme-context';
-import { Alert } from 'react-native';
 
 export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -21,6 +25,7 @@ export default function DashboardScreen() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [marketAnalytics, setMarketAnalytics] = useState<any>(null);
+  const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
 
@@ -230,10 +235,30 @@ export default function DashboardScreen() {
 
       {!loading && !error && (
         <ThemedView style={[styles.analyticsSection, isDark && styles.analyticsSectionDark]}>
-          <ThemedText type="subtitle" style={[styles.analyticsTitle, isDark && styles.textDark]}>
-            Analytics Overview
-          </ThemedText>
+          <Pressable
+            style={styles.analyticsHeader}
+            onPress={() => setAnalyticsExpanded((isExpanded) => !isExpanded)}
+            accessibilityRole="button"
+            accessibilityLabel="Analytics overview"
+            accessibilityState={{ expanded: analyticsExpanded }}
+          >
+            <ThemedText type="subtitle" style={[styles.analyticsTitle, isDark && styles.textDark]}>
+              Analytics Overview
+            </ThemedText>
+            <Ionicons
+              name={analyticsExpanded ? 'chevron-up' : 'chevron-down'}
+              size={22}
+              color={isDark ? '#ffffff' : '#024883'}
+            />
+          </Pressable>
 
+          {!analyticsExpanded && (
+            <ThemedText style={[styles.analyticsCollapsedHint, isDark && styles.mutedTextDark]}>
+              Tap to view your analytics and charts
+            </ThemedText>
+          )}
+
+          {analyticsExpanded && <View style={styles.analyticsContent}>
           <View style={styles.analyticsGrid}>
             <View style={[styles.analyticsCardPrimary, isDark && styles.cardDark]}>
               <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Saved Items</ThemedText>
@@ -290,6 +315,7 @@ export default function DashboardScreen() {
               categoryBreakdown={summary.categoryBreakdown}
               conditionBreakdown={summary.conditionBreakdown}
             />
+          </View>}
 
         </ThemedView>
       )}
@@ -742,9 +768,21 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   analyticsTitle: {
-    marginBottom: 16,
     marginLeft: 0,
     color: '#1a1a1a',
+  },
+  analyticsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  analyticsCollapsedHint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#5f6f7a',
+  },
+  analyticsContent: {
+    marginTop: 16,
   },
   editButtonDark:{
     backgroundColor:'#024883',
