@@ -4,6 +4,7 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity
 import { useState, useRef } from 'react';
 import { ThemedText } from '@/components/themed-text';
 import { useAppTheme } from '@/context/theme-context';
+import { updateItem } from '@/services/api';
 
 export default function EditItemScreen() {
   const { resolvedTheme } = useAppTheme();
@@ -30,8 +31,13 @@ export default function EditItemScreen() {
   const [minPrice, setMinPrice] = useState(Math.max(5, Math.floor(parsedPrice * 0.5)));
   const [maxPrice, setMaxPrice] = useState(Math.ceil(parsedPrice * 1.5));
   */
+  /*
   const initialPrice = Number.isFinite(Number(params.price))
   ? Number(params.price)
+  : 0;
+  */
+  const initialPrice = Number.isFinite(Number(params.price))
+  ? roundToCents(Number(params.price))
   : 0;
 
   const [title, setTitle] = useState(params.title || '');
@@ -65,6 +71,7 @@ export default function EditItemScreen() {
     }, 100);
   };
 
+  /*
   const handleSave = async () => {
   if (!params.itemId) {
     Alert.alert('Error', 'Item ID is missing.');
@@ -105,7 +112,54 @@ export default function EditItemScreen() {
     setSaving(false);
   }
 };
+*/
+  const handleSave = async () => {
+  if (!params.itemId) {
+    Alert.alert('Error', 'Item ID is missing.');
+    return;
+  }
 
+  if (String(params.itemId).startsWith('v1|')) {
+    Alert.alert('Error', 'This is an eBay ID, not a saved MongoDB item ID.');
+    return;
+  }
+
+  try {
+    setSaving(true);
+
+    console.log('Updating MongoDB item:', params.itemId);
+    console.log('Update payload:', {
+      title,
+      brand,
+      category,
+      description,
+      price,
+      imageUrl: params.imageUrl,
+    });
+
+    const updatedResponse = await updateItem(String(params.itemId), {
+      title,
+      brand,
+      category,
+      description,
+      price,
+      imageUrl: params.imageUrl,
+    });
+
+    console.log('Updated item response:', updatedResponse);
+
+    Alert.alert('Success', 'Item updated successfully.');
+    router.back();
+  } catch (error) {
+    console.error('Failed to update item:', error);
+    Alert.alert(
+      'Error',
+      error instanceof Error ? error.message : 'Something went wrong.'
+    );
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <KeyboardAvoidingView
@@ -214,7 +268,8 @@ export default function EditItemScreen() {
                 minimumValue={minPrice}
                 maximumValue={maxPrice}
                 value={price}
-                onValueChange={setPrice}
+                //onValueChange={setPrice}
+                onValueChange={(value) => setPrice(roundToCents(value))}
                 minimumTrackTintColor={isDark ? '#8bbcff' : '#0d3b66'}
                 maximumTrackTintColor={isDark ? '#2d3a4a' : '#c0c0c0'}
                 thumbTintColor={isDark ? '#8bbcff' : '#0d3b66'}
@@ -229,6 +284,10 @@ export default function EditItemScreen() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
+}
+
+function roundToCents(value: number) {
+  return Math.round(value * 100) / 100;
 }
 
 const styles = StyleSheet.create({

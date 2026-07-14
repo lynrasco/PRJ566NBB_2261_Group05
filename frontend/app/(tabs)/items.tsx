@@ -20,6 +20,7 @@ type UserItem = {
   title?: string;
   brand?: string;
   category?: string;
+  description?: string;
   price?: number | string;
   imageUrl?: string;
   status?: string;
@@ -92,6 +93,7 @@ export default function ItemsScreen() {
         title: item.title,
         brand: item.brand,
         category: item.category,
+        description: item.description,
         price: item.price?.toString() || '',
         imageUrl: item.imageUrl,
       },

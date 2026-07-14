@@ -39,6 +39,44 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+// UPDATE item
+router.put("/:id", async (req, res, next) => {
+  try {
+    const { title, description, price, category, brand, condition, imageUrl } = req.body;
+
+    const updatedItem = await Item.findByIdAndUpdate(
+      req.params.id,
+      {
+        title,
+        description,
+        price,
+        category,
+        brand,
+        condition,
+        imageUrl,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedItem) {
+      const error = new Error("Item not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Item updated successfully",
+      item: updatedItem,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // DELETE item
 router.delete("/:id", async (req, res, next) => {
   try {

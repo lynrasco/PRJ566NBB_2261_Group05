@@ -230,4 +230,24 @@ export const deleteItem = async (itemId: string) => {
   return response.data;
 };
 
+export const updateItem = async (
+  id: string,
+  item: {
+    title?: string;
+    description?: string;
+    price?: number;
+    category?: string;
+    brand?: string;
+    imageUrl?: string;
+  }
+) => {
+  try {
+    const response = await apiClient.put(`/items/${id}`, item);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating item ${id}:`, error);
+    throw error;
+  }
+};
+
 export default apiClient;
