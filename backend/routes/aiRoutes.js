@@ -1,99 +1,151 @@
 const express = require("express");
 const fs = require("fs/promises");
 const path = require("path");
-const vision = require("@google-cloud/vision");
 const router = express.Router();
 
 const imageRepository = require("../repositories/imageRepository");
 const ebayService = require("../services/ebayService");
+const { GoogleGenAI } = require("@google/genai");
+const mime = require("mime-types");
 
-const visionClient = new vision.ImageAnnotatorClient();
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
 
 const isRemoteUrl = (imageUrl) => /^https?:\/\//i.test(imageUrl);
 
-const buildVisionImage = async ({ imageUrl, imageBase64 }) => {
+const buildGeminiImage = async ({ imageUrl, imageBase64 }) => {
+  let base64Data;
+  let mimeType = "image/jpeg";
+
   if (imageBase64) {
-    return {
-      content: imageBase64,
-    };
-  }
+    base64Data = imageBase64;
+  } else if (isRemoteUrl(imageUrl)) {
+    const response = await fetch(imageUrl);
 
-  if (isRemoteUrl(imageUrl)) {
-    return {
-      source: {
-        imageUri: imageUrl,
-      },
-    };
-  }
+    if (!response.ok) {
+      throw new Error("Unable to download image.");
+    }
 
-  const normalizedImageUrl = imageUrl.replace(/^[/\\]+/, "");
-  const localImagePath = path.resolve(__dirname, "..", normalizedImageUrl);
-  const imageContent = await fs.readFile(localImagePath);
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    base64Data = buffer.toString("base64");
+    mimeType = response.headers.get("content-type") || "image/jpeg";
+  } else {
+    const normalizedImageUrl = imageUrl.replace(/^[/\\]+/, "");
+    const localImagePath = path.resolve(__dirname, "..", normalizedImageUrl);
+
+    const imageBuffer = await fs.readFile(localImagePath);
+
+    base64Data = imageBuffer.toString("base64");
+    mimeType = mime.lookup(localImagePath) || "image/jpeg";
+  }
 
   return {
-    content: imageContent.toString("base64"),
+    inlineData: {
+      mimeType,
+      data: base64Data,
+    },
   };
 };
 
-const formatAnnotations = (annotations, nameKey = "description") => {
-  return annotations.map((annotation) => ({
-    description: annotation[nameKey],
-    score: annotation.score,
-  }));
-};
+const analyzeGeminiImage = async (geminiImage) => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          geminiImage,
+          {
+            text: `
+Analyze this image and return ONLY a valid JSON object with no markdown formatting or extra text:
 
-const buildDescription = ({ labels, logos, objects, text }) => {
-  const descriptionParts = [
-    labels.length
-      ? `Likely item tags: ${labels.map((label) => label.description).join(", ")}.`
-      : null,
-    logos.length
-      ? `Visible brand/logo clues: ${logos.map((logo) => logo.description).join(", ")}.`
-      : null,
-    objects.length
-      ? `Detected objects: ${objects.map((object) => object.description).join(", ")}.`
-      : null,
-    text ? `Visible text: ${text.replace(/\s+/g, " ").trim()}` : null,
-  ];
-
-  return descriptionParts.filter(Boolean).join(" ");
-};
-
-const analyzeVisionImage = async (visionImage) => {
-  const [result] = await visionClient.annotateImage({
-    image: visionImage,
-    features: [
-      { type: "LABEL_DETECTION", maxResults: 10 },
-      { type: "LOGO_DETECTION", maxResults: 5 },
-      { type: "TEXT_DETECTION", maxResults: 5 },
-      { type: "OBJECT_LOCALIZATION", maxResults: 10 },
+{
+  "brand": "",
+  "model": "",
+  "category": "",
+  "color": "",
+  "visibleText": "",
+  "tags": [],
+  "description": ""
+}
+`,
+          },
+        ],
+      },
     ],
+    generationConfig: {
+      responseMimeType: "application/json",
+    },
   });
 
-  const labels = formatAnnotations(result.labelAnnotations || []);
-  const logos = formatAnnotations(result.logoAnnotations || []);
-  const objects = formatAnnotations(
-    result.localizedObjectAnnotations || [],
-    "name"
-  );
-  const text = result.textAnnotations?.[0]?.description || "";
-  const aiTags = labels.map((label) => label.description);
-  const aiDescription = buildDescription({ labels, logos, objects, text });
+  console.log("========== GEMINI RESPONSE OBJECT ==========");
+  console.log("Full response:", JSON.stringify(response, null, 2));
+  console.log("Response type:", typeof response);
+  console.log("Response keys:", Object.keys(response));
+  console.log("==========================================");
+
+  let text = "";
+
+  if (response?.candidates?.[0]?.content?.parts?.[0]?.text) {
+    text = response.candidates[0].content.parts[0].text.trim();
+  } else if (typeof response.text === "function") {
+    text = response.text().trim();
+  } else if (typeof response === "string") {
+    text = response.trim();
+  } else {
+    throw new Error("Could not extract text from Gemini response.");
+  }
+  console.log("========== TEXT EXTRACTED ==========");
+  console.log(text);
+  console.log("====================================");
+
+  // Remove markdown code blocks if present
+  let cleaned = text
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  // If still no JSON, try to extract JSON from the response
+  if (!cleaned.startsWith("{")) {
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleaned = jsonMatch[0];
+    }
+  }
+
+  console.log("========== CLEANED JSON ==========");
+  console.log(cleaned);
+  console.log("==================================");
+
+  let parsed;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch (error) {
+    console.error("❌ Failed to parse Gemini response as JSON:", {
+      text,
+      cleaned,
+      errorMessage: error.message,
+    });
+    throw new Error(`Invalid JSON response from Gemini API: ${error.message}`);
+  }
 
   return {
-    labels,
-    logos,
-    objects,
-    text,
-    aiTags,
-    aiDescription,
+    labels: parsed.model || "",
+    logos: parsed.brand || "",
+    objects: Array.isArray(parsed.objects) ? parsed.objects : [],
+    visibleText: parsed.visibleText || "",
+    aiTags: Array.isArray(parsed.tags) ? parsed.tags : [],
+    aiDescription: JSON.stringify(parsed),
   };
 };
 
 const resolveImageContext = async ({ imageId, imageUrl, imageBase64 }) => {
   if (imageId) {
     const image = await imageRepository.getImageById(imageId);
-
     if (!image) {
       const error = new Error("Image not found");
       error.statusCode = 404;
@@ -103,7 +155,10 @@ const resolveImageContext = async ({ imageId, imageUrl, imageBase64 }) => {
     return {
       imageId,
       image,
-      visionImage: await buildVisionImage({ imageUrl: image.imageUrl }),
+      geminiImage: await buildGeminiImage({
+        imageUrl,
+        imageBase64,
+      }),
     };
   }
 
@@ -115,7 +170,10 @@ const resolveImageContext = async ({ imageId, imageUrl, imageBase64 }) => {
         aiTags: [],
         aiDescription: "",
       },
-      visionImage: await buildVisionImage({ imageUrl, imageBase64 }),
+      geminiImage: await buildGeminiImage({
+        imageUrl,
+        imageBase64,
+      }),
     };
   }
 
@@ -127,18 +185,30 @@ const resolveImageContext = async ({ imageId, imageUrl, imageBase64 }) => {
 const handleProcessImage = async (req, res, next) => {
   try {
     const { imageId, imageUrl, imageBase64, userDescription } = req.body;
-    const resolved = await resolveImageContext({ imageId, imageUrl, imageBase64 });
-    const visionResult = await analyzeVisionImage(resolved.visionImage);
+
+    console.log("Starting image processing...");
+
+    const resolved = await resolveImageContext({
+      imageId,
+      imageUrl,
+      imageBase64,
+    });
+
+    console.log("Image built successfully");
+
+    const geminiResult = await analyzeGeminiImage(resolved.geminiImage);
+
+    console.log("Gemini result:", geminiResult);
 
     const updatedImage = resolved.imageId
       ? await imageRepository.updateImageById(resolved.imageId, {
-          aiTags: visionResult.aiTags,
-          aiDescription: visionResult.aiDescription,
+          aiTags: geminiResult.aiTags,
+          aiDescription: geminiResult.aiDescription,
         })
       : {
           ...resolved.image,
-          aiTags: visionResult.aiTags,
-          aiDescription: visionResult.aiDescription,
+          aiTags: geminiResult.aiTags,
+          aiDescription: geminiResult.aiDescription,
         };
 
     const ebayQuery = buildEbaySearchQuery({
@@ -148,18 +218,22 @@ const handleProcessImage = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: "Google Vision image processing completed successfully",
+      message: "Image processing completed successfully",
       image: updatedImage,
       ebayQuery,
       nextRoute: "/api/ebay",
-      vision: {
-        labels: visionResult.labels,
-        logos: visionResult.logos,
-        objects: visionResult.objects,
-        text: visionResult.text,
+      gemini: {
+        labels: geminiResult.labels,
+        logos: geminiResult.logos,
+        objects: geminiResult.objects,
+        text: geminiResult.visibleText,
       },
     });
   } catch (error) {
+    console.error("================================");
+    console.error(error);
+    console.error(error.stack);
+    console.error("================================");
     next(error);
   }
 };
@@ -178,83 +252,36 @@ const normalizeEbayCondition = (condition) => {
 };
 
 const parseAiDescription = (aiDescription = "") => {
-  const result = {
-    brands: [],
-    objects: [],
-    visibleText: "",
-  };
-
-  const desc = aiDescription || "";
-
-  // Extract brands from the 'Visible brand/logo clues:' section
-  const brandMatch = desc.match(/Visible brand\/logo clues:\s*([^\.]+)/i);
-  if (brandMatch) {
-    result.brands = brandMatch[1]
-      .split(/[,;]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
+  try {
+    return JSON.parse(aiDescription);
+  } catch {
+    return {
+      brand: "",
+      model: "",
+      category: "",
+      color: "",
+      visibleText: "",
+      aiTags: [],
+      aiDescription: "",
+    };
   }
-
-  // Extract detected objects
-  const objMatch = desc.match(/Detected objects:\s*([^\.]+)/i);
-  if (objMatch) {
-    result.objects = objMatch[1]
-      .split(/[,;]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
-
-  // Extract visible text
-  const textMatch = desc.match(/Visible text:\s*([^$]+)/i);
-  if (textMatch) {
-    result.visibleText = textMatch[1].trim();
-  }
-
-  return result;
 };
 
 const buildEbaySearchQuery = ({ image, userDescription }) => {
-  const parts = [];
-  // Parse aiDescription for brand/object/text clues
-  const parsed = parseAiDescription(image.aiDescription);
+  const analysis = parseAiDescription(image.aiDescription);
 
-  // Brand first
-  if (parsed.brands && parsed.brands.length) {
-    parts.push(parsed.brands[0]);
-  } else if (image.aiTags && image.aiTags.length) {
-    // try to guess brand from tags if any tag looks like a brand (capitalized)
-    const brandCandidate = image.aiTags.find((t) => /^[A-Z][a-zA-Z0-9\-]+$/.test(t));
-    if (brandCandidate) parts.push(brandCandidate);
-  }
+  const parts = [
+    ...(analysis.tags || []),
+    analysis.visibleText,
+    userDescription,
+  ];
 
-  // Model / visible text (prioritize tokens with digits or uppercase model-like strings)
-  if (parsed.visibleText) {
-    const tokens = parsed.visibleText.split(/\s+/).map((t) => t.trim()).filter(Boolean);
-    const modelToken = tokens.find((t) => /\d/.test(t) || /^[A-Z0-9\-]{3,}$/.test(t));
-    if (modelToken) parts.push(modelToken);
-  }
-
-  // Object (shoe, bottle, jacket, etc.)
-  if (parsed.objects && parsed.objects.length) {
-    parts.push(parsed.objects[0]);
-  } else if (image.aiTags && image.aiTags.length) {
-    // pick a non-brand tag as object
-    const objCandidate = image.aiTags.find((t) => !parsed.brands.includes(t));
-    if (objCandidate) parts.push(objCandidate);
-  }
-
-  // User description is powerful — append at the end to refine search
-  if (userDescription) parts.push(userDescription);
-
-  // Fallback to cleaned aiDescription if still empty
-  if (!parts.length && image.aiDescription) {
-    const noUrls = image.aiDescription.replace(/https?:\/\/\S+/gi, "");
-    const cleaned = noUrls.replace(/[^\w\s-]/g, " ").replace(/\s+/g, " ").trim();
-    if (cleaned) parts.push(cleaned);
-  }
-
-  const query = parts.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
-  return query.length > 200 ? query.slice(0, 200) : query;
+  return parts
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 200);
 };
 
 // expose the query builder for tests
@@ -288,19 +315,40 @@ router.post("/search-ebay", async (req, res, next) => {
       image = resolved.image;
     }
 
-    if (!buildEbaySearchQuery({ image, userDescription }) && resolved?.visionImage) {
-      const visionResult = await analyzeVisionImage(resolved.visionImage);
+    if (
+      !buildEbaySearchQuery({ image, userDescription }) &&
+      resolved?.geminiImage
+    ) {
+      const geminiResult = await analyzeGeminiImage(resolved.geminiImage);
       image = {
         ...image,
-        aiTags: visionResult.aiTags,
-        aiDescription: visionResult.aiDescription,
+        aiTags: geminiResult.aiTags,
+        aiDescription: geminiResult.aiDescription,
       };
     }
+    console.log("Request body:", req.body);
+    console.log("imageData:", req.body.imageData);
+    console.log("description:", req.body.description);
+    console.log("Image:", JSON.stringify(image, null, 2));
+    const analysis = parseAiDescription(image.aiDescription);
+
+    console.log("Analysis:", analysis);
+    // express.set("Analysis", analysis);
+    console.log({
+      brand: analysis.brand,
+      model: analysis.model,
+      category: analysis.category,
+      labels: analysis.labels,
+      tags: analysis.tags,
+    });
 
     const query = buildEbaySearchQuery({ image, userDescription });
 
+    console.log("Generated query:", query);
     if (!query) {
-      const error = new Error("Please provide image data or a description to search eBay");
+      const error = new Error(
+        "Please provide image data or a description to search eBay",
+      );
       error.statusCode = 400;
       throw error;
     }
@@ -314,11 +362,19 @@ router.post("/search-ebay", async (req, res, next) => {
       query,
       conditionId,
       ebayResults,
+      analysis: {
+        brand: analysis.brand,
+        title: analysis.model,
+        category: analysis.category,
+        labels: analysis.labels,
+        tags: analysis.tags,
+      },
     });
   } catch (error) {
+    console.error(error);
+    console.error(error.stack);
     next(error);
   }
 });
-
 
 module.exports = router;
