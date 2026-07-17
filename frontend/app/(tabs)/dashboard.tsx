@@ -304,17 +304,6 @@ const recentItems = uploadedItems.slice(0, 4);
               )}
             </View>
           </View>
-
-          <View style={[styles.marketCard, isDark && styles.cardDark]}>
-            <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Market Snapshot</ThemedText>
-            <ThemedText style={[styles.marketValue, isDark && styles.accentTextDark]}>
-              {marketAnalytics?.comparablesCount ?? summary.marketplaceComparables ?? 0} comparable listings
-            </ThemedText>
-            <ThemedText style={[styles.marketHint, isDark && styles.mutedTextDark]}>
-              Avg {marketAnalytics?.averageMarketPrice ? `$${marketAnalytics.averageMarketPrice}` : '$0'} • Low {marketAnalytics?.lowestMarketPrice ? `$${marketAnalytics.lowestMarketPrice}` : '$0'} • High {marketAnalytics?.highestMarketPrice ? `$${marketAnalytics.highestMarketPrice}` : '$0'}
-            </ThemedText>
-          </View>
-
            <AnalyticsCharts
               categoryBreakdown={summary.categoryBreakdown}
               conditionBreakdown={summary.conditionBreakdown}

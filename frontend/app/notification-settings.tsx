@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function NotificationSettingsScreen() {
   const [pushEnabled, setPushEnabled] = useState(true);
@@ -11,6 +12,7 @@ export default function NotificationSettingsScreen() {
   const [securityAlerts, setSecurityAlerts] = useState(true);
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.screen, isDark && styles.screenDark]}>
@@ -20,7 +22,7 @@ export default function NotificationSettingsScreen() {
             <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
           </Pressable>
           <Text style={[styles.title, isDark && styles.textDark]}>
-            Notifications
+            {t('notifications')}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -28,24 +30,26 @@ export default function NotificationSettingsScreen() {
           <View style={[styles.iconCircle, isDark && styles.iconCircleDark, ]}>
             <Ionicons name="notifications-outline" size={30} color={isDark ? '#8bbcff' : '#024883'}/>
           </View>
-          <Text style={[styles.previewTitle, isDark && styles.textDark]}>Get notified</Text>
+          <Text style={[styles.previewTitle, isDark && styles.textDark]}>
+            {t('getNotifs')}
+          </Text>
           <Text style={[styles.previewText, isDark && styles.mutedTextDark]}>
-            Choose which alerts FlipValue can send about your items and account.
+            {t('notifDesc')}
           </Text>
         </View>
 
         <View style={[styles.card, isDark && styles.cardDark]}>
           <NotificationRow
-            title="Enable notifications"
-            subtitle="Allow FlipValue to send alerts."
+            title={t('notifTitle1')}
+            subtitle={t('notifSubtitle1')}
             value={pushEnabled}
             onValueChange={setPushEnabled}
             isDark={isDark}
           />
 
           <NotificationRow
-            title="Price suggestions"
-            subtitle="Get notified when a price estimate is ready."
+            title={t('notifTitle2')}
+            subtitle={t('notifSubtitle2')}
             value={priceAlerts}
             onValueChange={setPriceAlerts}
             disabled={!pushEnabled}
@@ -53,8 +57,8 @@ export default function NotificationSettingsScreen() {
           />
 
           <NotificationRow
-            title="Marketplace updates"
-            subtitle="Receive updates from similar listings."
+            title={t('notifTitle3')}
+            subtitle={t('notifSubtitle3')}
             value={marketUpdates}
             onValueChange={setMarketUpdates}
             disabled={!pushEnabled}
@@ -62,8 +66,8 @@ export default function NotificationSettingsScreen() {
           />
 
           <NotificationRow
-            title="Security alerts"
-            subtitle="Important account and login notifications."
+            title={t('notifTitle4')}
+            subtitle={t('notifSubtitle4')}
             value={securityAlerts}
             onValueChange={setSecurityAlerts}
             disabled={!pushEnabled}

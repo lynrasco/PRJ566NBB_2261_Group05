@@ -13,11 +13,13 @@ import {
   View,
 } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function PasswordSecurityScreen() {
   const [faceIdEnabled, setFaceIdEnabled] = useState(true);
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
 
   return (
     <KeyboardAvoidingView
@@ -34,7 +36,7 @@ export default function PasswordSecurityScreen() {
             <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
           </Pressable>
           <Text style={[styles.title, isDark && styles.textDark]}>
-            Password & Security
+            {t('passwordSecurity')}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -44,17 +46,17 @@ export default function PasswordSecurityScreen() {
                 <Ionicons name="lock-closed-outline" size={28} color={isDark ? '#8bbcff' : '#024883'}/>
             </View>
             <Text style={[styles.previewTitle, isDark && styles.textDark,]}>
-              Security
+              {t('security')}
             </Text>
             <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
-                Manage your password and device security settings.
+                {t('securityDesc')}
             </Text>
         </View>
 
         <View style={[styles.card, isDark && styles.cardDark]}>
           <View style={[styles.row, styles.rowBorder, isDark && styles.rowDark,]}>
             <Text selectable style={[styles.label, isDark && styles.textDark,]}>
-              Old Password:
+              {t('oldPassword')}:
             </Text>
             <TextInput
               secureTextEntry
@@ -67,7 +69,7 @@ export default function PasswordSecurityScreen() {
 
           <View style={[styles.row, isDark && styles.rowDark]}>
             <Text selectable style={[styles.label, isDark && styles.textDark,]}>
-              Change Password:
+              {t('changePassword')}:
             </Text>
             <TextInput
               secureTextEntry
@@ -81,7 +83,7 @@ export default function PasswordSecurityScreen() {
 
         <View style={[styles.faceIdCard, isDark && styles.cardDark,]}>
           <Text selectable style={[styles.faceIdText, isDark && styles.textDark,]}>
-            Enable face-id
+            {t('enableFaceId')}
           </Text>
           <View style={styles.switchWrapper}>
             <Switch
@@ -101,7 +103,9 @@ export default function PasswordSecurityScreen() {
           onPress={() => router.back()}
           style={({ pressed }) => [styles.saveButton, pressed && styles.saveButtonPressed]}
         >
-          <Text style={styles.saveText}>Save</Text>
+          <Text style={styles.saveText}>
+            {t('save')}
+          </Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

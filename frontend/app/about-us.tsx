@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 const TEAM_MEMBERS = [
   'Joseph Fuh Che',
@@ -14,6 +15,7 @@ const TEAM_MEMBERS = [
 export default function AboutUsScreen() {
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.screen, isDark && styles.screenDark]}>
@@ -24,7 +26,7 @@ export default function AboutUsScreen() {
           </Pressable>
           
           <Text style={[styles.title, isDark && styles.textDark]}>
-            About Us
+            {t('aboutUs')}
           </Text>
           <View style={styles.headerSpacer}/>
         </View>
@@ -36,35 +38,48 @@ export default function AboutUsScreen() {
             resizeMode="contain"
           />
          <Text style={[styles.brandName, isDark && styles.accentTextDark]}>FlipValue</Text>
-          <Text style={[styles.teamName, isDark && styles.mutedTextDark]}>by iSALAJ Inc</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, isDark && styles.textDark]}>Our mission</Text>
-          <Text style={[styles.bodyText, isDark && styles.mutedTextDark]}>
-            FlipValue helps resellers and thrifters make smarter pricing decisions by
-            identifying item details and comparing them with similar resale listings.
+          <Text style={[styles.teamName, isDark && styles.mutedTextDark]}>
+            {t('createdBy')}
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, isDark && styles.textDark]}>What we do</Text>
+          <Text style={[styles.sectionTitle, isDark && styles.textDark]}>
+            {t('ourMission')}
+          </Text>
+          <Text style={[styles.bodyText, isDark && styles.mutedTextDark]}>
+            {t('ourMissionDesc')}
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, isDark && styles.textDark]}>
+            {t('whatWeDo')}
+          </Text>
           <View style={styles.pointRow}>
             <Ionicons name="scan-outline" size={18} color={isDark ? '#8bbcff' : '#024883'} />
-            <Text style={[styles.pointText, isDark && styles.mutedTextDark]}>Recognize brands, styles, and materials.</Text>
+            <Text style={[styles.pointText, isDark && styles.mutedTextDark]}>
+              {t('featureRecognize')}
+            </Text>
           </View>
           <View style={styles.pointRow}>
             <Ionicons name="pricetag-outline" size={18} color={isDark ? '#8bbcff' : '#024883'} />
-            <Text style={[styles.pointText, isDark && styles.mutedTextDark]}>Suggest fair resale price ranges.</Text>
+            <Text style={[styles.pointText, isDark && styles.mutedTextDark]}>
+              {t('featurePricing')}
+            </Text>
           </View>
           <View style={styles.pointRow}>
             <Ionicons name="trending-up-outline" size={18} color={isDark ? '#8bbcff' : '#024883'} />
-            <Text style={[styles.pointText, isDark && styles.mutedTextDark]}>Support better listings and fewer pricing mistakes.</Text>
+            <Text style={[styles.pointText, isDark && styles.mutedTextDark]}>
+              {t('featureListings')}
+            </Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, isDark && styles.textDark]}>Project team</Text>
+          <Text style={[styles.sectionTitle, isDark && styles.textDark]}>
+            {t('projectTeam')}
+          </Text>
           {TEAM_MEMBERS.map((member) => (
             <Text key={member} style={[styles.memberText, isDark && styles.mutedTextDark,]}>
               {member}
@@ -123,15 +138,6 @@ const styles = StyleSheet.create({
   iconPressed: {
     backgroundColor: '#eef3f8',
   },
-  /*
-  title: {
-    marginTop: 58,
-    fontFamily: 'AzeretMono_700Bold',
-    fontSize: 24,
-    lineHeight: 31,
-    color: '#050505',
-  },
-  */
   brandBlock: {
     alignItems: 'center',
     marginTop: 34,

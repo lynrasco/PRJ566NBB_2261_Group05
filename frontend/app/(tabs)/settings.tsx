@@ -5,30 +5,22 @@ import { useAppTheme } from '@/context/theme-context';
 import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { getAllItems } from '@/services/api';
-/*
+import { useTranslation } from '@/hooks/use-translation';
+
 const SETTINGS_OPTIONS = [
-  'Profile settings',
-  'Password & security',
-  'Languages',
-  'Notifications',
-  'Privacy',
-  'Theme',
-  'About us',
-];
-*/
-const SETTINGS_OPTIONS = [
-  { label: 'Profile Settings', icon: 'person-outline' },
-  { label: 'Password & Security', icon: 'lock-closed-outline' },
-  { label: 'Languages', icon: 'language-outline' },
-  { label: 'Notifications', icon: 'notifications-outline' },
-  { label: 'Privacy', icon: 'shield-checkmark-outline' },
-  { label: 'Theme', icon: 'color-palette-outline' },
-  { label: 'About us', icon: 'information-circle-outline' },
+  { key: 'profileSettings', icon: 'person-outline' },
+  { key: 'passwordSecurity', icon: 'lock-closed-outline' },
+  { key: 'language', icon: 'language-outline' },
+  { key: 'notifications', icon: 'notifications-outline' },
+  { key: 'privacy', icon: 'shield-checkmark-outline' },
+  { key: 'theme', icon: 'color-palette-outline' },
+  { key: 'aboutUs', icon: 'information-circle-outline' },
 ] as const;
 
 export default function SettingsScreen() {
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
   const [items, setItems] = useState<any[]>([]);
   useFocusEffect(
     useCallback(() => {
@@ -54,40 +46,40 @@ export default function SettingsScreen() {
   };
 
   const openSetting = (option: string) => {
-    if (option === 'Profile Settings') {
-      router.push('/profile-settings');
-      return;
-    }
+  if (option === 'profileSettings') {
+    router.push('/profile-settings');
+    return;
+  }
 
-    if (option === 'Password & Security') {
-      router.push('/password-security');
-      return;
-    }
+  if (option === 'passwordSecurity') {
+    router.push('/password-security');
+    return;
+  }
 
-    if (option === 'Languages') {
-      router.push('/languages');
-      return;
-    }
+  if (option === 'language') {
+    router.push('/languages');
+    return;
+  }
 
-    if (option === 'Notifications') {
-      router.push('/notification-settings');
-      return;
-    }
+  if (option === 'notifications') {
+    router.push('/notification-settings');
+    return;
+  }
 
-    if (option === 'Privacy') {
-      router.push('/privacy-settings');
-      return;
-    }
+  if (option === 'privacy') {
+    router.push('/privacy-settings');
+    return;
+  }
 
-    if (option === 'Theme') {
-      router.push('/theme-settings');
-      return;
-    }
+  if (option === 'theme') {
+    router.push('/theme-settings');
+    return;
+  }
 
-    if (option === 'About us') {
-      router.push('/about-us');
-    }
-  };
+  if (option === 'aboutUs') {
+    router.push('/about-us');
+  }
+};
 
   return (
     <View style={[styles.screen, isDark && styles.screenDark]}>
@@ -111,8 +103,8 @@ export default function SettingsScreen() {
             const isLast = index === SETTINGS_OPTIONS.length - 1;
             return (
             <Pressable
-            key={option.label}
-            onPress={() => openSetting(option.label)}
+            key={option.key}
+            onPress={() => openSetting(option.key)}
             style={({ pressed }) => [
               styles.settingsRow,
               isDark && styles.settingsRowDark,
@@ -125,7 +117,7 @@ export default function SettingsScreen() {
                 <Ionicons name={option.icon} size={18} color={isDark ? '#8bbcff' : '#024883'} />
                </View>
                 <Text style={[styles.rowText, isDark && styles.rowTextDark]}>
-                  {option.label}
+                  {t(option.key)}
                 </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={isDark ? '#b8c4d1' : '#00213b'} />
@@ -142,7 +134,7 @@ export default function SettingsScreen() {
             pressed && (isDark ? styles.signOutPressedDark : styles.signOutPressed),
           ]}>
           <Text style={[styles.signOutText, isDark && styles.signOutTextDark]}>
-            Sign out
+            {t('signOut')}
           </Text>
         </Pressable>
       </ScrollView>

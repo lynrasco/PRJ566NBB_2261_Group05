@@ -7,6 +7,7 @@ import { Audiowide_400Regular } from '@expo-google-fonts/audiowide';
 import { AzeretMono_400Regular, AzeretMono_700Bold } from '@expo-google-fonts/azeret-mono';
 import { AppThemeProvider, useAppTheme } from '@/context/theme-context';
 import { View } from 'react-native';
+import { LanguageProvider } from '@/context/language-context';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -45,7 +46,9 @@ export default function RootLayout() {
 
   return (
     <AppThemeProvider>
+      <LanguageProvider>
       <RootLayoutContent />
+      </LanguageProvider>
     </AppThemeProvider>
   );
 }

@@ -12,12 +12,13 @@ import {
   View,
 } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 const PROFILE_FIELDS = [
-  { key: 'username', label: 'Username:' },
-  { key: 'name', label: 'Name:' },
-  { key: 'phone', label: 'Phone:' },
-  { key: 'email', label: 'Email:' },
+  { key: 'username', label: 'username' },
+  { key: 'name', label: 'name' },
+  { key: 'phone', label: 'phone' },
+  { key: 'email', label: 'email' },
 ] as const;
 
 type ProfileField = (typeof PROFILE_FIELDS)[number]['key'];
@@ -39,6 +40,7 @@ export default function ProfileSettingsScreen() {
   };
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
 
   return (
     <KeyboardAvoidingView
@@ -58,7 +60,7 @@ export default function ProfileSettingsScreen() {
             <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
           </Pressable>
           <Text style={[styles.title, isDark && styles.textDark]}>
-            Profile Settings
+            {t('profileSettings')}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -67,16 +69,20 @@ export default function ProfileSettingsScreen() {
             <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
                 <Ionicons name="person-outline" size={28} color={isDark ? '#8bbcff' : '#024883'} />
             </View>
-            <Text style={[styles.previewTitle, isDark && styles.textDark,]}>Profile</Text>
+            <Text style={[styles.previewTitle, isDark && styles.textDark,]}>
+              {t('profileTitle')}
+            </Text>
             <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
-                Update your personal information.
+              {t('profileDesc')}
             </Text>
         </View>
 
         <View style={[styles.card, isDark && styles.cardDark]}>
           {PROFILE_FIELDS.map((field, index) => (
             <View key={field.key} style={[styles.row, index !== PROFILE_FIELDS.length - 1 && styles.rowBorder, isDark && styles.rowDark,]}>
-              <Text style={[styles.label, isDark && styles.textDark,]}>{field.label}</Text>
+              <Text style={[styles.label, isDark && styles.textDark,]}>
+                {t(field.label)}:
+              </Text>
               <TextInput
                 value={profile[field.key]}
                 onChangeText={(value) => updateField(field.key, value)}
@@ -96,7 +102,9 @@ export default function ProfileSettingsScreen() {
           ))}
         </View>
         <Pressable onPress={saveProfile} style={[styles.saveButton, isDark && styles.saveButtonDark,]}>
-          <Text style={styles.saveText}>Save Changes</Text>
+          <Text style={styles.saveText}>
+            {t('saveChanges')}
+          </Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

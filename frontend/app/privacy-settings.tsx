@@ -3,12 +3,14 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function PrivacySettingsScreen() {
-  const [personalizedSuggestions, setPersonalizedSuggestions] = useState(true);
+  //const [personalizedSuggestions, setPersonalizedSuggestions] = useState(true);
   const [shareAnalytics, setShareAnalytics] = useState(false);
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.screen, isDark && styles.screenDark]}>
@@ -18,7 +20,7 @@ export default function PrivacySettingsScreen() {
             <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
           </Pressable>
           <Text style={[styles.title, isDark && styles.textDark]}>
-            Privacy
+            {t('privacy')}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -28,17 +30,17 @@ export default function PrivacySettingsScreen() {
             <Ionicons name="shield-checkmark-outline" size={30} color={isDark ? '#8bbcff' : '#024883'}/>
           </View>
           <Text style={[styles.previewTitle, isDark && styles.textDark]}>
-            Control your data
+            {t('controlData')}
           </Text>
           <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
-            Manage how FlipValue uses your profile, item history, and app activity.
+            {t('privacyDesc')}
           </Text>
         </View>
 
         <View style={[styles.previewCard, isDark && styles.cardDark]}>
           <PrivacyRow
-            title="Share app analytics"
-            subtitle="Help improve FlipValue by sharing basic usage data."
+            title={t('privTitleFeature')}
+            subtitle={t('privSubtitleFeature')}
             value={shareAnalytics}
             onValueChange={setShareAnalytics}
             isLast

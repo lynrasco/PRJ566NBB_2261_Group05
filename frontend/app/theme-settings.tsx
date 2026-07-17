@@ -3,6 +3,8 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
 import { Colors } from '@/constants/theme';
+import { useLanguage } from '@/context/language-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 const THEMES = [
   { label: 'Light', value: 'light' },
@@ -14,6 +16,8 @@ export default function ThemeSettingsScreen() {
   const { themeMode, setThemeMode, resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
   const colors = Colors[resolvedTheme];
+  const { t, language } = useTranslation();
+  const { setLanguage } = useLanguage();
 
   return (
     <View style={[styles.screen, isDark && styles.screenDark]}>
@@ -21,7 +25,9 @@ export default function ThemeSettingsScreen() {
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </Pressable>
-        <Text style={[styles.title, { color: colors.text }]}>Theme</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          {t('theme')}
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
       <View style={[styles.previewCard, isDark && styles.previewCardDark]}>
@@ -32,13 +38,15 @@ export default function ThemeSettingsScreen() {
         color={isDark ? '#8bbcff' : '#024883'}
         />
         <Text style={[styles.previewTitle, { color: colors.text }]}>
-            {isDark ? 'Dark mode' : 'Light mode'}
+             {isDark ? t('themeDarkTitle') : t('themeLightTitle')}
         </Text>
         <Text style={[styles.previewText, isDark && styles.previewTextDark]}>
-            {themeMode === 'system'
-            ? 'Using your device appearance setting.'
-            : `Using ${themeMode} appearance.`}
-        </Text>
+  {themeMode === 'light'
+    ? t('themeUsingLight')
+    : themeMode === 'dark'
+    ? t('themeUsingDark')
+    : t('themeSystemDesc')}
+</Text>
     </View>
 
       <View style={[styles.card, isDark && styles.cardDark]}>
@@ -56,17 +64,27 @@ export default function ThemeSettingsScreen() {
               ]}
             >
               <View>
-                <Text style={[styles.rowTitle, { color: colors.text }]}>
-                  {theme.label}
-                </Text>
-                <Text style={[styles.rowSubtitle, isDark && styles.rowSubtitleDark]}>
-                  {theme.value === 'light'
-                    ? 'Use a bright interface.'
-                    : theme.value === 'dark'
-                    ? 'Use a darker interface.'
-                    : 'Match your device settings.'}
-                </Text>
-              </View>
+  <Text style={[styles.rowTitle, { color: colors.text }]}>
+    {theme.value === 'light'
+      ? t('themeLight')
+      : theme.value === 'dark'
+      ? t('themeDark')
+      : t('themeSystem')}
+  </Text>
+
+  <Text
+    style={[
+      styles.rowSubtitle,
+      { color: isDark ? '#b8c4d1' : '#52616f' },
+    ]}
+  >
+    {theme.value === 'light'
+      ? t('themeLightDesc')
+      : theme.value === 'dark'
+      ? t('themeDarkDesc')
+      : t('themeSystemOptionDesc')}
+  </Text>
+</View>
 
               {isSelected && (
                 <Ionicons
