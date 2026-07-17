@@ -37,13 +37,6 @@ export default function PrivacySettingsScreen() {
 
         <View style={[styles.previewCard, isDark && styles.cardDark]}>
           <PrivacyRow
-            title="Personalized suggestions"
-            subtitle="Use item history to improve price recommendations."
-            value={personalizedSuggestions}
-            onValueChange={setPersonalizedSuggestions}
-            isDark={isDark}
-          />
-          <PrivacyRow
             title="Share app analytics"
             subtitle="Help improve FlipValue by sharing basic usage data."
             value={shareAnalytics}

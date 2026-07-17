@@ -361,27 +361,7 @@ const recentItems = uploadedItems.slice(0, 4);
         </ThemedView>
       )}
 
-      {/* Suggested Listings - Remaining Items */}
-      {!loading && !error && suggestedListings.length > 0 && (
-        <ThemedView style={[styles.suggestedSection, isDark && styles.suggestedSectionDark]}>
-          <ThemedText type="subtitle" style={[ styles.sectionTitle, { color: isDark ? '#ffffff' : '#1a1a1a', marginBottom: 5 }, ]}>
-            Suggested Listings
-          </ThemedText>
-
-          {suggestedListings.map((item, index) => (
-            <ListItem
-              key={item._id || item.id || index}
-              title={item.title || 'Untitled'}
-              price={item.price ? `$${item.price}` : 'Price TBD'}
-              description={item.brand || item.description || item.category || item.condition}
-              image={item.imageUrl}
-              onPress={() => handleItemPress(item)}
-              onArrowPress={() => handlePushToEbay(item)}
-            />
-          ))}
-        </ThemedView>
-      )}
-
+      
       <ThemedView style={[styles.bottomSpacer, isDark && styles.bottomSpacerDark]} />
     </ScrollView>
 
