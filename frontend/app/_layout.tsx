@@ -8,6 +8,7 @@ import { AzeretMono_400Regular, AzeretMono_700Bold } from '@expo-google-fonts/az
 import { AppThemeProvider, useAppTheme } from '@/context/theme-context';
 import { View } from 'react-native';
 import { LanguageProvider } from '@/context/language-context';
+import { ProfileProvider } from '@/context/profile-context';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -47,7 +48,9 @@ export default function RootLayout() {
   return (
     <AppThemeProvider>
       <LanguageProvider>
-      <RootLayoutContent />
+        <ProfileProvider>
+          <RootLayoutContent />
+        </ProfileProvider>
       </LanguageProvider>
     </AppThemeProvider>
   );

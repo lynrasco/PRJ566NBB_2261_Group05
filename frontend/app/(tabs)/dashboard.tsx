@@ -5,13 +5,12 @@ import { ThemedView } from '@/components/themed-view';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { MainItemTile } from '@/components/main-item-tile';
 import { ListItem } from '@/components/list-item';
-import { useState, useCallback, useEffect } from 'react';
-import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics, deleteItem, listItemToEbay } from '@/services/api';
-//import { getAllItems, getDashboardAnalytics, getItemMarketAnalytics, listItemToEbay } from '@/services/api';
+import { useState, useCallback } from 'react';
+import { getAllItems, getDashboardAnalytics, deleteItem, listItemToEbay } from '@/services/api';
 import AnalyticsCharts from '@/components/analytics-charts';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/context/theme-context';
-//import { Alert } from 'react-native';
+import { useProfile } from '@/context/profile-context';
 
 export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -20,10 +19,10 @@ export default function DashboardScreen() {
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
-  const [marketAnalytics, setMarketAnalytics] = useState<any>(null);
   const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { profile, avatarSource } = useProfile();
 
   useFocusEffect(
     useCallback(() => {
@@ -105,34 +104,6 @@ export default function DashboardScreen() {
     }
   };
 
-  useEffect(() => {
-    if (!items[0]?._id) {
-      setMarketAnalytics(null);
-      return;
-    }
-
-    let isActive = true;
-
-    const loadMarketAnalytics = async () => {
-      try {
-        const response = await getItemMarketAnalytics(items[0]._id);
-        if (isActive) {
-          setMarketAnalytics(response?.analytics || response);
-        }
-      } catch {
-        if (isActive) {
-          setMarketAnalytics(null);
-        }
-      }
-    };
-
-    loadMarketAnalytics();
-
-    return () => {
-      isActive = false;
-    };
-  }, [items]);
-
   const summary = analytics || {
     totalSavedItems: items.length,
     averageSuggestedPrice: 0,
@@ -155,17 +126,10 @@ export default function DashboardScreen() {
     .slice(0, 3);
 
   //const recentItems = (summary.recentItems || []).slice(0, 4);
-  const sortedItems = [...items].sort((a, b) => {
-  return getItemCreatedTime(b) - getItemCreatedTime(a);
-});
-
-
-const uploadedItems = sortedItems.filter((item) => isUploadedItem(item));
-const demoItems = sortedItems.filter((item) => !isUploadedItem(item));
-
-const previousListing = demoItems[0] || uploadedItems[0];
-const suggestedListings = demoItems.slice(1, 4);
-const recentItems = uploadedItems.slice(0, 4);
+  const sortedItems = [...items].sort((a, b) => getItemCreatedTime(b) - getItemCreatedTime(a));
+  const uploadedItems = sortedItems.filter((item) => isUploadedItem(item));
+  const previousListing = sortedItems[0];
+  const recentItems = uploadedItems.slice(0, 4);
 
   const totalEstimatedValue = items.reduce((sum, item) => {
   return sum + getNumericPrice(item.suggestedPrice ?? item.estimatedPrice ?? item.price);
@@ -210,8 +174,8 @@ const recentItems = uploadedItems.slice(0, 4);
     <ScrollView style={[styles.scrollView, isDark && styles.scrollViewDark]} showsVerticalScrollIndicator={false}>
       {/* Dashboard Header */}
       <DashboardHeader
-        userName="Linda"
-        profileImage={require('@/assets/images/profile-picture.png')}
+        userName={profile.name.split(' ')[0] || profile.username}
+        profileImage={avatarSource}
         totalEstimatedValue={formattedTotalEstimatedValue}
       />
 
@@ -466,7 +430,8 @@ function getItemCreatedTime(item: any) {
     return parseInt(id.substring(0, 8), 16) * 1000;
   }
 
-  return new Date(item.createdAt || item.updatedAt || item.uploadDate || 0).getTime();
+  const timestamp = new Date(item.createdAt || item.updatedAt || item.uploadDate || 0).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function getNumericPrice(value: any) {

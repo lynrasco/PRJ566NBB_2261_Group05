@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
-import { useCallback, useMemo, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { getAllItems } from '@/services/api';
 import { useTranslation } from '@/hooks/use-translation';
+import { useProfile } from '@/context/profile-context';
 
 const SETTINGS_OPTIONS = [
   { key: 'profileSettings', icon: 'person-outline' },
@@ -21,6 +21,7 @@ export default function SettingsScreen() {
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
   const { t } = useTranslation();
+  const { profile, avatarSource } = useProfile();
   const [items, setItems] = useState<any[]>([]);
   useFocusEffect(
     useCallback(() => {
@@ -89,12 +90,12 @@ export default function SettingsScreen() {
       >
         <View style={[styles.profileHeader, isDark && styles.profileHeaderDark]}>
           <Image
-            source={require('@/assets/images/profile-picture.png')}
+            source={avatarSource}
             style={styles.avatar}
           />
-          <Text style={styles.name}>Linda Carter</Text>
+          <Text style={styles.name}>{profile.name}</Text>
           <Text style={[styles.meta, isDark && styles.metaDark]}>
-            @lindaflips · {items.length} {items.length === 1 ? 'item' : 'items'} valued
+            @{profile.username} · {items.length} {items.length === 1 ? 'item' : 'items'} valued
           </Text>
         </View>
 
@@ -166,6 +167,7 @@ const styles = StyleSheet.create({
     borderRadius: 46,
     borderWidth: 3,
     borderColor: '#9fb6cd',
+    overflow: 'hidden',
     resizeMode: 'cover',
   },
   name: {

@@ -137,6 +137,9 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: '#ffffff',
+    overflow: 'hidden',
+    resizeMode: 'cover',
   },
   valueCard: {
     alignItems: 'center',
