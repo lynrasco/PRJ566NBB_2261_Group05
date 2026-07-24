@@ -10,6 +10,15 @@ const buildBreakdown = (items, fieldName) => {
   }, {});
 };
 
+const getItemPrice = (item) => {
+  const price = Number(item.price);
+  return Number.isFinite(price) ? price : 0;
+};
+
+const roundToTwoDecimals = (value) => {
+  return Math.round(value * 100) / 100;
+};
+
 const getUserAnalytics = async (userId) => {
   const query = userId ? { owner: userId } : {};
 
@@ -19,16 +28,45 @@ const getUserAnalytics = async (userId) => {
 
   const itemIds = items.map((item) => item._id);
 
+
+  const startOfToday = new Date();
+startOfToday.setHours(0, 0, 0, 0);
+
+const totalEstimatedValue = items.reduce(
+  (total, item) => total + getItemPrice(item),
+  0
+);
+
+const previousTotalEstimatedValue = items
+  .filter((item) => new Date(item.uploadDate) < startOfToday)
+  .reduce((total, item) => total + getItemPrice(item), 0);
+
+const valueAddedToday =
+  totalEstimatedValue - previousTotalEstimatedValue;
+
+let dailyPercentageIncrease = 0;
+
+if (previousTotalEstimatedValue > 0) {
+  dailyPercentageIncrease =
+    (valueAddedToday / previousTotalEstimatedValue) * 100;
+} else if (totalEstimatedValue > 0) {
+  dailyPercentageIncrease = 100;
+}
+
+
   if (itemIds.length === 0) {
-    return {
-      totalSavedItems: 0,
-      averageSuggestedPrice: 0,
-      marketplaceComparables: 0,
-      categoryBreakdown: {},
-      conditionBreakdown: {},
-      recentItems: [],
-    };
-  }
+  return {
+    totalSavedItems: 0,
+    totalEstimatedValue: 0,
+    valueAddedToday: 0,
+    dailyPercentageIncrease: 0,
+    averageSuggestedPrice: 0,
+    marketplaceComparables: 0,
+    categoryBreakdown: {},
+    conditionBreakdown: {},
+    recentItems: [],
+  };
+}
 
   const [suggestions, marketplaceComparables] = await Promise.all([
     PriceSuggestion.find({
@@ -64,14 +102,25 @@ const getUserAnalytics = async (userId) => {
   }));
 
   return {
-    totalSavedItems: items.length,
-    averageSuggestedPrice:
-      Math.round(averageSuggestedPrice * 100) / 100,
-    marketplaceComparables,
-    categoryBreakdown: buildBreakdown(items, "category"),
-    conditionBreakdown: buildBreakdown(items, "condition"),
-    recentItems,
-  };
+  totalSavedItems: items.length,
+
+  totalEstimatedValue:
+    roundToTwoDecimals(totalEstimatedValue),
+
+  valueAddedToday:
+    roundToTwoDecimals(valueAddedToday),
+
+  dailyPercentageIncrease:
+    roundToTwoDecimals(dailyPercentageIncrease),
+
+  averageSuggestedPrice:
+    Math.round(averageSuggestedPrice * 100) / 100,
+
+  marketplaceComparables,
+  categoryBreakdown: buildBreakdown(items, "category"),
+  conditionBreakdown: buildBreakdown(items, "condition"),
+  recentItems,
+};
 };
 
 const getItemMarketAnalytics = async (itemId) => {
