@@ -2,6 +2,7 @@
 import { StyleSheet, View, type DimensionValue } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 type BreakdownData = Record<string, number>;
 
@@ -16,23 +17,24 @@ export default function AnalyticsCharts({
 }: AnalyticsChartProps) {
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
       <ThemedText type="subtitle" style={[styles.chartTitle, isDark && styles.textDark]}>
-        Analytics Charts
+        {t('analyticsCharts')}
       </ThemedText>
 
       <ChartCard
-        title="Category Breakdown"
+        title={t('categoryBreakdown')}
         data={categoryBreakdown}
-        emptyText="No category data yet"
+        emptyText={t('noCategoryData')}
       />
 
       <ChartCard
-        title="Condition Breakdown"
+        title={t('conditionBreakdown')}
         data={conditionBreakdown}
-        emptyText="No condition data yet"
+        emptyText={t('noConditionData')}
       />
     </View>
   );

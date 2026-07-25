@@ -27,12 +27,21 @@ const avatars: { id: AvatarId; source: ImageSourcePropType }[] = [
   { id: 'avatar-5', source: require('@/assets/images/avatar-5.png') },
 ];
 
+/*
 const defaultProfile: Profile = {
   username: 'lindaflips',
   name: 'Linda Carter',
   phone: '(416) 555-0198',
   email: 'linda.carter@example.com',
   avatarId: 'avatar-1',
+};
+*/
+const defaultProfile: Profile = {
+    username: "",
+    name: "",
+    phone: "",
+    email: "",
+    avatarId: "avatar-1",
 };
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -64,3 +73,4 @@ export function useProfile() {
 
   return context;
 }
+

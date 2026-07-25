@@ -4,6 +4,7 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/context/theme-context';
 import { saveItemToMyItems } from '@/services/api';
+import { useTranslation } from '@/hooks/use-translation';
 
 type Listing = {
   id?: string;
@@ -33,15 +34,18 @@ export default function ItemResultScreen() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
   const marketplaceListings = parseMarketplaceListings(listings);
   const primaryListing = marketplaceListings[0];
   const previewListings = marketplaceListings.slice(0, 3);
   const hasListing = Boolean(primaryListing);
   const displayPrice = primaryListing?.suggestedPrice ?? primaryListing?.price;
-  const displayTitle = primaryListing?.title || 'Item analysis';
-  const displayBrand = primaryListing?.brand || 'Brand';
-  const displayCategory = primaryListing?.category || 'Item';
-  const displayDescription = getDisplayDescription(primaryListing);
+  //const displayTitle = primaryListing?.title || 'Item analysis';
+  const displayTitle = primaryListing?.title || t('itemAnalysis');
+  const displayBrand = primaryListing?.brand || t('brand');
+  const displayCategory = primaryListing?.category || t('item');
+  //const displayDescription = getDisplayDescription(primaryListing);
+  const displayDescription = getDisplayDescription(primaryListing, t);
   const displayConfidence = primaryListing?.confidence ?? UI_PLACEHOLDERS.confidence;
   const listingPriceRange = getListingPriceRange(marketplaceListings);
   const displayLowPrice = primaryListing?.priceLow ?? listingPriceRange.low;
@@ -83,7 +87,8 @@ export default function ItemResultScreen() {
       router.replace('/(tabs)/items');
     } catch (error) {
       console.error('Error saving item:', error);
-      setSaveError('Unable to save this item yet.');
+      //setSaveError('Unable to save this item yet.');
+      setSaveError(t('unableToSaveItem'));
     } finally {
       setIsSaving(false);
     }
@@ -99,13 +104,17 @@ export default function ItemResultScreen() {
         <View style={[styles.hero, isDark && styles.heroDark,]}>
           <Image source={imageSource} style={styles.heroImage} />
           <Pressable
-            accessibilityLabel="Go back"
+            //accessibilityLabel="Go back"
+            accessibilityLabel={t('goBack')}
             onPress={() => router.back()}
             style={[[styles.iconCircle, isDark && styles.iconCircleDark,], styles.backButton]}
           >
             <Ionicons color="#ffffff" name="chevron-back" size={17} />
           </Pressable>
-          <Pressable accessibilityLabel="Share item" style={[styles.iconCircle, isDark && styles.iconCircleDark, styles.shareButton]}>
+          <Pressable 
+            //accessibilityLabel="Share item"
+            accessibilityLabel={t('shareItem')}
+            style={[styles.iconCircle, isDark && styles.iconCircleDark, styles.shareButton]}>
             <Ionicons color="#ffffff" name="share-social-outline" size={16} />
           </Pressable>
         </View>
@@ -129,7 +138,7 @@ export default function ItemResultScreen() {
 
           <View style={[styles.suggestedBox, isDark && styles.suggestedBoxDark,]}>
             <Text selectable style={[styles.suggestedLabel, isDark && styles.mutedTextDark, ]}>
-              AI suggested price
+              {t('aiSuggestedPrice')}
             </Text>
             <Text
               selectable
@@ -140,17 +149,17 @@ export default function ItemResultScreen() {
             <View style={[styles.confidencePill, isDark && styles.confidencePillDark,]}>
               <Ionicons color="#21b66c" name="checkmark" size={9} />
               <Text selectable style={styles.confidenceText}>
-                {formatConfidence(displayConfidence)} confidence
+                {formatConfidence(displayConfidence)} {t('confidence')}
               </Text>
             </View>
           </View>
 
           <View style={styles.rangeLabels}>
             <Text selectable style={[styles.rangeText, isDark && styles.mutedTextDark, ]}>
-              Low {formatPrice(displayLowPrice)}
+              {t('low')} {formatPrice(displayLowPrice)}
             </Text>
             <Text selectable style={[styles.rangeText, isDark && styles.mutedTextDark, ]}>
-              High {formatPrice(displayHighPrice)}
+              {t('high')} {formatPrice(displayHighPrice)}
             </Text>
           </View>
           <View style={[styles.sliderTrack, isDark && styles.sliderTrackDark,]}>
@@ -161,7 +170,7 @@ export default function ItemResultScreen() {
 
         <View style={[styles.card, styles.descriptionCard, isDark && styles.cardDark,]}>
           <Text selectable style={[styles.sectionTitle,isDark && styles.textDark, ]}>
-            Description
+            {t('description')}
           </Text>
           <Text selectable style={[styles.description, isDark && styles.mutedTextDark,]}>
             {displayDescription}
@@ -172,11 +181,15 @@ export default function ItemResultScreen() {
           <View style={styles.listingHeader}>
             <Text selectable style={[styles.listingTitle, isDark && styles.textDark]}>
               {marketplaceListings.length > 0
-                ? `Based on ${marketplaceListings.length} live listings`
-                : 'No comparable listings available yet'}
+              ? t('basedOnListings').replace(
+                '{{count}}',
+                marketplaceListings.length.toString())
+              : t('noComparableListings')}
             </Text>
             <Pressable accessibilityRole="button" onPress={goToMarketListings}>
-              <Text style={styles.viewAll}>View all</Text>
+              <Text style={styles.viewAll}>
+                {t('viewAll')}
+              </Text>
             </Pressable>
           </View>
 
@@ -187,11 +200,11 @@ export default function ItemResultScreen() {
                   <View style={[styles.marketDot, { backgroundColor: dotColors[index % dotColors.length] }]} />
                   <View style={styles.previewTextBlock}>
                     <Text numberOfLines={1} selectable style={[styles.previewTitle, isDark && styles.textDark,]}>
-                      {listing.title || 'Listing title unavailable'}
+                      {listing.title || t('listingTitleUnavailable')}
                     </Text>
                     <Text numberOfLines={1} selectable style={[styles.previewMeta, isDark && styles.mutedTextDark,]}>
                       {[listing.marketplace, listing.condition].filter(Boolean).join(' · ') ||
-                        'Listing details unavailable'}
+                        t('listingDetailsUnavailable')}
                     </Text>
                   </View>
                   <Text selectable style={[styles.previewPrice, isDark && styles.categoryTextDark,]}>
@@ -201,7 +214,7 @@ export default function ItemResultScreen() {
               ))
             ) : (
               <Text selectable style={[styles.emptyText, isDark && styles.mutedTextDark, ]}>
-                No comparable listings available yet
+                {t('noComparableListings')}
               </Text>
             )}
           </View>
@@ -214,7 +227,7 @@ export default function ItemResultScreen() {
             style={[styles.discardButton, isDark && styles.discardButtonDark,]}
           >
             <Text style={[ styles.discardText, isDark && styles.discardTextDark,]}>
-              Discard
+              {t('discard')}
             </Text>
           </Pressable>
           <Pressable
@@ -228,7 +241,7 @@ export default function ItemResultScreen() {
                 : styles.saveButtonDisabled),
               ]}
               >
-            <Text style={styles.saveText}>{isSaving ? 'Saving...' : 'Save to my items'}</Text>
+            <Text style={styles.saveText}>{isSaving ? t('saving') : t('saveToMyItems')}</Text>
           </Pressable>
         </View>
         {saveError && (
@@ -244,12 +257,13 @@ export default function ItemResultScreen() {
 }
 
 function BottomNav({ isDark }: { isDark: boolean}) {
+  const { t } = useTranslation();
   return (
     <View style={[styles.bottomNav, isDark && styles.bottomNavDark]}>
       <Pressable onPress={() => router.replace('/(tabs)/dashboard')} style={styles.navItem}>
        <Ionicons color={isDark ? '#b8c4d1' : '#6d7d8b'} name="home-outline" size={17}/>
          <Text style={[styles.navLabel, isDark && styles.navLabelDark, ]}>
-          Home
+          {t('home')}
          </Text>
       </Pressable>
       <Pressable onPress={() => router.replace('/(tabs)/camera')} style={styles.cameraNavButton}>
@@ -257,11 +271,15 @@ function BottomNav({ isDark }: { isDark: boolean}) {
       </Pressable>
       <Pressable onPress={() => router.replace('/(tabs)/items')} style={styles.navItem}>
         <Ionicons color={isDark ? '#b8c4d1' : '#6d7d8b'} name="list-outline" size={18} />
-        <Text style={[styles.navLabel, isDark && styles.navLabelDark]}>Items</Text>
+        <Text style={[styles.navLabel, isDark && styles.navLabelDark]}>
+          {t('items')}
+        </Text>
       </Pressable>
       <Pressable onPress={() => router.replace('/(tabs)/settings')} style={styles.navItem}>
         <Ionicons color={isDark ? '#b8c4d1' : '#6d7d8b'} name="person-outline" size={18} />
-        <Text style={[styles.navLabel, isDark && styles.navLabelDark]}>Profile</Text>
+        <Text style={[styles.navLabel, isDark && styles.navLabelDark]}>
+          {t('profile')}
+        </Text>
       </Pressable>
     </View>
   );
@@ -352,9 +370,13 @@ function formatConfidence(confidence?: number | string) {
   return String(confidence).includes('%') ? String(confidence) : `${confidence}%`;
 }
 
-function getDisplayDescription(listing?: Listing) {
+function getDisplayDescription(
+    listing?: Listing,
+    t?: (key: string) => string
+) {
   if (!listing) {
-    return 'No listing details are available yet.';
+    //return t('noListingDetails');
+    return t ? t('noListingDetails') : '';
   }
 
   if (listing.description) {
@@ -365,8 +387,8 @@ function getDisplayDescription(listing?: Listing) {
   if (details.length > 0) {
     return details.join(' · ');
   }
-
-  return 'No listing details are available yet.';
+  //return 'No listing details are available yet.';
+  return t ? t('noListingDetails') : '';
 }
 
 const dotColors = ['#086cd8', '#b22055', '#ff2714'];

@@ -1,9 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 //import { getEbayListings } from '@/services/api';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAppTheme } from '@/context/theme-context';
 import { getItemById, saveItemToMyItems } from '@/services/api';
+import { useTranslation } from '@/hooks/use-translation'
 
 type Listing = {
   id: string;
@@ -44,6 +45,7 @@ export default function MarketListingsScreen() {
 
   const featured = parsedListings.length > 0 ? parsedListings[0] : null;
   const rest = parsedListings.length > 1 ? parsedListings.slice(1) : [];
+  const { t } = useTranslation();
   /*
   const openEditItem = (listing: Listing) => {
     router.push({
@@ -173,13 +175,13 @@ const openEditItem = async (listing: Listing) => {
       contentContainerStyle={[
         styles.contentContainer,isDark && styles.contentContainerDark,
       ]}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+      <TouchableOpacity accessibilityLabel={t('goBack')} onPress={() => router.back()} style={styles.backButton}>
        <Text style={[styles.backIcon, isDark && styles.textDark]}>←</Text>
       </TouchableOpacity>
 
       {parsedListings.length === 0 ? (
         <Text style={[{textAlign:'center', marginTop:40,}, isDark && styles.mutedTextDark,]}>
-          No listings received
+          {t('noListingsReceived')}
         </Text>
       ) : (
         <View style={styles.list}>

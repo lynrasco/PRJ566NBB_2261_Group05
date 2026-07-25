@@ -1,7 +1,139 @@
 
 // FRENCH/FRANCAIS:
 export default {
-  // Settings Icon:
+  // Log-In Screen:
+  login: "Connexion",
+  email: "E-mail",
+  password: "Mot de passe",
+  emailPlaceholder: "E-mail",
+  passwordPlaceholder: "Mot de passe",
+  noAccount: "Vous n'avez pas de compte ?",
+  signUp: "S'inscrire",
+  emailRequired: "L'adresse e-mail est requise.",
+  invalidEmail: "Entrez une adresse e-mail valide.",
+  passwordRequired: "Le mot de passe est requis.",
+
+  // Sign-In Screen:
+  confirmPassword: "Confirmer le mot de passe",
+  confirmPasswordPlaceholder: "Confirmer le mot de passe",
+  alreadyAccount: "Vous avez déjà un compte ?",
+  nameRequired: "Le nom est requis.",
+  confirmPasswordRequired: "Veuillez confirmer votre mot de passe.",
+  passwordsNotMatch: "Les mots de passe ne correspondent pas.",
+
+  // Dashboard Screen:
+  loadingItems: "Chargement des articles...",
+  retry: "Réessayer",
+  noItems: "Aucun article trouvé",
+  uploadFirstItem: "Commencez par téléverser votre premier article",
+  analyticsOverview: "Aperçu des analyses",
+  savedItems: "Articles enregistrés",
+  itemsInCollection: "Articles dans votre collection",
+  avgSuggestedPrice: "Prix suggéré moyen",
+  currentSuggestions: "Basé sur les suggestions actuelles",
+  categoryMix: "Répartition des catégories",
+  noCategories: "Aucune catégorie pour le moment",
+  conditionMix: "Répartition de l'état",
+  noConditionData: "Aucune donnée sur l'état pour le moment",
+  previousListing: "Annonce précédente",
+  recentActivity: "Activité récente",
+  untitled: "Sans titre",
+  priceTBD: "Prix à déterminer",
+  brand: "Marque",
+  category: "Catégorie",
+  description: "Description",
+  condition: "État",
+  price: "Prix",
+  deleteItem: "Supprimer l'article",
+  deleteListingConfirm: "Voulez-vous vraiment supprimer cette annonce ?",
+  cancel: "Annuler",
+  delete: "Supprimer",
+  ebayListing: "Annonce eBay",
+  ebayListingSuccess: "Article envoyé avec succès sur eBay.",
+  ebayListingFailed: "Échec de l'annonce eBay",
+  ebayListingError: "Impossible de publier l'article.",
+  pushEbayFailed: "Échec de l'envoi de l'article vers eBay.",
+  welcomeBack: "Bon retour,",
+  totalEstimatedValue: "Valeur totale estimée",
+
+  // Analytics Charts:
+  analyticsCharts: "Graphiques analytiques",
+  categoryBreakdown: "Répartition des catégories",
+  conditionBreakdown: "Répartition de l'état",
+  noCategoryData: "Aucune donnée de catégorie pour le moment",
+
+  // Edit Item Screen:
+  title: "Titre",
+  enterProductTitle: "Entrez le titre du produit",
+  enterBrandName: "Entrez le nom de la marque",
+  enterCategory: "Entrez la catégorie",
+  enterProductDescription: "Entrez la description du produit",
+  error: "Erreur",
+  success: "Succès",
+  itemIdMissing: "L'identifiant de l'article est manquant.",
+  invalidEbayId: "Il s'agit d'un identifiant eBay et non d'un identifiant MongoDB enregistré.",
+  itemUpdatedSuccessfully: "Article mis à jour avec succès.",
+  somethingWentWrong: "Une erreur est survenue.",
+
+  // Item Condition Screen:
+  goBack: "Retour",
+  itemCondition: "État de l'article",
+  selectCondition: "Sélectionnez l'état qui correspond le mieux à l'article.",
+  continue: "Continuer",
+  newWithTags: "Neuf avec étiquettes",
+  newWithoutTags: "Neuf sans étiquettes",
+  newWithImperfections: "Neuf avec imperfections",
+  preOwnedExcellent: "D'occasion – Excellent",
+  preOwnedGood: "D'occasion – Bon",
+  preOwnedFair: "D'occasion – Correct",
+
+  // Analysis Loading Screen:
+  analyzingYourItem: "Analyse de votre article...",
+  scanningImage: "Analyse de l'image",
+  identifyingItem: "Identification de l'article",
+  searchingMarketplaces: "Recherche sur les places de marché",
+  comparingListings: "Comparaison de plus de 240 annonces",
+  calculatingFairPrice: "Calcul du juste prix",
+
+  // Item Result Screen:
+  shareItem: "Partager l'article",
+  itemAnalysis: "Analyse de l'article",
+  aiSuggestedPrice: "Prix suggéré par l'IA",
+  confidence: "Confiance",
+  low: "Faible",
+  high: "Élevée",
+  basedOnListings: "Basé sur {{count}} annonces en direct",
+  viewAll: "Voir tout",
+  noComparableListings: "Aucune annonce comparable disponible pour le moment",
+  listingTitleUnavailable: "Titre de l'annonce indisponible",
+  listingDetailsUnavailable: "Détails de l'annonce indisponibles",
+  discard: "Ignorer",
+  saving: "Enregistrement...",
+  saveToMyItems: "Enregistrer dans Mes articles",
+  unableToSaveItem: "Impossible d'enregistrer cet article pour le moment.",
+  home: "Accueil",
+  items: "Articles",
+  profile: "Profil",
+  noListingDetails: "Aucun détail d'annonce disponible pour le moment.",
+
+  // Market Listings Screen:
+  noListingsReceived: "Aucune annonce reçue",
+
+  // Items Tab:
+  myItems: "Mes articles",
+  valuedItems: "articles évalués",
+  total: "total",
+  all: "Tous",
+  footwear: "Chaussures",
+  accessories: "Accessoires",
+  outerwear: "Vêtements d'extérieur",
+  failedToLoadItems: "Impossible de charger les articles",
+  noSoldItems: "Aucun article vendu pour le moment",
+  item: "Article",
+  untitledItem: "Article sans titre",
+  soldItem: "Article vendu",
+
+  // Settings Tab:
   settings: "Paramètres",
 
   // Profile Settings:
@@ -11,7 +143,7 @@ export default {
   username: "Nom d'utilisateur",
   name: "Nom",
   phone: "Téléphone",
-  email: "E-mail",
+  //email: "E-mail",
   saveChanges: "Enregistrer les modifications",
 
   // Password & Security:
@@ -31,16 +163,12 @@ export default {
   notifications: "Notifications",
   getNotifs: "Recevoir des notifications",
   notifDesc: "Choisissez les alertes que FlipValue peut envoyer concernant vos articles et votre compte.",
-
   notifTitle1: "Activer les notifications",
   notifSubtitle1: "Autoriser FlipValue à envoyer des alertes.",
-
   notifTitle2: "Suggestions de prix",
   notifSubtitle2: "Recevez une notification lorsqu'une estimation de prix est prête.",
-
   notifTitle3: "Mises à jour du marché",
   notifSubtitle3: "Recevez des mises à jour sur des annonces similaires.",
-
   notifTitle4: "Alertes de sécurité",
   notifSubtitle4: "Notifications importantes concernant votre compte et vos connexions.",
 

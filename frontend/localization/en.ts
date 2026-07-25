@@ -1,6 +1,138 @@
 
 // ENGLISH
 export default {
+  // Log-In Screen:
+  login: "Log In",
+  email: "Email",
+  password: "Password",
+  emailPlaceholder: "Email",
+  passwordPlaceholder: "Password",
+  noAccount: "Dont have an account?",
+  signUp: "Sign Up",
+  emailRequired: "Email is required.",
+  invalidEmail: "Enter a valid email address.",
+  passwordRequired: "Password is required.",
+
+  // Sign-In Screen:
+  confirmPassword: "Confirm Password",
+  confirmPasswordPlaceholder: "Confirm Password",
+  alreadyAccount: "Already have an account?",
+  nameRequired: "Name is required.",
+  confirmPasswordRequired: "Please confirm your password.",
+  passwordsNotMatch: "Passwords do not match.",
+
+  // Dashboard Screen:
+  loadingItems: "Loading items...",
+  retry: "Retry",
+  noItems: "No items found",
+  uploadFirstItem: "Start by uploading your first item",
+  analyticsOverview: "Analytics Overview",
+  savedItems: "Saved Items",
+  itemsInCollection: "Items in your collection",
+  avgSuggestedPrice: "Avg Suggested Price",
+  currentSuggestions: "Across current suggestions",
+  categoryMix: "Category Mix",
+  noCategories: "No categories yet",
+  conditionMix: "Condition Mix",
+  noConditionData: "No condition data yet",
+  previousListing: "Previous Listing",
+  recentActivity: "Recent Activity",
+  untitled: "Untitled",
+  priceTBD: "Price TBD",
+  brand: "Brand",
+  category: "Category",
+  description: "Description",
+  condition: "Condition",
+  price: "Price",
+  deleteItem: "Delete Item",
+  deleteListingConfirm: "Are you sure you want to delete this listing?",
+  cancel: "Cancel",
+  delete: "Delete",
+  ebayListing: "eBay Listing",
+  ebayListingSuccess: "Item successfully sent to eBay.",
+  ebayListingFailed: "eBay Listing Failed",
+  ebayListingError: "Unable to list item.",
+  pushEbayFailed: "Failed to push item to eBay.",
+  welcomeBack: "Welcome back,",
+  totalEstimatedValue: "Total Estimated Value:",
+
+  // Analytics Charts:
+  analyticsCharts: "Analytics Charts",
+  categoryBreakdown: "Category Breakdown",
+  conditionBreakdown: "Condition Breakdown",
+  noCategoryData: "No category data yet",
+
+  // Edit Item Screen
+  title: "Title",
+  enterProductTitle: "Enter product title",
+  enterBrandName: "Enter brand name",
+  enterCategory: "Enter category",
+  enterProductDescription: "Enter product description",
+  error: "Error",
+  success: "Success",
+  itemIdMissing: "Item ID is missing.",
+  invalidEbayId: "This is an eBay ID, not a saved MongoDB item ID.",
+  itemUpdatedSuccessfully: "Item updated successfully.",
+  somethingWentWrong: "Something went wrong.",
+
+  // Item Condition Screen:
+  goBack: "Go back",
+  itemCondition: "Item Condition",
+  selectCondition: "Select the condition that best matches the item.",
+  continue: "Continue",
+  newWithTags: "New with tags",
+  newWithoutTags: "New without tags",
+  newWithImperfections: "New with imperfections",
+  preOwnedExcellent: "Pre-owned – Excellent",
+  preOwnedGood: "Pre-owned – Good",
+  preOwnedFair: "Pre-owned – Fair",
+
+  // Analysis Loading Screen
+  analyzingYourItem: "Analyzing your item...",
+  scanningImage: "Scanning image",
+  identifyingItem: "Identifying item",
+  searchingMarketplaces: "Searching marketplaces",
+  comparingListings: "Comparing 240+ listings",
+  calculatingFairPrice: "Calculating fair price",
+
+  // Item Result Screen
+  shareItem: "Share item",
+  itemAnalysis: "Item Analysis",
+  aiSuggestedPrice: "AI Suggested Price",
+  confidence: "confidence",
+  low: "Low",
+  high: "High",
+  basedOnListings: "Based on {{count}} live listings",
+  viewAll: "View all",
+  noComparableListings: "No comparable listings available yet",
+  listingTitleUnavailable: "Listing title unavailable",
+  listingDetailsUnavailable: "Listing details unavailable",
+  discard: "Discard",
+  saving: "Saving...",
+  saveToMyItems: "Save to My Items",
+  unableToSaveItem: "Unable to save this item yet.",
+  home: "Home",
+  items: "Items",
+  profile: "Profile",
+  noListingDetails: "No listing details are available yet.",
+
+  // Market Listings Screen
+  noListingsReceived: "No listings received",
+
+  // Items Tab:
+  myItems: "My Items",
+  valuedItems: "valued items",
+  total: "total",
+  all: "All",
+  footwear: "Footwear",
+  accessories: "Accessories",
+  outerwear: "Outerwear",
+  failedToLoadItems: "Failed to load items",
+  noSoldItems: "No sold items yet",
+  item: "Item",
+  untitledItem: "Untitled item",
+  soldItem: "Sold item",
+
   // Settings Tab:
   settings: "Settings",
 
@@ -11,9 +143,8 @@ export default {
   username: "Username",
   name: "Name",
   phone: "Phone",
-  email: "Email",
+  //email: "Email",
   saveChanges: "Save Changes",
-
 
   // Password & Security:
   passwordSecurity: "Password & Security",

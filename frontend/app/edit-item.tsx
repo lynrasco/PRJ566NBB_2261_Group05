@@ -5,6 +5,7 @@ import { useState, useRef } from 'react';
 import { ThemedText } from '@/components/themed-text';
 import { useAppTheme } from '@/context/theme-context';
 import { updateItem } from '@/services/api';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function EditItemScreen() {
   const { resolvedTheme } = useAppTheme();
@@ -59,6 +60,7 @@ export default function EditItemScreen() {
 
   const scrollViewRef = useRef<ScrollView>(null);
   const descriptionRef = useRef<TextInput>(null);
+  const { t } = useTranslation();
 
   const handleDescriptionFocus = () => {
     setTimeout(() => {
@@ -169,7 +171,7 @@ export default function EditItemScreen() {
     >
       <View style={styles.header}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('goBack')}
           onPress={() => router.back()}
           style={styles.backButton}
         >
@@ -181,7 +183,9 @@ export default function EditItemScreen() {
           disabled={saving}
           onPress={handleSave}
           >
-            <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
+            <Text style={styles.saveButtonText}>
+              {saving ? t('saving') : t('save')}
+            </Text>
         </TouchableOpacity>
 
       </View>
@@ -203,49 +207,57 @@ export default function EditItemScreen() {
 
         {/* Title */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Title:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('title')}:
+          </ThemedText>
           <TextInput
             style={[styles.input, isDark && styles.inputDark,]}
             value={title}
             onChangeText={setTitle}
-            placeholder="Enter product title"
+            placeholder={t('enterProductTitle')}
             placeholderTextColor={isDark ? '#7e90a4' : '#999'}
           />
         </View>
 
         {/* Brand */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Brand:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('brand')}:
+          </ThemedText>
           <TextInput
             style={[styles.input, isDark && styles.inputDark,]}
             value={brand}
             onChangeText={setBrand}
-            placeholder="Enter brand name"
+            placeholder={t('enterBrandName')}
             placeholderTextColor={isDark ? '#7e90a4' : '#999'}
           />
         </View>
 
         {/* Category */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Category:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('category')}:
+          </ThemedText>
           <TextInput
             style={[styles.input, isDark && styles.inputDark,]}
             value={category}
             onChangeText={setCategory}
-            placeholder="Enter category"
+            placeholder={t('enterCategory')}
             placeholderTextColor={isDark ? '#7e90a4' : '#999'}
           />
         </View>
 
         {/* Description */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Description:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('description')}:
+          </ThemedText>
           <TextInput
             ref={descriptionRef}
             style={[styles.input, isDark && styles.inputDark,]}
             value={description}
             onChangeText={setDescription}
-            placeholder="Enter product description"
+            placeholder={t('enterProductDescription')}
             placeholderTextColor={isDark ? '#7e90a4' : '#999'}
             multiline
             numberOfLines={5}
@@ -255,7 +267,9 @@ export default function EditItemScreen() {
 
         {/* Price */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Price:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('price')}:
+          </ThemedText>
           <Text style={[styles.priceDisplay, isDark && styles.accentTextDark,]}>${parseFloat(price.toFixed(2))}</Text>
 
           {/* Price Range Slider */}

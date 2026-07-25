@@ -250,4 +250,13 @@ export const updateItem = async (
   }
 };
 
+export const loginUser = async (email: string, password: string) => {
+  const response = await apiClient.post("/auth/login", {
+    email,
+    password,
+  });
+
+  return response.data;
+};
+
 export default apiClient;

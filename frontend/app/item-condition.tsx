@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { uploadImage, processImage, searchFromImage } from '@/services/api';
 import AnalysisLoadingScreen, { type AnalysisStep } from '@/components/analysis-loading-screen';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 type ItemCondition = {
   label: string;
   conditionId: string;
 };
 
+/*
 const conditions: ItemCondition[] = [
   { label: 'New with tags', conditionId: '1000' },
   { label: 'New without tags', conditionId: '1500' },
@@ -17,6 +19,15 @@ const conditions: ItemCondition[] = [
   { label: 'Pre-owned – Excellent', conditionId: '2990' },
   { label: 'Pre-owned – Good', conditionId: '3000' },
   { label: 'Pre-owned – Fair', conditionId: '3010' },
+];
+*/
+const conditions = [
+  { label: 'newWithTags', conditionId: '1000' },
+  { label: 'newWithoutTags', conditionId: '1500' },
+  { label: 'newWithImperfections', conditionId: '1750' },
+  { label: 'preOwnedExcellent', conditionId: '2990' },
+  { label: 'preOwnedGood', conditionId: '3000' },
+  { label: 'preOwnedFair', conditionId: '3010' },
 ];
 
 export default function ItemConditionScreen() {
@@ -27,6 +38,7 @@ export default function ItemConditionScreen() {
   const [currentStep, setCurrentStep] = useState<AnalysisStep>('scanning');
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
 
   const imageSource = imageUri
     ? { uri: imageUri }
@@ -73,7 +85,8 @@ export default function ItemConditionScreen() {
         params: {
           listings: JSON.stringify(listings),
           imageUri,
-          condition: selectedCondition.label,
+          //condition: selectedCondition.label,
+          condition: t(selectedCondition.label),
           conditionId: selectedCondition.conditionId,
         },
       });
@@ -96,7 +109,7 @@ export default function ItemConditionScreen() {
     >
       <View style={styles.header}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('goBack')}
           onPress={() => router.back()}
           style={styles.backButton}
         >
@@ -112,9 +125,11 @@ export default function ItemConditionScreen() {
         <Image source={imageSource} style={styles.itemImage} />
       </View>
 
-      <Text style={[styles.title, isDark && styles.textDark]}>Item condition</Text>
+      <Text style={[styles.title, isDark && styles.textDark]}>
+        {t('itemCondition')}
+      </Text>
       <Text style={[styles.subtitle, isDark && styles.mutedTextDark,]}>
-        Select the condition that best matches the item.
+        {t('selectCondition')}
       </Text>
       <View style={styles.conditionList}>
         {conditions.map((condition) => {
@@ -132,7 +147,7 @@ export default function ItemConditionScreen() {
               ]}
             >
               <Text style={[styles.conditionText, isDark && styles.textDark, isSelected && styles.conditionTextSelected, isDark && isSelected && styles.conditionTextSelectedDark,]}>
-                {condition.label}
+                {t(condition.label)}
               </Text>
             </TouchableOpacity>
           );
@@ -145,7 +160,9 @@ export default function ItemConditionScreen() {
         onPress={continueToListings}
         style={[styles.continueButton, !selectedCondition && styles.continueButtonDisabled]}
       >
-        <Text style={styles.continueButtonText}>Continue</Text>
+        <Text style={styles.continueButtonText}>
+          {t('continue')}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );

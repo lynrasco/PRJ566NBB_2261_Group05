@@ -10,6 +10,7 @@ import { getAllItems, getDashboardAnalytics, deleteItem, listItemToEbay } from '
 import AnalyticsCharts from '@/components/analytics-charts';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from "@/hooks/use-translation";
 import { useProfile } from '@/context/profile-context';
 
 export default function DashboardScreen() {
@@ -23,6 +24,7 @@ export default function DashboardScreen() {
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
   const { profile, avatarSource } = useProfile();
+  const { t } = useTranslation();
 
   useFocusEffect(
     useCallback(() => {
@@ -84,9 +86,11 @@ export default function DashboardScreen() {
       const response = await listItemToEbay(payload);
 
       if (response?.success) {
-        Alert.alert('eBay Listing', 'Item successfully sent to eBay.');
+        //Alert.alert('eBay Listing', 'Item successfully sent to eBay.');
+        Alert.alert(t('ebayListing'), t('ebayListingSuccess'));
       } else {
-        throw new Error(response?.message || 'Unable to list item.');
+        //throw new Error(response?.message || 'Unable to list item.');
+        throw new Error(response?.message || t('ebayListingError'));
       }
     } catch (error: any) {
       console.error('Failed to push item to eBay:', error);
@@ -103,6 +107,36 @@ export default function DashboardScreen() {
       Alert.alert('eBay Listing Failed', message);
     }
   };
+
+  /*
+  useEffect(() => {
+    if (!items[0]?._id) {
+      setMarketAnalytics(null);
+      return;
+    }
+
+    let isActive = true;
+
+    const loadMarketAnalytics = async () => {
+      try {
+        const response = await getItemMarketAnalytics(items[0]._id);
+        if (isActive) {
+          setMarketAnalytics(response?.analytics || response);
+        }
+      } catch {
+        if (isActive) {
+          setMarketAnalytics(null);
+        }
+      }
+    };
+
+    loadMarketAnalytics();
+
+    return () => {
+      isActive = false;
+    };
+  }, [items]);
+  */
 
   const summary = analytics || {
     totalSavedItems: items.length,
@@ -142,15 +176,15 @@ export default function DashboardScreen() {
     if (!itemId) return;
 
     Alert.alert(
-      'Delete Item',
-      'Are you sure you want to delete this listing?',
+      t('deleteItem'),
+      t('deleteListingConfirm'),
       [
         {
-          text: 'Cancel',
+          text: t('cancel'),
           style: 'cancel',
         },
         {
-          text: 'Delete',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             console.log(selectedItem);
@@ -183,7 +217,9 @@ export default function DashboardScreen() {
       {loading && (
         <ThemedView style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#024883" />
-          <ThemedText style={styles.loadingText}>Loading items...</ThemedText>
+          <ThemedText style={styles.loadingText}>
+            {t('loadingItems')}
+          </ThemedText>
         </ThemedView>
       )}
 
@@ -192,7 +228,9 @@ export default function DashboardScreen() {
         <ThemedView style={styles.errorContainer}>
           <ThemedText style={styles.errorText}>⚠️ Error: {error}</ThemedText>
           <Pressable style={styles.retryButton} onPress={fetchItems}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>
+              {t('retry')}
+            </Text>
           </Pressable>
         </ThemedView>
       )}
@@ -200,8 +238,12 @@ export default function DashboardScreen() {
       {/* Empty State */}
       {!loading && !error && items.length === 0 && (
         <ThemedView style={styles.emptyContainer}>
-          <ThemedText style={styles.emptyText}>No items found</ThemedText>
-          <ThemedText style={styles.emptySubtext}>Start by uploading your first item</ThemedText>
+          <ThemedText style={styles.emptyText}>
+            {t('noItems')}
+          </ThemedText>
+          <ThemedText style={styles.emptySubtext}>
+            {t('uploadFirstItem')}
+          </ThemedText>
         </ThemedView>
       )}
 
@@ -211,11 +253,11 @@ export default function DashboardScreen() {
             style={styles.analyticsHeader}
             onPress={() => setAnalyticsExpanded((isExpanded) => !isExpanded)}
             accessibilityRole="button"
-            accessibilityLabel="Analytics overview"
+            accessibilityLabel={t('analyticsOverview')}
             accessibilityState={{ expanded: analyticsExpanded }}
           >
             <ThemedText type="subtitle" style={[styles.analyticsTitle, isDark && styles.textDark]}>
-              Analytics Overview
+              {t('analyticsOverview')}
             </ThemedText>
             <Ionicons
               name={analyticsExpanded ? 'chevron-up' : 'chevron-down'}
@@ -225,46 +267,63 @@ export default function DashboardScreen() {
           </Pressable>
 
 
-          
           {analyticsExpanded && <View style={styles.analyticsContent}>
           <View style={styles.analyticsGrid}>
             <View style={[styles.analyticsCardPrimary, isDark && styles.cardDark]}>
-              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Saved Items</ThemedText>
-              <ThemedText type="title" style={[styles.metricsValue, isDark && styles.accentTextDark]}>{summary.totalSavedItems}</ThemedText>
-              <ThemedText style={[styles.metricsHint, isDark && styles.mutedTextDark]}>Items in your collection</ThemedText>
+              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>
+                {t('savedItems')}
+              </ThemedText>
+              <ThemedText type="title" style={[styles.metricsValue, isDark && styles.accentTextDark]}>
+                {summary.totalSavedItems}
+              </ThemedText>
+              <ThemedText style={[styles.metricsHint, isDark && styles.mutedTextDark]}>
+                {t('itemsInCollection')}
+              </ThemedText>
             </View>
 
             <View style={[styles.analyticsCardPrimary, isDark && styles.cardDark]}>
-              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Avg Suggested Price</ThemedText>
+              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>
+                {t('avgSuggestedPrice')}
+              </ThemedText>
               <ThemedText type="title" style={[styles.metricsValue, isDark && styles.accentTextDark]}>
                 {summary.averageSuggestedPrice ? `$${summary.averageSuggestedPrice}` : '$0'}
               </ThemedText>
-              <ThemedText style={[styles.metricsHint, isDark && styles.mutedTextDark]}>Across current suggestions</ThemedText>
+              <ThemedText style={[styles.metricsHint, isDark && styles.mutedTextDark]}>
+                {t('currentSuggestions')}
+              </ThemedText>
             </View>
           </View>
 
           <View style={styles.analyticsGridTwo}>
             <View style={[styles.analyticsCardSecondary, isDark && styles.cardDark]}>
-              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Category Mix</ThemedText>
+              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>
+                {t('categoryMix')}
+              </ThemedText>
               {categoryEntries.length > 0 ? categoryEntries.map(([label, count]) => (
                 <View key={label} style={styles.breakdownRow}>
                   <ThemedText style={[styles.breakdownLabel, isDark && styles.mutedTextDark]}>{label}</ThemedText>
                   <ThemedText style={[styles.breakdownValue, isDark && styles.accentTextDark]}>{count}</ThemedText>
                 </View>
               )) : (
-                <ThemedText style={styles.emptyBreakdown}>No categories yet</ThemedText>
+                <ThemedText style={styles.emptyBreakdown}>
+                  {t('noCategories')}
+                </ThemedText>
               )}
             </View>
 
             <View style={[styles.analyticsCardSecondary, isDark && styles.cardDark]}>
-              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>Condition Mix</ThemedText>
+              <ThemedText style={[styles.metricsLabel, isDark && styles.textDark]}>
+                {t('conditionMix')}
+              </ThemedText>
               {conditionEntries.length > 0 ? conditionEntries.map(([label, count]) => (
                 <View key={label} style={styles.breakdownRow}>
                   <ThemedText style={[styles.breakdownLabel, isDark && styles.mutedTextDark]}>{label}</ThemedText>
                   <ThemedText style={[styles.breakdownValue, isDark && styles.accentTextDark]}>{count}</ThemedText>
                 </View>
               )) : (
-                <ThemedText style={styles.emptyBreakdown}>No condition data yet</ThemedText>
+                <ThemedText style={styles.emptyBreakdown}>
+                  {t('noConditionData')}
+                </ThemedText>
               )}
             </View>
           </View>
@@ -280,13 +339,13 @@ export default function DashboardScreen() {
       {!loading && !error && previousListing && (
   <ThemedView style={[styles.sectionContainer, isDark && styles.sectionContainerDark]}>
     <ThemedText type="subtitle" style={[styles.sectionTitle, { color: isDark ? '#ffffff' : '#1a1a1a', marginBottom: 5 }]}>
-      Previous Listing
+      {t('previousListing')}
     </ThemedText>
 
     <MainItemTile
-      title={previousListing.title || 'Untitled'}
+      title={previousListing.title || t('untitled')}
       brand={previousListing.brand}
-      priceRange={previousListing.price ? `$${previousListing.price}` : 'Price TBD'}
+      priceRange={previousListing.price ? `$${previousListing.price}` :  t('priceTBD')}
       description={previousListing.description || previousListing.category || previousListing.condition}
       image={previousListing.imageUrl}
       onPress={() => handleItemPress(previousListing)}
@@ -297,14 +356,14 @@ export default function DashboardScreen() {
       {!loading && !error && recentItems.length > 0 && (
         <ThemedView style={[styles.suggestedSection, isDark && styles.suggestedSectionDark]}>
           <ThemedText type="subtitle" style={[ styles.sectionTitle, { color: isDark ? '#ffffff' : '#1a1a1a', marginBottom: 5 }, ]}>
-            Recent Activity
+            {t('recentActivity')}
           </ThemedText>
           {recentItems.map((item: any, index: number) => (
             <ListItem
               key={item._id || item.id || index}
               //key={item.id || index}
-              title={item.title || 'Untitled'}
-              price={item.price ? `$${item.price}` : 'Price TBD'}
+              title={item.title || t('untitled')}
+              price={item.price ? `$${item.price}` : t('priceTBD')}
               description={item.brand || item.description || item.category || item.condition}
               image={item.imageUrl}
               onPress={() => handleItemPress(item)}
@@ -353,7 +412,9 @@ export default function DashboardScreen() {
               }
             }}
             >
-              <ThemedText type="default" style={styles.editButtonText}>Edit</ThemedText>
+              <ThemedText type="default" style={styles.editButtonText}>
+                {t('editButton')}
+              </ThemedText>
             </Pressable>
           </View>
           {selectedItem?.imageUrl && (
@@ -365,7 +426,9 @@ export default function DashboardScreen() {
           </ThemedText>
           {selectedItem?.brand && (
             <>
-              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Brand:</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>
+                {t('brand')}:
+              </ThemedText>
               <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
                 {selectedItem.brand}
               </ThemedText>
@@ -373,7 +436,9 @@ export default function DashboardScreen() {
           )}
           {selectedItem?.category && (
             <>
-              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Category:</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>
+                {t('category')}:
+              </ThemedText>
               <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
                 {selectedItem.category}
               </ThemedText>
@@ -381,7 +446,9 @@ export default function DashboardScreen() {
           )}
           {selectedItem?.description && (
             <>
-              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Description:</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>
+                {t('description')}:
+              </ThemedText>
               <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
                 {selectedItem.description}
               </ThemedText>
@@ -389,7 +456,9 @@ export default function DashboardScreen() {
           )}
           {selectedItem?.condition && (
             <>
-              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>Condition:</ThemedText>
+              <ThemedText type="defaultSemiBold" style={[{fontSize: 13},isDark && styles.textDark,]}>
+                {t('condition')}:
+              </ThemedText>
               <ThemedText type="default"style={[{fontSize:10, marginBottom:10, lineHeight:11,}, isDark ? styles.mutedTextDark : { color:'#000' },]}>
                 {selectedItem.condition}
               </ThemedText>
@@ -398,7 +467,7 @@ export default function DashboardScreen() {
           {selectedItem?.price !== undefined && selectedItem?.price !== null && (
   <>
     <ThemedText type="defaultSemiBold" style={[{fontSize: 13}, isDark && styles.textDark]}>
-      Price:
+      {t('price')}:
     </ThemedText>
     <ThemedText
       type="default"
@@ -423,6 +492,7 @@ function isUploadedItem(item: any) {
   return imageUrl.includes('/uploads/') || imageUrl.startsWith('uploads/');
 }
 
+/*
 function getItemCreatedTime(item: any) {
   const id = item._id || item.id;
 
@@ -431,6 +501,20 @@ function getItemCreatedTime(item: any) {
   }
 
   const timestamp = new Date(item.createdAt || item.updatedAt || item.uploadDate || 0).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+*/
+function getItemCreatedTime(item: any) {
+  const id = item._id || item.id;
+
+  if (typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)) {
+    return parseInt(id.substring(0, 8), 16) * 1000;
+  }
+
+  const timestamp = new Date(
+    item.createdAt || item.updatedAt || item.uploadDate || 0
+  ).getTime();
+
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
