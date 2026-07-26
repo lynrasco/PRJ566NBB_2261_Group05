@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
     notificationSettings: {
       pushEnabled: {
         type: Boolean,
-        default: true,
+        default: false,
       },
 
       priceAlerts: {

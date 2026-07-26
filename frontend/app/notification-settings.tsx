@@ -74,7 +74,7 @@ async function registerForPushNotificationsAsync() {
 }
 
 export default function NotificationSettingsScreen() {
-  const [pushEnabled, setPushEnabled] = useState(true);
+  const [pushEnabled, setPushEnabled] = useState(false);
   const [priceAlerts, setPriceAlerts] = useState(true);
   const [marketUpdates, setMarketUpdates] = useState(false);
   const [securityAlerts, setSecurityAlerts] = useState(true);
@@ -94,20 +94,30 @@ export default function NotificationSettingsScreen() {
       const response =
         await getNotificationSettings(profile.userId);
 
-      if (response.notificationSettings) {
-        setPushEnabled(
-          response.notificationSettings.pushEnabled
-        );
-        setPriceAlerts(
-          response.notificationSettings.priceAlerts
-        );
-        setMarketUpdates(
-          response.notificationSettings.marketUpdates
-        );
-        setSecurityAlerts(
-          response.notificationSettings.securityAlerts
-        );
-      }
+        const savedToken = response.expoPushToken || null;
+
+        setExpoPushToken(savedToken);
+
+        if (response.notificationSettings) {
+          setPushEnabled(
+            Boolean(
+              response.notificationSettings.pushEnabled &&
+              savedToken
+            )
+          );
+
+          setPriceAlerts(
+            response.notificationSettings.priceAlerts
+          );
+
+          setMarketUpdates(
+            response.notificationSettings.marketUpdates
+          );
+
+          setSecurityAlerts(
+            response.notificationSettings.securityAlerts
+          );
+        }
 
       setExpoPushToken(response.expoPushToken || null);
     } catch (error) {
@@ -301,6 +311,7 @@ const handleTestNotification = async () => {
             subtitle={t('notifSubtitle1')}
             value={pushEnabled}
             onValueChange={handlePushEnabledChange}
+            disabled={loading}
             isDark={isDark}
           />
 
