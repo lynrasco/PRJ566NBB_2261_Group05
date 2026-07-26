@@ -1,6 +1,7 @@
 import { StyleSheet, View, Image, TouchableOpacity, Pressable, type TouchableOpacityProps } from 'react-native';
 import { ThemedText } from './themed-text';
 import { useAppTheme } from '@/context/theme-context';
+import { Ionicons } from '@expo/vector-icons';
 
 export type ListItemProps = TouchableOpacityProps & {
   image?: string;
@@ -42,16 +43,26 @@ export function ListItem({
             <ThemedText type="defaultSemiBold" style={[styles.title, isDark && styles.textDark]}>
               {title}
             </ThemedText>
-            <View style={[styles.arrowButton, isDark && styles.arrowButtonDark]}>
-              <ThemedText style={[styles.arrow, isDark && styles.accentTextDark]}>→</ThemedText>
-            </View>
             {onArrowPress ? (
-              <Pressable onPress={onArrowPress} hitSlop={10} style={styles.arrowButton}>
-                <ThemedText style={styles.arrow}>→</ThemedText>
+              <Pressable
+                accessibilityLabel="Share to eBay"
+                onPress={onArrowPress}
+                hitSlop={10}
+                style={[styles.shareButton, isDark && styles.shareButtonDark]}
+              >
+                <Ionicons
+                  color={isDark ? '#8bbcff' : '#4f5d6b'}
+                  name="share-social-outline"
+                  size={18}
+                />
               </Pressable>
             ) : (
-              <View style={styles.arrowButton}>
-                <ThemedText style={styles.arrow}>→</ThemedText>
+              <View style={[styles.shareButton, isDark && styles.shareButtonDark]}>
+                <Ionicons
+                  color={isDark ? '#8bbcff' : '#4f5d6b'}
+                  name="share-social-outline"
+                  size={18}
+                />
               </View>
             )}
           </View>
@@ -110,17 +121,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
-  arrowButton: {
+  shareButton: {
     marginLeft: 8,
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  arrow: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#666',
+    borderRadius: 15,
+    backgroundColor: '#f2f5f8',
   },
   description: {
     fontSize: 13,
@@ -141,9 +149,8 @@ const styles = StyleSheet.create({
   mutedTextDark: {
     color: '#b8c4d1',
   },
-  arrowButtonDark: {
+  shareButtonDark: {
     backgroundColor: 'rgba(139, 188, 255, 0.12)',
-    borderRadius: 12,
   },
   textDark: {
     color: '#ffffff',

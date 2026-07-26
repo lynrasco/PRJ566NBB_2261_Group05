@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { BackHandler, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAppTheme } from '@/context/theme-context';
 import { saveItemToMyItems } from '@/services/api';
 
@@ -55,6 +56,16 @@ export default function ItemResultScreen() {
     ? { uri: imageUri }
     : require('@/assets/images/partial-react-logo.png');
 
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => true);
+
+      return () => {
+        subscription.remove();
+      };
+    }, [])
+  );
+
   const goToMarketListings = () => {
     router.push({
       pathname: '/market-listings',
@@ -99,14 +110,11 @@ export default function ItemResultScreen() {
         <View style={[styles.hero, isDark && styles.heroDark,]}>
           <Image source={imageSource} style={styles.heroImage} />
           <Pressable
-            accessibilityLabel="Go back"
-            onPress={() => router.back()}
-            style={[[styles.iconCircle, isDark && styles.iconCircleDark,], styles.backButton]}
+            accessibilityLabel="View eBay listings"
+            onPress={goToMarketListings}
+            style={[styles.iconCircle, isDark && styles.iconCircleDark, styles.shareButton]}
           >
-            <Ionicons color="#ffffff" name="chevron-back" size={17} />
-          </Pressable>
-          <Pressable accessibilityLabel="Share item" style={[styles.iconCircle, isDark && styles.iconCircleDark, styles.shareButton]}>
-            <Ionicons color="#ffffff" name="share-social-outline" size={16} />
+            <Ionicons color="#ffffff" name="arrow-forward" size={18} />
           </Pressable>
         </View>
 
@@ -408,9 +416,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 19,
     backgroundColor: 'rgba(44, 69, 76, 0.58)',
-  },
-  backButton: {
-    left: 18,
   },
   shareButton: {
     right: 18,
