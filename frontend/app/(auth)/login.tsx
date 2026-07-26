@@ -125,6 +125,7 @@ export default function Login() {
      const user = response.user.user;
 
 updateProfile({
+  userId: user.id,
   username: `${user.name.split(" ")[0].toLowerCase()}${user.id.slice(-4)}`,
   name: user.name,
   email: user.email,

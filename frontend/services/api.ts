@@ -298,4 +298,43 @@ export const loginUser = async (email: string, password: string) => {
   return response.data;
 };
 
+export type NotificationSettings = {
+  pushEnabled: boolean;
+  priceAlerts: boolean;
+  marketUpdates: boolean;
+  securityAlerts: boolean;
+};
+
+export const getNotificationSettings = async (userId: string) => {
+  const response = await apiClient.get(
+    `/users/${userId}/notifications`
+  );
+
+  return response.data;
+};
+
+export const updateNotificationSettings = async (
+  userId: string,
+  settings: NotificationSettings,
+  expoPushToken?: string | null
+) => {
+  const response = await apiClient.put(
+    `/users/${userId}/notifications`,
+    {
+      ...settings,
+      expoPushToken,
+    }
+  );
+
+  return response.data;
+};
+
+export const sendTestNotification = async (userId: string) => {
+  const response = await apiClient.post(
+    `/users/${userId}/notifications/test`
+  );
+
+  return response.data;
+};
+
 export default apiClient;

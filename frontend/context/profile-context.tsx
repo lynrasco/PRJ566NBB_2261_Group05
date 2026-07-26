@@ -5,6 +5,7 @@ import type { ImageSourcePropType } from 'react-native';
 export type AvatarId = 'avatar-1' | 'avatar-2' | 'avatar-3' | 'avatar-4' | 'avatar-5';
 
 type Profile = {
+  userId: string;
   username: string;
   name: string;
   phone: string;
@@ -37,11 +38,12 @@ const defaultProfile: Profile = {
 };
 */
 const defaultProfile: Profile = {
-    username: "",
-    name: "",
-    phone: "",
-    email: "",
-    avatarId: "avatar-1",
+  userId: "",
+  username: "",
+  name: "",
+  phone: "",
+  email: "",
+  avatarId: "avatar-1",
 };
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);

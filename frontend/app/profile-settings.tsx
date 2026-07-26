@@ -42,9 +42,11 @@ export default function ProfileSettingsScreen() {
 
   const saveProfile = () => {
     updateProfile({
+      ...currentProfile,
       ...profile,
       avatarId: selectedAvatarId,
     });
+
     router.back();
   };
   const { resolvedTheme } = useAppTheme();
