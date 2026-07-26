@@ -16,7 +16,7 @@ export function DashboardHeader({
   userName = 'Linda',
   profileImage,
   totalEstimatedValue = '$0',
-  trendValue = '+12%',
+  trendValue = '+0.0%',
   style,
   ...otherProps
 }: DashboardHeaderProps) {
@@ -30,6 +30,8 @@ export function DashboardHeader({
   const gradientColors: [string, string] = isDark
   ? ['#10243a', '#1d3b5f']
   : ['#07375f', '#044c84'];
+
+  const isNegativeTrend = trendValue.trim().startsWith('-');
 
   return (
     <LinearGradient
@@ -71,7 +73,7 @@ export function DashboardHeader({
           </View>
 
           <View style={[styles.trendPill, isDark && styles.trendPillDark]}>
-            <Ionicons name="trending-up" size={17} color={isDark ? '#8bbcff' : '#78e6b4'} />
+            <Ionicons name={isNegativeTrend ? 'trending-down' : 'trending-up'} size={17} color={ isNegativeTrend ? '#ff8a8a' : isDark ? '#8bbcff' : '#78e6b4' } />
             <ThemedText type="defaultSemiBold" style={styles.trendText}>
               {trendValue}
             </ThemedText>

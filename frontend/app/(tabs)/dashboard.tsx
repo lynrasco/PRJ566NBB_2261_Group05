@@ -137,13 +137,16 @@ export default function DashboardScreen() {
   }, [items]);
 
   const summary = analytics || {
-    totalSavedItems: items.length,
-    averageSuggestedPrice: 0,
-    marketplaceComparables: 0,
-    categoryBreakdown: {},
-    conditionBreakdown: {},
-    recentItems: items.slice(0, 5),
-  };
+  totalSavedItems: items.length,
+  totalEstimatedValue: 0,
+  valueAddedToday: 0,
+  dailyPercentageIncrease: 0,
+  averageSuggestedPrice: 0,
+  marketplaceComparables: 0,
+  categoryBreakdown: {},
+  conditionBreakdown: {},
+  recentItems: items.slice(0, 5),
+};
 
   const categoryEntries = (
     Object.entries(summary.categoryBreakdown || {}) as [string, number][]
@@ -159,10 +162,22 @@ export default function DashboardScreen() {
 
   const recentItems = (summary.recentItems || []).slice(0, 4);
 
-  const totalEstimatedValue = items.reduce((sum, item) => {
-  return sum + getNumericPrice(item.suggestedPrice ?? item.estimatedPrice ?? item.price);
-  }, 0);
-  const formattedTotalEstimatedValue = `$${totalEstimatedValue.toFixed(2)}`;
+  const totalEstimatedValue =
+    Number(summary.totalEstimatedValue) ||
+    items.reduce((sum, item) => {
+      return (
+        sum +
+        getNumericPrice(
+          item.suggestedPrice ??
+          item.estimatedPrice ??
+          item.price
+        )
+      );
+    }, 0);
+
+  const formattedTotalEstimatedValue =
+    `$${totalEstimatedValue.toFixed(2)}`;
+
 
   const handleDeleteItem = () => {
     //if (!selectedItem?._id) return;
@@ -197,6 +212,12 @@ export default function DashboardScreen() {
     );
   };
 
+  const dailyPercentageIncrease =
+  Number(summary.dailyPercentageIncrease) || 0;
+
+const formattedTrendValue =
+  `${dailyPercentageIncrease >= 0 ? '+' : ''}${dailyPercentageIncrease.toFixed(1)}%`;
+
   return (
   <>
     <ScrollView style={[styles.scrollView, isDark && styles.scrollViewDark]} showsVerticalScrollIndicator={false}>
@@ -205,6 +226,7 @@ export default function DashboardScreen() {
         userName="Linda"
         profileImage={require('@/assets/images/profile-picture.png')}
         totalEstimatedValue={formattedTotalEstimatedValue}
+        trendValue={formattedTrendValue}
       />
 
       {/* Loading State */}
