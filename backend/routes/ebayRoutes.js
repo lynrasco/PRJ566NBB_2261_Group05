@@ -28,6 +28,8 @@ const handleListingsSearch = async (req, res, next) => {
       imageUrl: item.image?.imageUrl || null,
       url: item.itemWebUrl,
       condition: item.condition || null,
+      category: item.categories?.[0]?.categoryName || null,
+      categoryId: item.categories?.[0]?.categoryId || null,
     }));
 
     res.status(200).json({

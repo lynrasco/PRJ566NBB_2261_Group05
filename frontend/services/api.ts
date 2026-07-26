@@ -72,6 +72,7 @@ export const saveItemToMyItems = async (item: {
   description?: string;
   price?: number;
   category?: string;
+  categoryId?: string;
   brand?: string;
   condition?: string;
   imageUrl?: string;
@@ -83,6 +84,7 @@ export const saveItemToMyItems = async (item: {
     appendFormValue(formData, 'description', item.description);
     appendFormValue(formData, 'price', item.price);
     appendFormValue(formData, 'category', item.category);
+    appendFormValue(formData, 'categoryId', item.categoryId);
     appendFormValue(formData, 'brand', item.brand);
     appendFormValue(formData, 'condition', item.condition);
     appendFormValue(formData, 'imageUrl', item.imageUrl);
@@ -191,19 +193,45 @@ export const searchFromImage = async (
     return [];
   }
 
-  return results.map((item: any) => ({
+  return results.map((item: any) => {
+  const ebayCategories = Array.isArray(item.categories)
+    ? item.categories
+    : [];
+
+  const ebayCategory =
+    ebayCategories.length > 0
+      ? ebayCategories[ebayCategories.length - 1]
+      : null;
+
+  return {
     id: item.itemId,
     marketplace: 'eBay',
     title: item.title,
     brand: item.brand,
-    category: item.categoryName || item.categoryPath || item.categories?.[0]?.categoryName,
+
+    category:
+      ebayCategory?.categoryName ||
+      item.categoryName ||
+      item.categoryPath ||
+      '',
+
+    categoryId:
+      ebayCategory?.categoryId ||
+      item.categoryId ||
+      '',
+
     description:
       item.shortDescription ||
       item.subtitle ||
       item.additionalProductIdentities?.[0]?.identifierValue ||
       '',
+
     condition: item.condition,
-    price: item.price ? `${item.price.currency} ${item.price.value}` : 'Price not available',
+
+    price: item.price
+      ? `${item.price.currency} ${item.price.value}`
+      : 'Price not available',
+
     priceLow: item.priceLow,
     priceHigh: item.priceHigh,
     suggestedPrice: item.suggestedPrice,
@@ -211,7 +239,8 @@ export const searchFromImage = async (
     pricePositionPercent: item.pricePositionPercent,
     imageUrl: extractImage(item),
     url: item.itemWebUrl,
-  }));
+  };
+});
 };
 
 function extractImage(item: any): string | null {

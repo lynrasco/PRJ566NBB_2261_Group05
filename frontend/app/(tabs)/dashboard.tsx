@@ -78,6 +78,7 @@ export default function DashboardScreen() {
         description: item.description,
         price: item.price,
         category: item.category,
+        categoryId: item.categoryId,
         brand: item.brand,
         condition: item.condition,
         imageUrl: item.imageUrl,

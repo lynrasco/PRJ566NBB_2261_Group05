@@ -104,7 +104,7 @@ router.post(
 
         try {
 
-            const { title, description, price, category, brand, condition, imageUrl } = req.body;
+            const { title, description, price, category, categoryId, brand, condition, imageUrl } = req.body;
 
             const newItem = new Item({
 
@@ -112,6 +112,7 @@ router.post(
                 description,
                 price,
                 category,
+                categoryId,
                 brand,
                 condition,
 

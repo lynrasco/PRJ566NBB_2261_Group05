@@ -12,6 +12,7 @@ type Listing = {
   title?: string;
   brand?: string;
   category?: string;
+  categoryId?: string;
   description?: string;
   condition?: string;
   price?: number | string;
@@ -79,6 +80,7 @@ export default function ItemResultScreen() {
         title: primaryListing.title,
         brand: primaryListing.brand,
         category: primaryListing.category,
+        categoryId: primaryListing.categoryId,
         description: primaryListing.description,
         condition: primaryListing.condition || condition,
         price: getNumericPrice(displayPrice),
