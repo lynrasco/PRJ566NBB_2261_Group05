@@ -153,6 +153,7 @@ export const listItemToEbay = async (item: {
   description?: string;
   price?: number;
   category?: string;
+  categoryId?: string;
   brand?: string;
   condition?: string;
   imageUrl?: string;
@@ -194,14 +195,22 @@ export const searchFromImage = async (
   }
 
   return results.map((item: any) => {
-  const ebayCategories = Array.isArray(item.categories)
-    ? item.categories
-    : [];
+    const ebayCategories = Array.isArray(item.categories)
+      ? item.categories
+      : [];
 
-  const ebayCategory =
-    ebayCategories.length > 0
-      ? ebayCategories[ebayCategories.length - 1]
-      : null;
+    const primaryLeafCategoryId =
+      Array.isArray(item.leafCategoryIds) && item.leafCategoryIds.length > 0
+        ? item.leafCategoryIds[0]
+        : item.categoryId;
+
+    const ebayCategory =
+      ebayCategories.find(
+        (category: any) =>
+          String(category.categoryId) === String(primaryLeafCategoryId)
+      ) ||
+      ebayCategories[ebayCategories.length - 1] ||
+      null;
 
   return {
     id: item.itemId,
@@ -216,8 +225,8 @@ export const searchFromImage = async (
       '',
 
     categoryId:
+      primaryLeafCategoryId ||
       ebayCategory?.categoryId ||
-      item.categoryId ||
       '',
 
     description:
@@ -266,6 +275,7 @@ export const updateItem = async (
     description?: string;
     price?: number;
     category?: string;
+    categoryId?: string;
     brand?: string;
     imageUrl?: string;
   }
