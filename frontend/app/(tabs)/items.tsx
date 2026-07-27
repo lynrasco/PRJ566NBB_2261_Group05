@@ -13,6 +13,7 @@ import {
 
 import { getAllItems } from '@/services/api';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 type UserItem = {
   _id?: string;
@@ -20,6 +21,7 @@ type UserItem = {
   title?: string;
   brand?: string;
   category?: string;
+  description?: string;
   price?: number | string;
   imageUrl?: string;
   status?: string;
@@ -29,15 +31,18 @@ type UserItem = {
   valueScore?: number;
 };
 
-const FILTERS = ['All', 'Footwear', 'Accessories', 'Outerwear'];
+//const FILTERS = ['All', 'Footwear', 'Accessories', 'Outerwear'];
+const FILTERS = ['all', 'footwear', 'accessories', 'outerwear'];
 
 export default function ItemsScreen() {
   const [items, setItems] = useState<UserItem[]>([]);
-  const [activeFilter, setActiveFilter] = useState('All');
+  //const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
 
   useFocusEffect(
     useCallback(() => {
@@ -53,7 +58,7 @@ export default function ItemsScreen() {
       const response = await getAllItems();
       setItems(response.success && Array.isArray(response.items) ? response.items : []);
     } catch (err: any) {
-      setError(err.message || 'Failed to load items');
+      setError(err.message || t('failedToLoadItems'));
     } finally {
       setLoading(false);
     }
@@ -69,7 +74,7 @@ export default function ItemsScreen() {
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    if (activeFilter === 'All') {
+    if (activeFilter === 'all') {
       return soldItems;
     }
 
@@ -92,6 +97,7 @@ export default function ItemsScreen() {
         title: item.title,
         brand: item.brand,
         category: item.category,
+        description: item.description,
         price: item.price?.toString() || '',
         imageUrl: item.imageUrl,
       },
@@ -108,9 +114,11 @@ export default function ItemsScreen() {
         contentContainerStyle={[styles.content, isDark && styles.contentDark,]}
         ListHeaderComponent={
           <View>
-            <Text style={[styles.title, isDark && styles.textDark]}>My items</Text>
+            <Text style={[styles.title, isDark && styles.textDark]}>
+              {t('myItems')}
+            </Text>
             <Text style={[styles.summary, isDark && styles.mutedTextDark]}>
-              {soldItems.length} valued items · ${totalValue.toLocaleString()} total
+              {soldItems.length} {t('valuedItems')} · ${totalValue.toLocaleString()} {t('total')}
             </Text>
 
             <View style={styles.filters}>
@@ -123,7 +131,7 @@ export default function ItemsScreen() {
                     style={[styles.filterChip, isDark && styles.filterChipDark, isActive && styles.filterChipActive,]}
                   >
                     <Text style={[styles.filterText, isDark && styles.filterTextDark, isActive && styles.filterTextActive,]}>
-                      {filter}
+                      {t(filter)}
                     </Text>
                   </Pressable>
                 );
@@ -136,17 +144,23 @@ export default function ItemsScreen() {
             {loading ? (
               <>
                 <ActivityIndicator color="#024883" />
-                <Text style={[styles.stateText, isDark && styles.mutedTextDark]}>Loading items...</Text>
+                <Text style={[styles.stateText, isDark && styles.mutedTextDark]}>
+                  {t('loadingItems')}
+                </Text>
               </>
             ) : error ? (
               <>
                 <Text style={[styles.errorText, isDark && styles.errorTextDark]}>{error}</Text>
                 <Pressable onPress={fetchItems} style={styles.retryButton}>
-                  <Text style={styles.retryText}>Retry</Text>
+                  <Text style={styles.retryText}>
+                    {t('retry')}
+                  </Text>
                 </Pressable>
               </>
             ) : (
-              <Text style={styles.stateText}>No sold items yet</Text>
+              <Text style={styles.stateText}>
+                {t('noSoldItems')}
+              </Text>
             )}
           </View>
         }
@@ -158,6 +172,7 @@ export default function ItemsScreen() {
 }
 
 function SoldItemCard({ item, onPress, isDark, }: { item: UserItem; onPress: () => void; isDark: boolean; }) {
+  const { t } = useTranslation();
   const price = getNumericPrice(item.price);
   const confidence = Math.round(
     item.confidence || item.matchScore || item.valueScore || 85 + (price % 10)
@@ -169,15 +184,17 @@ function SoldItemCard({ item, onPress, isDark, }: { item: UserItem; onPress: () 
         <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
       ) : (
         <View style={[styles.cardImage, styles.placeholder]}>
-          <Text style={styles.placeholderText}>{(item.title || 'Item').charAt(0)}</Text>
+          <Text style={styles.placeholderText}>
+            {(item.title || t('item')).charAt(0)}
+          </Text>
         </View>
       )}
 
       <Text numberOfLines={2} style={[styles.cardTitle, isDark && styles.textDark,]}>
-        {item.title || 'Untitled item'}
+        {item.title || t('untitledItem')}
       </Text>
       <Text numberOfLines={1} style={[styles.brand, isDark && styles.mutedTextDark,]}>
-        {item.brand || item.category || 'Sold item'}
+        {item.brand || item.category || t('soldItem')}
       </Text>
 
       <View style={styles.cardFooter}>

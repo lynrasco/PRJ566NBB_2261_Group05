@@ -4,6 +4,8 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity
 import { useState, useRef } from 'react';
 import { ThemedText } from '@/components/themed-text';
 import { useAppTheme } from '@/context/theme-context';
+import { updateItem } from '@/services/api';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function EditItemScreen() {
   const { resolvedTheme } = useAppTheme();
@@ -30,8 +32,13 @@ export default function EditItemScreen() {
   const [minPrice, setMinPrice] = useState(Math.max(5, Math.floor(parsedPrice * 0.5)));
   const [maxPrice, setMaxPrice] = useState(Math.ceil(parsedPrice * 1.5));
   */
+  /*
   const initialPrice = Number.isFinite(Number(params.price))
   ? Number(params.price)
+  : 0;
+  */
+  const initialPrice = Number.isFinite(Number(params.price))
+  ? roundToCents(Number(params.price))
   : 0;
 
   const [title, setTitle] = useState(params.title || '');
@@ -53,6 +60,7 @@ export default function EditItemScreen() {
 
   const scrollViewRef = useRef<ScrollView>(null);
   const descriptionRef = useRef<TextInput>(null);
+  const { t } = useTranslation();
 
   const handleDescriptionFocus = () => {
     setTimeout(() => {
@@ -65,6 +73,7 @@ export default function EditItemScreen() {
     }, 100);
   };
 
+  /*
   const handleSave = async () => {
   if (!params.itemId) {
     Alert.alert('Error', 'Item ID is missing.');
@@ -105,7 +114,54 @@ export default function EditItemScreen() {
     setSaving(false);
   }
 };
+*/
+  const handleSave = async () => {
+  if (!params.itemId) {
+    Alert.alert('Error', 'Item ID is missing.');
+    return;
+  }
 
+  if (String(params.itemId).startsWith('v1|')) {
+    Alert.alert('Error', 'This is an eBay ID, not a saved MongoDB item ID.');
+    return;
+  }
+
+  try {
+    setSaving(true);
+
+    console.log('Updating MongoDB item:', params.itemId);
+    console.log('Update payload:', {
+      title,
+      brand,
+      category,
+      description,
+      price,
+      imageUrl: params.imageUrl,
+    });
+
+    const updatedResponse = await updateItem(String(params.itemId), {
+      title,
+      brand,
+      category,
+      description,
+      price,
+      imageUrl: params.imageUrl,
+    });
+
+    console.log('Updated item response:', updatedResponse);
+
+    Alert.alert('Success', 'Item updated successfully.');
+    router.back();
+  } catch (error) {
+    console.error('Failed to update item:', error);
+    Alert.alert(
+      'Error',
+      error instanceof Error ? error.message : 'Something went wrong.'
+    );
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <KeyboardAvoidingView
@@ -115,7 +171,7 @@ export default function EditItemScreen() {
     >
       <View style={styles.header}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('goBack')}
           onPress={() => router.back()}
           style={styles.backButton}
         >
@@ -127,7 +183,9 @@ export default function EditItemScreen() {
           disabled={saving}
           onPress={handleSave}
           >
-            <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
+            <Text style={styles.saveButtonText}>
+              {saving ? t('saving') : t('save')}
+            </Text>
         </TouchableOpacity>
 
       </View>
@@ -149,49 +207,57 @@ export default function EditItemScreen() {
 
         {/* Title */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Title:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('title')}:
+          </ThemedText>
           <TextInput
             style={[styles.input, isDark && styles.inputDark,]}
             value={title}
             onChangeText={setTitle}
-            placeholder="Enter product title"
+            placeholder={t('enterProductTitle')}
             placeholderTextColor={isDark ? '#7e90a4' : '#999'}
           />
         </View>
 
         {/* Brand */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Brand:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('brand')}:
+          </ThemedText>
           <TextInput
             style={[styles.input, isDark && styles.inputDark,]}
             value={brand}
             onChangeText={setBrand}
-            placeholder="Enter brand name"
+            placeholder={t('enterBrandName')}
             placeholderTextColor={isDark ? '#7e90a4' : '#999'}
           />
         </View>
 
         {/* Category */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Category:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('category')}:
+          </ThemedText>
           <TextInput
             style={[styles.input, isDark && styles.inputDark,]}
             value={category}
             onChangeText={setCategory}
-            placeholder="Enter category"
+            placeholder={t('enterCategory')}
             placeholderTextColor={isDark ? '#7e90a4' : '#999'}
           />
         </View>
 
         {/* Description */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Description:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('description')}:
+          </ThemedText>
           <TextInput
             ref={descriptionRef}
             style={[styles.input, isDark && styles.inputDark,]}
             value={description}
             onChangeText={setDescription}
-            placeholder="Enter product description"
+            placeholder={t('enterProductDescription')}
             placeholderTextColor={isDark ? '#7e90a4' : '#999'}
             multiline
             numberOfLines={5}
@@ -201,7 +267,9 @@ export default function EditItemScreen() {
 
         {/* Price */}
         <View style={styles.fieldGroup}>
-          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>Price:</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+            {t('price')}:
+          </ThemedText>
           <Text style={[styles.priceDisplay, isDark && styles.accentTextDark,]}>${parseFloat(price.toFixed(2))}</Text>
 
           {/* Price Range Slider */}
@@ -214,7 +282,8 @@ export default function EditItemScreen() {
                 minimumValue={minPrice}
                 maximumValue={maxPrice}
                 value={price}
-                onValueChange={setPrice}
+                //onValueChange={setPrice}
+                onValueChange={(value) => setPrice(roundToCents(value))}
                 minimumTrackTintColor={isDark ? '#8bbcff' : '#0d3b66'}
                 maximumTrackTintColor={isDark ? '#2d3a4a' : '#c0c0c0'}
                 thumbTintColor={isDark ? '#8bbcff' : '#0d3b66'}
@@ -229,6 +298,10 @@ export default function EditItemScreen() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
+}
+
+function roundToCents(value: number) {
+  return Math.round(value * 100) / 100;
 }
 
 const styles = StyleSheet.create({

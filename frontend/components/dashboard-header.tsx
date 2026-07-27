@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from './themed-text';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 export type DashboardHeaderProps = ViewProps & {
   userName?: string;
@@ -30,6 +31,7 @@ export function DashboardHeader({
   const gradientColors: [string, string] = isDark
   ? ['#10243a', '#1d3b5f']
   : ['#07375f', '#044c84'];
+  const { t } = useTranslation();
 
   const isNegativeTrend = trendValue.trim().startsWith('-');
 
@@ -44,7 +46,7 @@ export function DashboardHeader({
         <View style={styles.topRow}>
           <View style={styles.textSection}>
             <ThemedText style={[styles.greetingText, isDark && styles.greetingTextDark]}>
-              Welcome back,
+              {t('welcomeBack')}
             </ThemedText>
             <View style={styles.nameRow}>
               <ThemedText type="title" style={styles.nameText}>
@@ -65,7 +67,7 @@ export function DashboardHeader({
         <View style={[styles.valueCard, isDark && styles.valueCardDark]}>
           <View style={styles.valueTextGroup}>
             <ThemedText style={styles.valueLabel} numberOfLines={1} adjustsFontSizeToFit>
-              Total estimated value
+              {t('totalEstimatedValue')}
             </ThemedText>
             <ThemedText type="title" style={styles.valueAmount} numberOfLines={1} adjustsFontSizeToFit>
               {totalEstimatedValue}
@@ -139,6 +141,9 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: '#ffffff',
+    overflow: 'hidden',
+    resizeMode: 'cover',
   },
   valueCard: {
     alignItems: 'center',

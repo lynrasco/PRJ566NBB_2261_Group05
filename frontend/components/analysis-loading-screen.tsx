@@ -1,6 +1,7 @@
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
+import { useTranslation } from '@/hooks/use-translation';
 
 export type AnalysisStep = 'scanning' | 'identifying' | 'searching' | 'comparing' | 'calculating';
 
@@ -9,12 +10,21 @@ interface AnalysisLoadingScreenProps {
   currentStep?: AnalysisStep;
 }
 
+/*
 const steps: { id: AnalysisStep; label: string; order: number }[] = [
   { id: 'scanning', label: 'Scanning image', order: 1 },
   { id: 'identifying', label: 'Identifying item', order: 2 },
   { id: 'searching', label: 'Searching marketplaces', order: 3 },
   { id: 'comparing', label: 'Comparing 240+ listings', order: 4 },
   { id: 'calculating', label: 'Calculating fair price', order: 5 },
+];
+*/
+const steps: { id: AnalysisStep; label: string; order: number }[] = [
+  { id: 'scanning', label: 'scanningImage', order: 1 },
+  { id: 'identifying', label: 'identifyingItem', order: 2 },
+  { id: 'searching', label: 'searchingMarketplaces', order: 3 },
+  { id: 'comparing', label: 'comparingListings', order: 4 },
+  { id: 'calculating', label: 'calculatingFairPrice', order: 5 },
 ];
 
 export default function AnalysisLoadingScreen({ progress, currentStep }: AnalysisLoadingScreenProps) {
@@ -28,6 +38,7 @@ export default function AnalysisLoadingScreen({ progress, currentStep }: Analysi
     return 'pending';
   };
 
+  const { t } = useTranslation();
   return (
     <ThemedView style={styles.container}>
       <View style={styles.content}>
@@ -40,7 +51,9 @@ export default function AnalysisLoadingScreen({ progress, currentStep }: Analysi
         </View>
 
         {/* Analyzing Text */}
-        <ThemedText style={styles.analyzeTitle}>Analyzing your item...</ThemedText>
+        <ThemedText style={styles.analyzeTitle}>
+          {t('analyzingYourItem')}
+        </ThemedText>
 
         {/* Steps List */}
         <View style={styles.stepsList}>
@@ -71,7 +84,7 @@ export default function AnalysisLoadingScreen({ progress, currentStep }: Analysi
                     isCurrent && styles.stepLabelCurrent,
                   ]}
                 >
-                  {step.label}
+                  {t(step.label)}
                 </ThemedText>
               </View>
             );

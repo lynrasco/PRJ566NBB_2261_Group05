@@ -5,6 +5,10 @@ const itemSchema = new mongoose.Schema({
     description: String,
     imageUrl: String,
     category: String,
+    categoryId: {
+    type: String,
+    trim: true
+    },
     brand: String,
     condition: String,
     price: Number,

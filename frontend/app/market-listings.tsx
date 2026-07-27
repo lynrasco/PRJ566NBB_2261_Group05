@@ -1,16 +1,33 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 //import { getEbayListings } from '@/services/api';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAppTheme } from '@/context/theme-context';
+import { getItemById, saveItemToMyItems } from '@/services/api';
+import { useTranslation } from '@/hooks/use-translation'
 
 type Listing = {
   id: string;
   marketplace: string;
   title: string;
+  brand?: string;
+  category?: string;
+  description?: string;
+  condition?: string;
   price?: string;
   imageUrl?: string;
   url?: string;
+};
+
+type SavedItem = {
+  _id: string;
+  title?: string;
+  brand?: string;
+  category?: string;
+  description?: string;
+  condition?: string;
+  price?: number | string;
+  imageUrl?: string;
 };
 
 export default function MarketListingsScreen() {
@@ -18,15 +35,18 @@ export default function MarketListingsScreen() {
     imageUri?: string;
     listings?: string;
   }>();
-
   //const parsedListings = listings ? JSON.parse(listings) : [];
   const parsedListings = parseListings(listings);
+  const [savingListingId, setSavingListingId] = useState<string | null>(null);
+  const [savedItemsByListingId, setSavedItemsByListingId] = useState<Record<string, SavedItem>>({});
   const imageSource = imageUri
     ? { uri: imageUri }
     : require('@/assets/images/no-img-available.jpg');
 
   const featured = parsedListings.length > 0 ? parsedListings[0] : null;
   const rest = parsedListings.length > 1 ? parsedListings.slice(1) : [];
+  const { t } = useTranslation();
+  /*
   const openEditItem = (listing: Listing) => {
     router.push({
     pathname: '/edit-item',
@@ -37,6 +57,114 @@ export default function MarketListingsScreen() {
       imageUrl: String(listing.imageUrl || imageUri || ''),
     },
   });
+}
+*/
+/*
+ const openEditItem = async (listing: Listing) => {
+  if (savingListingId) return;
+
+  try {
+    setSavingListingId(listing.id);
+
+    const savedResponse = await saveItemToMyItems({
+      title: listing.title,
+      brand: listing.brand,
+      category: listing.category,
+      description: listing.description,
+      condition: listing.condition,
+      price: getNumericPrice(listing.price),
+      imageUrl: listing.imageUrl || imageUri,
+    });
+
+    const savedItem = savedResponse.item;
+
+    console.log('Saved marketplace item response:', savedResponse);
+    console.log('Saved MongoDB item ID:', savedItem?._id);
+
+    if (!savedItem?._id) {
+      console.log('Saved item missing MongoDB _id:', savedResponse);
+      return;
+    }
+
+    router.push({
+      pathname: '/edit-item',
+      params: {
+        itemId: savedItem._id,
+        title: savedItem.title || listing.title || '',
+        brand: savedItem.brand || listing.brand || '',
+        category: savedItem.category || listing.category || '',
+        description: savedItem.description || listing.description || '',
+        price: String(savedItem.price || getNumericPriceString(listing.price)),
+        imageUrl: savedItem.imageUrl || listing.imageUrl || imageUri || '',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to save marketplace listing before edit:', error);
+  } finally {
+    setSavingListingId(null);
+  }
+};
+*/
+
+const openEditItem = async (listing: Listing) => {
+  if (savingListingId) return;
+
+  try {
+    setSavingListingId(listing.id);
+
+    let savedItem = savedItemsByListingId[listing.id];
+
+    // If this marketplace listing was already saved before,
+    // fetch the latest MongoDB version so edited fields like brand show up.
+    if (savedItem?._id) {
+      const latestResponse = await getItemById(savedItem._id);
+      savedItem = latestResponse.item || savedItem;
+    } else {
+      const savedResponse = await saveItemToMyItems({
+        title: listing.title,
+        brand: listing.brand,
+        category: listing.category,
+        description: listing.description,
+        condition: listing.condition,
+        price: getNumericPrice(listing.price),
+        imageUrl: listing.imageUrl || imageUri,
+      });
+
+      savedItem = savedResponse.item;
+
+      console.log('Saved marketplace item response:', savedResponse);
+      console.log('Saved MongoDB item ID:', savedItem?._id);
+
+      if (savedItem?._id) {
+        setSavedItemsByListingId((previous) => ({
+          ...previous,
+          [listing.id]: savedItem,
+        }));
+      }
+    }
+
+    if (!savedItem?._id) {
+      console.log('Saved item missing MongoDB _id:', savedItem);
+      return;
+    }
+
+    router.push({
+      pathname: '/edit-item',
+      params: {
+        itemId: savedItem._id,
+        title: savedItem.title || listing.title || '',
+        brand: savedItem.brand || listing.brand || '',
+        category: savedItem.category || listing.category || '',
+        description: savedItem.description || listing.description || '',
+        price: String(savedItem.price || getNumericPriceString(listing.price)),
+        imageUrl: savedItem.imageUrl || listing.imageUrl || imageUri || '',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to open marketplace listing for edit:', error);
+  } finally {
+    setSavingListingId(null);
+  }
 };
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
@@ -47,31 +175,27 @@ export default function MarketListingsScreen() {
       contentContainerStyle={[
         styles.contentContainer,isDark && styles.contentContainerDark,
       ]}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+      <TouchableOpacity accessibilityLabel={t('goBack')} onPress={() => router.back()} style={styles.backButton}>
        <Text style={[styles.backIcon, isDark && styles.textDark]}>←</Text>
       </TouchableOpacity>
 
       {parsedListings.length === 0 ? (
         <Text style={[{textAlign:'center', marginTop:40,}, isDark && styles.mutedTextDark,]}>
-          No listings received
+          {t('noListingsReceived')}
         </Text>
       ) : (
         <View style={styles.list}>
           {featured && (
-  <TouchableOpacity onPress={() => openEditItem(featured)}>
-    <FeaturedListing listing={featured} imageSource={imageSource} isDark={isDark}/>
-  </TouchableOpacity>
-)}
+            <TouchableOpacity disabled={savingListingId === featured.id} onPress={() => openEditItem(featured)}>
+              <FeaturedListing listing={featured} imageSource={imageSource} isDark={isDark}/>
+            </TouchableOpacity>
+          )}
 
           {rest.map((listing: Listing) => (
-  <TouchableOpacity key={listing.id} onPress={() => openEditItem(listing)}>
-    <MarketplaceListing
-      listing={listing}
-      imageSource={imageSource}
-      isDark={isDark}
-    />
-  </TouchableOpacity>
-))}
+            <TouchableOpacity key={listing.id} disabled={savingListingId === listing.id} onPress={() => openEditItem(listing)}>
+              <MarketplaceListing listing={listing} imageSource={imageSource} isDark={isDark}/>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 
@@ -93,11 +217,7 @@ function FeaturedListing({
       <Text style={styles.marketplaceLabel}>{listing.marketplace}</Text>
       <View style={[styles.featuredCard, isDark && styles.cardDark,]} pointerEvents="none">
         <Image
-        source={
-          listing.imageUrl
-          ? { uri: listing.imageUrl }
-          : require('@/assets/images/no-img-available.jpg')
-        }
+        source={listing.imageUrl ? { uri: listing.imageUrl } : imageSource}
         style={styles.featuredImage}
         />
         <Text style={[styles.featuredPrice, isDark && styles.textDark,]}>{listing.price}</Text>
@@ -121,11 +241,8 @@ function MarketplaceListing({
       <Text style={[styles.marketplaceLabel, isDark && styles.accentTextDark,]}>{listing.marketplace}</Text>
       <View style={[styles.listingCard, isDark && styles.cardDark,]}>
         <Image
-        source={
-          listing.imageUrl
-          ? { uri: listing.imageUrl }
-          : require('@/assets/images/no-img-available.jpg')
-        } style={styles.thumbnail}
+        source={listing.imageUrl ? { uri: listing.imageUrl } : imageSource}
+        style={styles.thumbnail}
         />
         <Text style={[styles.listingTitle, isDark && styles.textDark,]}>{listing.title}</Text>
       </View>
@@ -146,6 +263,11 @@ function parseListings(listings?: string): Listing[] {
 function getNumericPriceString(price?: string) {
   const match = String(price || '').match(/\d+(\.\d+)?/);
   return match ? match[0] : '50';
+}
+
+function getNumericPrice(price?: string) {
+  const match = String(price || '').match(/\d+(\.\d+)?/);
+  return match ? Number(match[0]) : 0;
 }
 
 const styles = StyleSheet.create({

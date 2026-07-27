@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,33 +13,47 @@ import {
   View,
 } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
+import { useProfile } from '@/context/profile-context';
+import type { AvatarId } from '@/context/profile-context';
 
 const PROFILE_FIELDS = [
-  { key: 'username', label: 'Username:' },
-  { key: 'name', label: 'Name:' },
-  { key: 'phone', label: 'Phone:' },
-  { key: 'email', label: 'Email:' },
+  { key: 'username', label: 'username' },
+  { key: 'name', label: 'name' },
+  { key: 'phone', label: 'phone' },
+  { key: 'email', label: 'email' },
 ] as const;
 
 type ProfileField = (typeof PROFILE_FIELDS)[number]['key'];
 
 export default function ProfileSettingsScreen() {
+  const { profile: currentProfile, avatars, updateProfile } = useProfile();
   const [profile, setProfile] = useState<Record<ProfileField, string>>({
-    username: '',
-    name: '',
-    phone: '',
-    email: '',
+    username: currentProfile.username,
+    name: currentProfile.name,
+    phone: currentProfile.phone,
+    email: currentProfile.email,
   });
+  const [selectedAvatarId, setSelectedAvatarId] = useState<AvatarId>(currentProfile.avatarId);
 
   const updateField = (field: ProfileField, value: string) => {
     setProfile((current) => ({ ...current, [field]: value }));
   };
 
   const saveProfile = () => {
+    updateProfile({
+      ...currentProfile,
+      ...profile,
+      avatarId: selectedAvatarId,
+    });
+
     router.back();
   };
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
+  const selectedAvatarSource =
+    avatars.find((avatar) => avatar.id === selectedAvatarId)?.source || avatars[0].source;
 
   return (
     <KeyboardAvoidingView
@@ -58,25 +73,58 @@ export default function ProfileSettingsScreen() {
             <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
           </Pressable>
           <Text style={[styles.title, isDark && styles.textDark]}>
-            Profile Settings
+            {t('profileSettings')}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
 
         <View style={[styles.previewCard, isDark && styles.cardDark]}>
-            <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
-                <Ionicons name="person-outline" size={28} color={isDark ? '#8bbcff' : '#024883'} />
+            <View style={[styles.avatarPreviewCircle, isDark && styles.iconCircleDark,]}>
+                <Image source={selectedAvatarSource} style={styles.avatarPreview} />
             </View>
-            <Text style={[styles.previewTitle, isDark && styles.textDark,]}>Profile</Text>
-            <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
-                Update your personal information.
+            <Text style={[styles.previewTitle, isDark && styles.textDark,]}>
+              {profile.name || t('profileTitle')}
             </Text>
+            <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
+              @{profile.username || 'username'} · {profile.email || t('profileDesc')}
+            </Text>
+        </View>
+
+        <View style={[styles.avatarCard, isDark && styles.cardDark]}>
+          <Text style={[styles.avatarLabel, isDark && styles.textDark]}>Avatar</Text>
+          <View style={styles.avatarOptions}>
+            {avatars.map((avatar) => {
+              const isSelected = avatar.id === selectedAvatarId;
+
+              return (
+                <Pressable
+                  key={avatar.id}
+                  onPress={() => setSelectedAvatarId(avatar.id)}
+                  style={[
+                    styles.avatarOption,
+                    isDark && styles.avatarOptionDark,
+                    isSelected && styles.avatarOptionSelected,
+                    isDark && isSelected && styles.avatarOptionSelectedDark,
+                  ]}
+                >
+                  <Image source={avatar.source} style={styles.avatarOptionImage} />
+                  {isSelected && (
+                    <View style={styles.avatarCheck}>
+                      <Ionicons name="checkmark" size={12} color="#ffffff" />
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         <View style={[styles.card, isDark && styles.cardDark]}>
           {PROFILE_FIELDS.map((field, index) => (
             <View key={field.key} style={[styles.row, index !== PROFILE_FIELDS.length - 1 && styles.rowBorder, isDark && styles.rowDark,]}>
-              <Text style={[styles.label, isDark && styles.textDark,]}>{field.label}</Text>
+              <Text style={[styles.label, isDark && styles.textDark,]}>
+                {t(field.label)}:
+              </Text>
               <TextInput
                 value={profile[field.key]}
                 onChangeText={(value) => updateField(field.key, value)}
@@ -96,7 +144,9 @@ export default function ProfileSettingsScreen() {
           ))}
         </View>
         <Pressable onPress={saveProfile} style={[styles.saveButton, isDark && styles.saveButtonDark,]}>
-          <Text style={styles.saveText}>Save Changes</Text>
+          <Text style={styles.saveText}>
+            {t('saveChanges')}
+          </Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -222,6 +272,73 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 29,
     backgroundColor: '#e9f2fb',
+  },
+  avatarPreviewCircle: {
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 36,
+    backgroundColor: '#e9f2fb',
+    overflow: 'hidden',
+  },
+  avatarPreview: {
+    width: 72,
+    height: 72,
+    resizeMode: 'cover',
+  },
+  avatarCard: {
+    marginBottom: 18,
+    padding: 18,
+    borderRadius: 18,
+    backgroundColor: '#ffffff',
+    boxShadow: '0 2px 3px rgba(0,0,0,0.12)',
+  },
+  avatarLabel: {
+    marginBottom: 14,
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 10,
+    lineHeight: 14,
+    color: '#060606',
+  },
+  avatarOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 9,
+  },
+  avatarOption: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 2,
+    borderColor: '#d7e0ea',
+    overflow: 'hidden',
+  },
+  avatarOptionDark: {
+    borderColor: '#2d3a4a',
+  },
+  avatarOptionSelected: {
+    borderColor: '#024883',
+  },
+  avatarOptionSelectedDark: {
+    borderColor: '#8bbcff',
+  },
+  avatarOptionImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 26,
+    resizeMode: 'cover',
+  },
+  avatarCheck: {
+    position: 'absolute',
+    right: -1,
+    bottom: -1,
+    width: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 9,
+    backgroundColor: '#024883',
   },
   previewTitle: {
     marginTop: 12,
