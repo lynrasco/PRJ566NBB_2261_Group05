@@ -183,9 +183,7 @@ export default function ItemResultScreen() {
           <View style={styles.listingHeader}>
             <Text selectable style={[styles.listingTitle, isDark && styles.textDark]}>
               {marketplaceListings.length > 0
-              ? t('basedOnListings').replace(
-                '{{count}}',
-                marketplaceListings.length.toString())
+              ? t('basedOnListings', { count: marketplaceListings.length })
               : t('noComparableListings')}
             </Text>
             <Pressable accessibilityRole="button" onPress={goToMarketListings}>
@@ -228,9 +226,14 @@ export default function ItemResultScreen() {
             onPress={() => router.replace('/(tabs)/dashboard')}
             style={[styles.discardButton, isDark && styles.discardButtonDark,]}
           >
-            <Text style={[ styles.discardText, isDark && styles.discardTextDark,]}>
-              {t('discard')}
-            </Text>
+            <Text
+  numberOfLines={1}
+  adjustsFontSizeToFit
+  minimumFontScale={0.7}
+  style={[styles.discardText, isDark && styles.discardTextDark]}
+>
+  {t('discard')}
+</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
@@ -243,7 +246,14 @@ export default function ItemResultScreen() {
                 : styles.saveButtonDisabled),
               ]}
               >
-            <Text style={styles.saveText}>{isSaving ? t('saving') : t('saveToMyItems')}</Text>
+            <Text
+  numberOfLines={1}
+  adjustsFontSizeToFit
+  minimumFontScale={0.7}
+  style={styles.saveText}
+>
+  {isSaving ? t('saving') : t('saveToMyItems')}
+</Text>
           </Pressable>
         </View>
         {saveError && (
@@ -264,7 +274,7 @@ function BottomNav({ isDark }: { isDark: boolean}) {
     <View style={[styles.bottomNav, isDark && styles.bottomNavDark]}>
       <Pressable onPress={() => router.replace('/(tabs)/dashboard')} style={styles.navItem}>
        <Ionicons color={isDark ? '#b8c4d1' : '#6d7d8b'} name="home-outline" size={17}/>
-         <Text style={[styles.navLabel, isDark && styles.navLabelDark, ]}>
+         <Text style={[styles.navLabel, isDark && styles.navLabelDark]}>
           {t('home')}
          </Text>
       </Pressable>
@@ -660,6 +670,7 @@ const styles = StyleSheet.create({
   discardButton: {
     minHeight: 39,
     minWidth: 102,
+    paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -669,12 +680,13 @@ const styles = StyleSheet.create({
   },
   discardText: {
     fontFamily: 'AzeretMono_700Bold',
-    fontSize: 14,
+    fontSize: 13,
     color: '#073e70',
   },
   saveButton: {
     flex: 1,
     minHeight: 39,
+    paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
@@ -711,7 +723,7 @@ const styles = StyleSheet.create({
     paddingBottom: 9,
   },
   navItem: {
-    width: 46,
+    width: 60,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,

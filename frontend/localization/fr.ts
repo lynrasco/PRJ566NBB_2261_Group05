@@ -56,6 +56,9 @@ export default {
   welcomeBack: "Bon retour,",
   totalEstimatedValue: "Valeur totale estimée",
 
+  // NavBar:
+  camera: "Caméra",
+
   // Analytics Charts:
   analyticsCharts: "Graphiques analytiques",
   categoryBreakdown: "Répartition des catégories",
@@ -132,6 +135,14 @@ export default {
   item: "Article",
   untitledItem: "Article sans titre",
   soldItem: "Article vendu",
+
+  //valued: "évalués",
+  //valuedItemsCount: "{{count}} article évalué",
+  //valuedItemsCount_plural: "{{count}} articles évalués",
+  valuedItemsCount: {
+    one: "{{count}} article évalué",
+    other: "{{count}} articles évalués",
+  },
 
   // Settings Tab:
   settings: "Paramètres",

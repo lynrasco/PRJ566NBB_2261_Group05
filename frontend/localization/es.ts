@@ -56,6 +56,9 @@ export default {
   //welcomeBack: "¡Bienvenido de nuevo!",
   welcomeBack: "¡Te damos la bienvenida de nuevo!",
 
+  // NavBar:
+  camera: "Cámara",
+
   // Analytics Charts:
   analyticsCharts: "Gráficos analíticos",
   categoryBreakdown: "Distribución por categoría",
@@ -132,6 +135,14 @@ export default {
   item: "Artículo",
   untitledItem: "Artículo sin título",
   soldItem: "Artículo vendido",
+
+  //valued: "valorados",
+  //valuedItemsCount: "{{count}} artículo valorado",
+  //valuedItemsCount_plural: "{{count}} artículos valorados",
+  valuedItemsCount: {
+    one: "{{count}} artículo valorado",
+    other: "{{count}} artículos valorados",
+  },
 
   // Settings Tab:
   settings: "Configuración",

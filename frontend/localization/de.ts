@@ -56,6 +56,9 @@ export default {
   welcomeBack: "Willkommen zurück,",
   totalEstimatedValue: "Geschätzter Gesamtwert:",
 
+  // NavBar:
+  camera: "Kamera",
+
   // Analytics Charts:
   analyticsCharts: "Analysediagramme",
   categoryBreakdown: "Kategorieverteilung",
@@ -111,7 +114,7 @@ export default {
   saving: "Wird gespeichert...",
   saveToMyItems: "Zu meinen Artikeln speichern",
   unableToSaveItem: "Artikel kann derzeit nicht gespeichert werden.",
-  home: "Startseite",
+  home: "Start",
   items: "Artikel",
   profile: "Profil",
   noListingDetails: "Derzeit sind keine Anzeigendetails verfügbar.",
@@ -132,6 +135,15 @@ export default {
   item: "Artikel",
   untitledItem: "Unbenannter Artikel",
   soldItem: "Verkaufter Artikel",
+
+  //valued: "bewertet",
+  //valuedItemsCount: "{{count}} bewerteter Artikel",
+  //valuedItemsCount_plural: "{{count}} bewertete Artikel",
+
+  valuedItemsCount: {
+    one: "{{count}} Artikel bewertet",
+    other: "{{count}} Artikel bewertet",
+  },
 
   // Settings Tab:
   settings: "Einstellungen",

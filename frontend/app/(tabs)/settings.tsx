@@ -95,8 +95,8 @@ export default function SettingsScreen() {
           />
           <Text style={styles.name}>{profile.name}</Text>
           <Text style={[styles.meta, isDark && styles.metaDark]}>
-            @{profile.username} · {items.length} {items.length === 1 ? 'item' : 'items'} valued
-          </Text>
+  @{profile.username} · {t("valuedItemsCount", { count: items.length })}
+</Text>
         </View>
 
         <View style={[styles.settingsCard, isDark && styles.settingsCardDark]}>

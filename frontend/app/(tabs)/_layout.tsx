@@ -6,11 +6,13 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 //import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function TabLayout() {
   //const colorScheme = useColorScheme();
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -57,14 +59,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Home',
+          title: t('home'),
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="camera"
         options={{
-          title: 'Camera',
+          title: t('camera'),
           tabBarStyle: { display: 'none' },
           tabBarLabel: '',
           tabBarIcon: ({ color }) => <IconSymbol size={34} name="camera.fill" color={color} />,
@@ -73,14 +75,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="items"
         options={{
-          title: 'Items',
+          title: t('items'),
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="list.bullet" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Profile',
+          title: t('profile'),
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="person" color={color} />,
           }}
         />
