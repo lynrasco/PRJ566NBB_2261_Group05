@@ -2,10 +2,12 @@ import { CameraView, type CameraType, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
+  Modal,
   Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
@@ -15,8 +17,14 @@ export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>('back');
   const [isTakingPhoto, setIsTakingPhoto] = useState(false);
+  const [isTipsVisible, setIsTipsVisible] = useState(true);
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
+  const photographyTips = [
+    'Use bright, even lighting and avoid harsh shadows.',
+    'Keep the item centered and fill most of the frame.',
+    'Hold steady and capture logos, tags, or unique details.',
+  ];
 
   async function askForCameraPermission() {
     await requestPermission();
@@ -82,6 +90,36 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setIsTipsVisible(false)}
+        transparent
+        visible={isTipsVisible}
+      >
+        <TouchableWithoutFeedback onPress={() => setIsTipsVisible(false)}>
+          <View style={styles.modalBackdrop}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={[styles.tipsModalCard, isDark && styles.tipsModalCardDark]}>
+                <Pressable
+                  accessibilityLabel="Close photo tips"
+                  onPress={() => setIsTipsVisible(false)}
+                  style={[styles.tipsCloseButton, isDark && styles.tipsCloseButtonDark]}
+                >
+                  <Text style={[styles.tipsCloseIcon, isDark && styles.textDark]}>x</Text>
+                </Pressable>
+
+                <Text style={[styles.tipsTitle, isDark && styles.textDark]}>Photo tips</Text>
+                {photographyTips.map((tip) => (
+                  <Text key={tip} style={[styles.tipText, isDark && styles.mutedTextDark]}>
+                    • {tip}
+                  </Text>
+                ))}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
       <View style={[styles.header, isDark && styles.headerDark,]}>
         <TouchableOpacity
           accessibilityLabel="Close camera"
@@ -106,23 +144,25 @@ export default function CameraScreen() {
       </View>
 
       <View style={[styles.footer, isDark && styles.footerDark,]}>
-        <TouchableOpacity
-          accessibilityLabel="Flip camera"
-          onPress={() => setFacing((current) => (current === 'back' ? 'front' : 'back'))}
-          style={styles.flipButton}
-        >
-          <Text style={[styles.flipIcon, isDark && styles.textDark,]}>↺</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityLabel="Capture image"
-          disabled={isTakingPhoto}
-          onPress={takePhoto}
-          style={[styles.captureButton, isDark && styles.captureButtonDark, isTakingPhoto && styles.captureButtonDisabled,]}
-        >
-          <View style={[styles.captureLens, isDark && styles.captureLensDark,]} />
-        </TouchableOpacity>
-        <View style={[styles.aiBadge, isDark && styles.aiBadgeDark,]} >
-          <Text style={styles.aiBadgeText}>AI</Text>
+        <View style={styles.controlsRow}>
+          <TouchableOpacity
+            accessibilityLabel="Flip camera"
+            onPress={() => setFacing((current) => (current === 'back' ? 'front' : 'back'))}
+            style={styles.flipButton}
+          >
+            <Text style={[styles.flipIcon, isDark && styles.textDark,]}>↺</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="Capture image"
+            disabled={isTakingPhoto}
+            onPress={takePhoto}
+            style={[styles.captureButton, isDark && styles.captureButtonDark, isTakingPhoto && styles.captureButtonDisabled,]}
+          >
+            <View style={[styles.captureLens, isDark && styles.captureLensDark,]} />
+          </TouchableOpacity>
+          <View style={[styles.aiBadge, isDark && styles.aiBadgeDark,]} >
+            <Text style={styles.aiBadgeText}>AI</Text>
+          </View>
         </View>
       </View>
     </View>
@@ -268,13 +308,68 @@ const styles = StyleSheet.create({
   },
   footer: {
     minHeight: 105,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    paddingBottom: 20,
+    backgroundColor: '#ffffff',
+  },
+  modalBackdrop: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    paddingHorizontal: 24,
+  },
+  tipsModalCard: {
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: 14,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 14,
+  },
+  tipsModalCardDark: {
+    backgroundColor: '#121c2b',
+  },
+  tipsCloseButton: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#111111',
+    borderRadius: 7,
+    marginBottom: 10,
+  },
+  tipsCloseButtonDark: {
+    borderColor: '#ffffff',
+  },
+  tipsCloseIcon: {
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 14,
+    lineHeight: 16,
+    color: '#111111',
+  },
+  tipsTitle: {
+    fontFamily: 'AzeretMono_700Bold',
+    fontSize: 14,
+    color: '#1a2533',
+  },
+  tipText: {
+    marginTop: 8,
+    fontFamily: 'AzeretMono_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#4e5f74',
+  },
+  controlsRow: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 38,
-    paddingHorizontal: 28,
-    paddingBottom: 20,
-    backgroundColor: '#ffffff',
   },
   flipButton: {
     width: 38,

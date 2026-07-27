@@ -25,6 +25,7 @@ function RootLayoutContent() {
         <Stack screenOptions={{ headerShown: false, animation: 'ios_from_right' }}>
           <Stack.Screen name="(auth)" options={{ gestureEnabled: false }} />
           <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="item-result" options={{ gestureEnabled: false }} />
         </Stack>
 
         <StatusBar

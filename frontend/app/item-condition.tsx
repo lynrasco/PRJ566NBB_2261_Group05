@@ -1,6 +1,6 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useState } from 'react';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { BackHandler, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
 import { uploadImage, processImage, searchFromImage } from '@/services/api';
 import AnalysisLoadingScreen, { type AnalysisStep } from '@/components/analysis-loading-screen';
 import { useAppTheme } from '@/context/theme-context';
@@ -32,6 +32,7 @@ const conditions = [
 
 export default function ItemConditionScreen() {
   const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
+  const navigation = useNavigation();
   const [selectedCondition, setSelectedCondition] = useState<ItemCondition | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -43,6 +44,23 @@ export default function ItemConditionScreen() {
   const imageSource = imageUri
     ? { uri: imageUri }
     : require('@/assets/images/partial-react-logo.png');
+
+  useEffect(() => {
+    navigation.setOptions({ gestureEnabled: !isLoading });
+  }, [isLoading, navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isLoading) {
+        return;
+      }
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => true);
+      return () => {
+        subscription.remove();
+      };
+    }, [isLoading])
+  );
 
   const continueToListings = async () => {
     if (!selectedCondition || !imageUri) return;
@@ -80,7 +98,7 @@ export default function ItemConditionScreen() {
       await new Promise((resolve) => setTimeout(resolve, 300));
       setLoadingProgress(100);
 
-      router.push({
+      router.replace({
         pathname: '/item-result',
         params: {
           listings: JSON.stringify(listings),

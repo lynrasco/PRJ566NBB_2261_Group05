@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { BackHandler, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAppTheme } from '@/context/theme-context';
 import { saveItemToMyItems } from '@/services/api';
 import { useTranslation } from '@/hooks/use-translation';
@@ -59,6 +60,16 @@ export default function ItemResultScreen() {
     : imageUri
     ? { uri: imageUri }
     : require('@/assets/images/partial-react-logo.png');
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => true);
+
+      return () => {
+        subscription.remove();
+      };
+    }, [])
+  );
 
   const goToMarketListings = () => {
     router.push({
@@ -442,9 +453,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 19,
     backgroundColor: 'rgba(44, 69, 76, 0.58)',
-  },
-  backButton: {
-    left: 18,
   },
   shareButton: {
     right: 18,

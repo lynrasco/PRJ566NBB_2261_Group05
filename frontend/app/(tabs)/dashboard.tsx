@@ -140,13 +140,16 @@ export default function DashboardScreen() {
   */
 
   const summary = analytics || {
-    totalSavedItems: items.length,
-    averageSuggestedPrice: 0,
-    marketplaceComparables: 0,
-    categoryBreakdown: {},
-    conditionBreakdown: {},
-    recentItems: items.slice(0, 5),
-  };
+  totalSavedItems: items.length,
+  totalEstimatedValue: 0,
+  valueAddedToday: 0,
+  dailyPercentageIncrease: 0,
+  averageSuggestedPrice: 0,
+  marketplaceComparables: 0,
+  categoryBreakdown: {},
+  conditionBreakdown: {},
+  recentItems: items.slice(0, 5),
+};
 
   const categoryEntries = (
     Object.entries(summary.categoryBreakdown || {}) as [string, number][]
@@ -166,10 +169,22 @@ export default function DashboardScreen() {
   const previousListing = sortedItems[0];
   const recentItems = uploadedItems.slice(0, 4);
 
-  const totalEstimatedValue = items.reduce((sum, item) => {
-  return sum + getNumericPrice(item.suggestedPrice ?? item.estimatedPrice ?? item.price);
-  }, 0);
-  const formattedTotalEstimatedValue = `$${totalEstimatedValue.toFixed(2)}`;
+  const totalEstimatedValue =
+    Number(summary.totalEstimatedValue) ||
+    items.reduce((sum, item) => {
+      return (
+        sum +
+        getNumericPrice(
+          item.suggestedPrice ??
+          item.estimatedPrice ??
+          item.price
+        )
+      );
+    }, 0);
+
+  const formattedTotalEstimatedValue =
+    `$${totalEstimatedValue.toFixed(2)}`;
+
 
   const handleDeleteItem = () => {
     //if (!selectedItem?._id) return;
@@ -204,6 +219,12 @@ export default function DashboardScreen() {
     );
   };
 
+  const dailyPercentageIncrease =
+  Number(summary.dailyPercentageIncrease) || 0;
+
+const formattedTrendValue =
+  `${dailyPercentageIncrease >= 0 ? '+' : ''}${dailyPercentageIncrease.toFixed(1)}%`;
+
   return (
   <>
     <ScrollView style={[styles.scrollView, isDark && styles.scrollViewDark]} showsVerticalScrollIndicator={false}>
@@ -212,6 +233,7 @@ export default function DashboardScreen() {
         userName={profile.name.split(' ')[0] || profile.username}
         profileImage={avatarSource}
         totalEstimatedValue={formattedTotalEstimatedValue}
+        trendValue={formattedTrendValue}
       />
 
       {/* Loading State */}
@@ -818,6 +840,19 @@ const styles = StyleSheet.create({
   analyticsTitle: {
     marginLeft: 0,
     color: '#1a1a1a',
+  },
+  analyticsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  analyticsCollapsedHint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#5f6f7a',
+  },
+  analyticsContent: {
+    marginTop: 16,
   },
   editButtonDark:{
     backgroundColor:'#024883',
