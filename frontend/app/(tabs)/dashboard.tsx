@@ -94,7 +94,7 @@ export default function DashboardScreen() {
         throw new Error(response?.message || t('ebayListingError'));
       }
     } catch (error: any) {
-      console.error('Failed to push item to eBay:', error);
+
       const responseError = error?.response?.data;
       const ebayDetail =
         responseError?.details?.errors?.[0]?.longMessage ||

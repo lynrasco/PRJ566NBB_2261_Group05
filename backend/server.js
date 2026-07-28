@@ -5,9 +5,9 @@ const path = require("path");
 
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
+const logger = require("./utils/logger");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 //const loginRoute = require("./routes/login");
@@ -27,10 +27,10 @@ app.use(express.urlencoded({ extended: true, limit: "25mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use((err, req, res, next) => {
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
     return res.status(400).json({
       success: false,
-      message: 'Invalid JSON payload',
+      message: "Invalid JSON payload",
     });
   }
   next(err);
@@ -41,7 +41,6 @@ app.use((req, res, next) => {
   console.log(new Date().toISOString(), req.method, req.originalUrl);
   next();
 });
-
 
 app.get("/", (req, res) => {
   res.send("FlipValue backend running");
@@ -64,6 +63,20 @@ app.use("/api/analytics", analyticsRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
+
+const handleProcessError = (err, origin) => {
+  logger.error(err, { origin });
+  console.error(`Process ${origin}:`, err);
+};
+
+process.on("unhandledRejection", (reason, promise) => {
+  handleProcessError(reason, "unhandledRejection");
+});
+
+process.on("uncaughtException", (err) => {
+  handleProcessError(err, "uncaughtException");
+  process.exit(1);
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

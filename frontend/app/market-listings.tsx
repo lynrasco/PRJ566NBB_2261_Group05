@@ -6,6 +6,7 @@ import { useAppTheme } from '@/context/theme-context';
 import { getItemById, saveItemToMyItems } from '@/services/api';
 import { useTranslation } from '@/hooks/use-translation'
 
+
 type Listing = {
   id: string;
   marketplace: string;

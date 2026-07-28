@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
 import { useTranslation } from '@/hooks/use-translation';
+import { updatePassword } from '@/services/api';
 
 export default function PasswordSecurityScreen() {
   const [faceIdEnabled, setFaceIdEnabled] = useState(true);
@@ -100,7 +101,10 @@ export default function PasswordSecurityScreen() {
         </View>
 
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => {
+            
+            router.back();
+          }}
           style={({ pressed }) => [styles.saveButton, pressed && styles.saveButtonPressed]}
         >
           <Text style={styles.saveText}>

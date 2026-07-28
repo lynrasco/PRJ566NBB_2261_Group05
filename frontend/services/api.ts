@@ -1,18 +1,20 @@
-import { create } from 'axios';
-import Constants from 'expo-constants';
-import { readAsStringAsync } from 'expo-file-system/legacy';
+import { create } from "axios";
+import Constants from "expo-constants";
+import { readAsStringAsync } from "expo-file-system/legacy";
+import { error as logError } from "@/utils/logger";
 
 const getApiBaseUrl = () => {
   const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
   if (envUrl) return envUrl;
 
-  const debuggerHost = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
+  const debuggerHost =
+    Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
   if (debuggerHost) {
-    const host = debuggerHost.split(':')[0];
+    const host = debuggerHost.split(":")[0];
     return `http://${host}:3000/api`;
   }
 
-  return 'http://localhost:3000/api';
+  return "http://localhost:3000/api";
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -21,16 +23,31 @@ const apiClient = create({
   baseURL: API_BASE_URL,
   timeout: 60000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error: any) => {
+    await logError(error, {
+      operation: "axiosResponse",
+      method: error?.config?.method,
+      url: error?.config?.url,
+      status: error?.response?.status,
+      data: error?.response?.data,
+    });
+    return Promise.reject(error);
+  },
+);
+
 export const getAllItems = async () => {
   try {
-    const response = await apiClient.get('/items');
+    const response = await apiClient.get("/items");
     return response.data;
   } catch (error) {
-    console.error('Error fetching items:', error);
+    await logError(error, { operation: "getAllItems" });
+    console.error("Error fetching items:", error);
     throw error;
   }
 };
@@ -47,12 +64,12 @@ export const getItemById = async (id: string) => {
 
 export const getDashboardAnalytics = async (userId?: string) => {
   try {
-    const response = await apiClient.get('/analytics/me', {
+    const response = await apiClient.get("/analytics/me", {
       params: userId ? { userId } : undefined,
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching dashboard analytics:', error);
+    console.error("Error fetching dashboard analytics:", error);
     throw error;
   }
 };
@@ -80,43 +97,47 @@ export const saveItemToMyItems = async (item: {
   try {
     const formData = new FormData();
 
-    appendFormValue(formData, 'title', item.title);
-    appendFormValue(formData, 'description', item.description);
-    appendFormValue(formData, 'price', item.price);
-    appendFormValue(formData, 'category', item.category);
-    appendFormValue(formData, 'categoryId', item.categoryId);
-    appendFormValue(formData, 'brand', item.brand);
-    appendFormValue(formData, 'condition', item.condition);
-    appendFormValue(formData, 'imageUrl', item.imageUrl);
+    appendFormValue(formData, "title", item.title);
+    appendFormValue(formData, "description", item.description);
+    appendFormValue(formData, "price", item.price);
+    appendFormValue(formData, "category", item.category);
+    appendFormValue(formData, "categoryId", item.categoryId);
+    appendFormValue(formData, "brand", item.brand);
+    appendFormValue(formData, "condition", item.condition);
+    appendFormValue(formData, "imageUrl", item.imageUrl);
 
     if (item.imageUrl && !/^https?:\/\//i.test(item.imageUrl)) {
-      formData.append('image', {
+      formData.append("image", {
         uri: item.imageUrl,
-        name: 'item-image.jpg',
-        type: 'image/jpeg',
+        name: "item-image.jpg",
+        type: "image/jpeg",
       } as any);
     }
 
-    const response = await apiClient.post('/items/upload', formData, {
+    const response = await apiClient.post("/items/upload", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
   } catch (error) {
-    console.error('Error saving item:', error);
+    console.error("Error saving item:", error);
     throw error;
   }
 };
 
-function appendFormValue(formData: FormData, key: string, value?: string | number) {
-  if (value == null || value === '') return;
+function appendFormValue(
+  formData: FormData,
+  key: string,
+  value?: string | number,
+) {
+  if (value == null || value === "") return;
   formData.append(key, String(value));
 }
 
 export const uploadImage = async (imageUri: string) => {
   const imageBase64 = await readAsStringAsync(imageUri, {
-    encoding: 'base64' as any,
+    encoding: "base64" as any,
   });
 
   return {
@@ -135,14 +156,14 @@ export const processImage = async (
         aiTags?: string[];
         aiDescription?: string;
       },
-  userDescription?: string
+  userDescription?: string,
 ) => {
   const payload =
-    typeof imageInput === 'string'
+    typeof imageInput === "string"
       ? { imageUrl: imageInput, userDescription }
       : { ...imageInput, userDescription };
 
-  const response = await apiClient.post('/ai/process-image', payload);
+  const response = await apiClient.post("/ai/process-image", payload);
 
   return response.data.image;
 };
@@ -159,10 +180,13 @@ export const listItemToEbay = async (item: {
   imageUrl?: string;
 }) => {
   try {
-    const response = await apiClient.post('/ebay/listings', item);
+    const response = await apiClient.post("/ebay/listings", item);
     return response.data;
   } catch (error) {
-    console.error('Error pushing item to eBay:', (error as any)?.response?.data || error);
+    console.error(
+      "Error pushing item to eBay:",
+      (error as any)?.response?.data || error,
+    );
     throw error;
   }
 };
@@ -178,19 +202,19 @@ export const searchFromImage = async (
         aiDescription?: string;
       },
   conditionId?: string,
-  userDescription?: string
+  userDescription?: string,
 ) => {
   const payload =
-    typeof imageInput === 'string'
+    typeof imageInput === "string"
       ? { imageUrl: imageInput, condition: conditionId, userDescription }
       : { ...imageInput, condition: conditionId, userDescription };
 
-  const response = await apiClient.post('/ai/search-ebay', payload);
-  console.log('EBAY RAW RESPONSE:', response.data.ebayResults);
+  const response = await apiClient.post("/ai/search-ebay", payload);
+  console.log("EBAY RAW RESPONSE:", response.data.ebayResults);
   const results = response.data?.ebayResults?.itemSummaries;
 
   if (!Array.isArray(results)) {
-    console.log('No eBay results:', response.data.ebayResults);
+    console.log("No eBay results:", response.data.ebayResults);
     return [];
   }
 
@@ -207,49 +231,46 @@ export const searchFromImage = async (
     const ebayCategory =
       ebayCategories.find(
         (category: any) =>
-          String(category.categoryId) === String(primaryLeafCategoryId)
+          String(category.categoryId) === String(primaryLeafCategoryId),
       ) ||
       ebayCategories[ebayCategories.length - 1] ||
       null;
 
-  return {
-    id: item.itemId,
-    marketplace: 'eBay',
-    title: item.title,
-    brand: item.brand,
+    return {
+      id: item.itemId,
+      marketplace: "eBay",
+      title: item.title,
+      brand: item.brand,
 
-    category:
-      ebayCategory?.categoryName ||
-      item.categoryName ||
-      item.categoryPath ||
-      '',
+      category:
+        ebayCategory?.categoryName ||
+        item.categoryName ||
+        item.categoryPath ||
+        "",
 
-    categoryId:
-      primaryLeafCategoryId ||
-      ebayCategory?.categoryId ||
-      '',
+      categoryId: primaryLeafCategoryId || ebayCategory?.categoryId || "",
 
-    description:
-      item.shortDescription ||
-      item.subtitle ||
-      item.additionalProductIdentities?.[0]?.identifierValue ||
-      '',
+      description:
+        item.shortDescription ||
+        item.subtitle ||
+        item.additionalProductIdentities?.[0]?.identifierValue ||
+        "",
 
-    condition: item.condition,
+      condition: item.condition,
 
-    price: item.price
-      ? `${item.price.currency} ${item.price.value}`
-      : 'Price not available',
+      price: item.price
+        ? `${item.price.currency} ${item.price.value}`
+        : "Price not available",
 
-    priceLow: item.priceLow,
-    priceHigh: item.priceHigh,
-    suggestedPrice: item.suggestedPrice,
-    confidence: item.confidence,
-    pricePositionPercent: item.pricePositionPercent,
-    imageUrl: extractImage(item),
-    url: item.itemWebUrl,
-  };
-});
+      priceLow: item.priceLow,
+      priceHigh: item.priceHigh,
+      suggestedPrice: item.suggestedPrice,
+      confidence: item.confidence,
+      pricePositionPercent: item.pricePositionPercent,
+      imageUrl: extractImage(item),
+      url: item.itemWebUrl,
+    };
+  });
 };
 
 function extractImage(item: any): string | null {
@@ -278,7 +299,7 @@ export const updateItem = async (
     categoryId?: string;
     brand?: string;
     imageUrl?: string;
-  }
+  },
 ) => {
   try {
     const response = await apiClient.put(`/items/${id}`, item);
@@ -289,14 +310,14 @@ export const updateItem = async (
   }
 };
 
-export const loginUser = async (email: string, password: string) => {
-  const response = await apiClient.post("/auth/login", {
-    email,
-    password,
-  });
+// export const loginUser = async (email: string, password: string) => {
+//   const response = await apiClient.post("/auth/login", {
+//     email,
+//     password,
+//   });
 
-  return response.data;
-};
+//   return response.data;
+// };
 
 export type NotificationSettings = {
   pushEnabled: boolean;
@@ -306,9 +327,7 @@ export type NotificationSettings = {
 };
 
 export const getNotificationSettings = async (userId: string) => {
-  const response = await apiClient.get(
-    `/users/${userId}/notifications`
-  );
+  const response = await apiClient.get(`/users/${userId}/notifications`);
 
   return response.data;
 };
@@ -316,25 +335,80 @@ export const getNotificationSettings = async (userId: string) => {
 export const updateNotificationSettings = async (
   userId: string,
   settings: NotificationSettings,
-  expoPushToken?: string | null
+  expoPushToken?: string | null,
 ) => {
-  const response = await apiClient.put(
-    `/users/${userId}/notifications`,
-    {
-      ...settings,
-      expoPushToken,
-    }
-  );
+  const response = await apiClient.put(`/users/${userId}/notifications`, {
+    ...settings,
+    expoPushToken,
+  });
 
   return response.data;
 };
 
 export const sendTestNotification = async (userId: string) => {
-  const response = await apiClient.post(
-    `/users/${userId}/notifications/test`
-  );
+  const response = await apiClient.post(`/users/${userId}/notifications/test`);
 
   return response.data;
+};
+
+export const login = async (email: string, password: string) => {
+  try {
+    const response = await apiClient.post("/auth/login", { email, password });
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.error?.message ||
+      error?.message ||
+      "Login failed";
+    throw new Error(message);
+  }
+};
+
+export const register = async (
+  name: string,
+  email: string,
+  password: string,
+) => {
+  try {
+    const response = await apiClient.post("/auth/register", {
+      name,
+      email,
+      password,
+    });
+    return response.data;
+    
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.error?.message ||
+      error?.message ||
+      "Registration failed";
+    console.error("Registration failed:", message);
+    throw new Error(message);
+  }
+};
+
+export const updatePassword = async (
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+) => {
+  try {
+    const response = await apiClient.put(`/users/${userId}/password`, {
+      currentPassword,
+      newPassword,
+    });
+
+    return response.data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Password update failed";
+    console.error("updatePassword failed:", message);
+    throw new Error(message);
+  }
 };
 
 export default apiClient;

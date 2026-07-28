@@ -15,10 +15,14 @@ const registerUser = async (name, email, password) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-
+  const first = name.toLowerCase().split(' ')[0];
+  const last = "fl";
+  const userName = first +  last + Math.floor(Math.random() * (100 + 1));
+  console.log(userName);
   const user = await userRepository.createUser({
     name,
     email,
+    userName,
     password: hashedPassword,
   });
 
@@ -26,6 +30,7 @@ const registerUser = async (name, email, password) => {
   id: user._id,
   name: user.name,
   email: user.email,
+  userName: userName,
 };
 };
 

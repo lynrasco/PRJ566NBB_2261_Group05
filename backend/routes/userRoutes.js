@@ -3,6 +3,7 @@ const router = express.Router();
 
 const userRepository = require("../repositories/userRepository");
 const protect = require("../middleware/authMiddleware");
+const bcrypt = require("bcryptjs");
 
 const {
   sendPushNotification,
@@ -145,6 +146,7 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+
 // UPDATE user
 router.put("/:id", async (req, res, next) => {
   try {
@@ -165,6 +167,50 @@ router.put("/:id", async (req, res, next) => {
   }
 });
 
+
+// UPDATE user password
+router.put("/:id/password", async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      const error = new Error("currentPassword and newPassword are required");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await userRepository.findUserByEmail
+      ? await userRepository.getUserById(req.params.id)
+      : null;
+
+    // Fetch full user (including password) directly if repository doesn't expose password
+    const User = require("../models/User");
+    const fullUser = await User.findById(req.params.id);
+
+    if (!fullUser) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, fullUser.password);
+    if (!isMatch) {
+      const error = new Error("Current password is incorrect");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    const updated = await userRepository.updatePasswordById(req.params.id, hashed);
+
+    res.status(200).json({ success: true, user: updated });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 // DELETE user
 router.delete("/:id", async (req, res, next) => {
   try {
@@ -184,5 +230,7 @@ router.delete("/:id", async (req, res, next) => {
     next(error);
   }
 });
+
+
 
 module.exports = router;

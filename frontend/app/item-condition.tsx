@@ -1,6 +1,6 @@
-import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { router, useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
 import { BackHandler, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, } from 'react';
 import { uploadImage, processImage, searchFromImage } from '@/services/api';
 import AnalysisLoadingScreen, { type AnalysisStep } from '@/components/analysis-loading-screen';
 import { useAppTheme } from '@/context/theme-context';
@@ -48,6 +48,7 @@ export default function ItemConditionScreen() {
   useEffect(() => {
     navigation.setOptions({ gestureEnabled: !isLoading });
   }, [isLoading, navigation]);
+  
 
   useFocusEffect(
     useCallback(() => {
@@ -61,6 +62,7 @@ export default function ItemConditionScreen() {
       };
     }, [isLoading])
   );
+
 
   const continueToListings = async () => {
     if (!selectedCondition || !imageUri) return;

@@ -23,6 +23,14 @@ const updateUserById = async (id, userData) => {
   }).select("-password");
 };
 
+const updatePasswordById = async (id, hashedPassword) => {
+  return await User.findByIdAndUpdate(
+    id,
+    { password: hashedPassword },
+    { new: true, runValidators: true },
+  ).select("-password");
+};
+
 const deleteUserById = async (id) => {
   return await User.findByIdAndDelete(id);
 };
@@ -33,5 +41,6 @@ module.exports = {
   getAllUsers,
   getUserById,
   updateUserById,
+  updatePasswordById,
   deleteUserById,
 };

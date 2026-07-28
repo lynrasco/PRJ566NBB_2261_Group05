@@ -364,7 +364,7 @@ const normalizeListingItem = (item) => {
     throw error;
   }
 
-  const title = typeof item.title === "string" ? item.title.trim() : "";
+  const title = typeof item.title === "string" ? item.title.trim().slice(0,41) : "";
   if (!title) {
     const error = new Error("Listing title is required");
     error.statusCode = 400;

@@ -89,12 +89,12 @@ export default function ItemResultScreen() {
       setSaveError(null);
       await saveItemToMyItems({
         title: primaryListing.title,
-        brand: primaryListing.brand,
+        description: primaryListing.description || primaryListing.title,
+        price: getNumericPrice(displayPrice),
         category: primaryListing.category,
         categoryId: primaryListing.categoryId,
-        description: primaryListing.description,
+        brand: primaryListing.brand,
         condition: primaryListing.condition || condition,
-        price: getNumericPrice(displayPrice),
         imageUrl: primaryListing.imageUrl || imageUri,
       });
       router.replace('/(tabs)/items');
