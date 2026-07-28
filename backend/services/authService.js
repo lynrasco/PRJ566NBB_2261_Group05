@@ -72,11 +72,13 @@ if (!email || !password) {
       { expiresIn: "24h" },
     );
     console.log("login handler generated token:", token);
+    console.log("LOGIN USER OBJECT:", user);
+    console.log("USERNAME:", user.userName);
 
     return createSuccessResponse({
         message: "Login successful",
         token,
-        user: { id: user._id, email: user.email, name: user.name },
+        user: { id: user._id, email: user.email, name: user.name, userName: user.userName },
       });
   
 

@@ -127,11 +127,13 @@ export default function Login() {
           if (result?.success) {
             router.replace("/dashboard");
             const user = result.user.user;
+            console.log("LOGIN USER:", user);
 
             updateProfile({
               userId: user.id,
               name: user.name,
-              username: `${user.name.split(" ")[0].toLowerCase()}${user.id.slice(-4)}`,
+              //username: `${user.name.split(" ")[0].toLowerCase()}${user.id.slice(-4)}`,
+              username: user.userName,
               email: user.email,
               phone: "",
               avatarId: "avatar-1",
