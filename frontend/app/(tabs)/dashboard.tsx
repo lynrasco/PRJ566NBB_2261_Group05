@@ -877,17 +877,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "AzeretMono_400Regular",
   },
-   analyticsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  analyticsCollapsedHint: {
-    marginTop: 8,
-    fontSize: 12,
-    color: '#5f6f7a',
-  },
-  analyticsContent: {
-    marginTop: 16,
-  },
 });

@@ -812,5 +812,8 @@ const styles = StyleSheet.create({
   },
   heroDark:{
     backgroundColor:"#10243a",
+  },
+  backButton:{
+    flex: 15,
   }
 });

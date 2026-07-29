@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/use-translation";
 import { useProfile } from "@/context/profile-context";
 import { login } from "@/services/api";
+import { Ionicons } from "@expo/vector-icons";
 
 const styles = StyleSheet.create({
   container: {
@@ -34,15 +35,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     marginTop: 15,
-    color: "#fff",
-  },
-  passwordInput: {
-    width: 274,
-    height: 49,
-    backgroundColor: "#597790",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginTop: 10,
     color: "#fff",
   },
   button: {
@@ -78,6 +70,20 @@ const styles = StyleSheet.create({
     color: "red",
     fontSize: 12,
   },
+  passwordInput: {
+    width: 274,
+    height: 49,
+    backgroundColor: "#597790",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingRight: 45,
+    marginTop: 10,
+    color: "#fff",
+  },
+  passwordContainer: {
+    width: 274,
+    justifyContent: "center",
+  },
 });
 
 export default function Login() {
@@ -89,6 +95,7 @@ export default function Login() {
   );
   const { t } = useTranslation();
   const { updateProfile } = useProfile();
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     const nextErrors: { email?: string; password?: string } = {};
@@ -125,7 +132,7 @@ export default function Login() {
 
           const result = await login(email, password);
           if (result?.success) {
-            router.replace("/dashboard");
+            //router.replace("/dashboard");
             const user = result.user.user;
             console.log("LOGIN USER:", user);
 
@@ -138,6 +145,7 @@ export default function Login() {
               phone: "",
               avatarId: "avatar-1",
             });
+            router.replace("/dashboard")
           } else {
             setErrors(result?.message || "Login failed. Please try again.");
           }
@@ -166,13 +174,32 @@ export default function Login() {
           {errors.email ? errors.email : " "}
         </Text>
       </View>
-      <TextInput
-        placeholder={t("passwordPlaceholder")}
-        placeholderTextColor="#D9D9D9"
-        style={[styles.passwordInput, styles.baseText]}
-        value={password}
-        onChangeText={setPassword}
-      />
+      <View style={styles.passwordContainer}>
+  <TextInput
+    placeholder={t("passwordPlaceholder")}
+    placeholderTextColor="#D9D9D9"
+    style={[styles.passwordInput, styles.baseText]}
+    value={password}
+    onChangeText={setPassword}
+    secureTextEntry={!showPassword}
+  />
+
+  <Pressable
+    onPress={() => setShowPassword(!showPassword)}
+    style={{
+      position: "absolute",
+      right: 12,
+      top: 23,
+    }}
+  >
+    <Ionicons
+      name={showPassword ? "eye-off" : "eye"}
+      size={22}
+      color="#D9D9D9"
+    />
+  </Pressable>
+</View>
+      
       <View style={styles.errorBox}>
         <Text style={styles.errorText}>
           {errors.password ? errors.password : " "}

@@ -46,6 +46,7 @@ export default {
   price: "Prix",
   deleteItem: "Supprimer l'article",
   deleteListingConfirm: "Voulez-vous vraiment supprimer cette annonce ?",
+  deleteSuccessItem: "Article supprimé avec succès.",
   cancel: "Annuler",
   delete: "Supprimer",
   ebayListing: "Annonce eBay",

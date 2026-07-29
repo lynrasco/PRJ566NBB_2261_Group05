@@ -4,7 +4,7 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity
 import { useState, useRef } from 'react';
 import { ThemedText } from '@/components/themed-text';
 import { useAppTheme } from '@/context/theme-context';
-import { updateItem } from '@/services/api';
+import { updateItem, deleteItem } from '@/services/api';
 import { useTranslation } from '@/hooks/use-translation';
 
 export default function EditItemScreen() {
@@ -163,6 +163,47 @@ export default function EditItemScreen() {
   }
 };
 
+const handleDelete = () => {
+  if (!params.itemId) {
+    Alert.alert('Error', 'Item ID is missing.');
+    return;
+  }
+
+  Alert.alert(
+    t('deleteItem'),
+    t('deleteListingConfirm'),
+    [
+      {
+        text: t('cancel'),
+        style: 'cancel',
+      },
+      {
+        text: t('delete'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteItem(String(params.itemId));
+
+            Alert.alert(
+              t('deleteItem'),
+              t('deleteSuccess')
+            );
+
+            router.replace('/items');
+          } catch (error) {
+            console.error('Delete failed:', error);
+
+            Alert.alert(
+              'Error',
+              'Unable to delete item.'
+            );
+          }
+        },
+      },
+    ]
+  );
+};
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, isDark && styles.containerDark,]}
@@ -293,6 +334,18 @@ export default function EditItemScreen() {
             <Text style={[styles.priceRangeMax, isDark && styles.mutedTextDark,]}>${parseFloat(maxPrice.toFixed(2))}</Text>
           </View>
         </View>
+
+        <TouchableOpacity
+  style={[
+    styles.deleteButton,
+    isDark && styles.deleteButtonDark,
+  ]}
+  onPress={handleDelete}
+>
+  <Text style={styles.deleteButtonText}>
+    {t('delete')}
+  </Text>
+</TouchableOpacity>
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -497,4 +550,23 @@ const styles = StyleSheet.create({
   saveButtonDisabled: {
     opacity: 0.6,
   },
+  deleteButton: {
+  height: 45,
+  borderRadius: 20,
+  backgroundColor: '#d32f2f',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginTop: 5,
+  marginHorizontal: 16,
+},
+
+deleteButtonDark: {
+  backgroundColor: '#b71c1c',
+},
+
+deleteButtonText: {
+  color: '#ffffff',
+  fontFamily: "AzeretMono_700Bold",
+  fontSize: 14,
+},
 });

@@ -46,6 +46,7 @@ export default {
   price: "Price",
   deleteItem: "Delete Item",
   deleteListingConfirm: "Are you sure you want to delete this listing?",
+  deleteSuccess: "Item deleted successfully.",
   cancel: "Cancel",
   delete: "Delete",
   ebayListing: "eBay Listing",
