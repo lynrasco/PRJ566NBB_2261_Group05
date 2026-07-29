@@ -7,10 +7,6 @@ const Item = require("../models/Item");
 
 const PriceSuggestion = require("../models/PriceSuggestion");
 
-const {
-  refreshDailySnapshots,
-} = require("../services/dailyAnalyticsSnapshotService");
-
 // GET all items
 router.get("/", async (req, res, next) => {
   try {
@@ -63,27 +59,12 @@ router.put("/:id", async (req, res, next) => {
 
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
+    if (price !== undefined) updates.price = price;
     if (category !== undefined) updates.category = category;
     if (categoryId !== undefined) updates.categoryId = categoryId;
     if (brand !== undefined) updates.brand = brand;
     if (condition !== undefined) updates.condition = condition;
     if (imageUrl !== undefined) updates.imageUrl = imageUrl;
-
-    let suggestedPrice = null;
-
-    if (price !== undefined && price !== null && price !== "") {
-      suggestedPrice = Number(price);
-
-      if (!Number.isFinite(suggestedPrice) || suggestedPrice < 0) {
-        const error = new Error(
-          "Price must be a valid non-negative number"
-        );
-        error.statusCode = 400;
-        throw error;
-      }
-
-      updates.price = suggestedPrice;
-    }
 
     const updatedItem = await Item.findByIdAndUpdate(
       req.params.id,
@@ -100,7 +81,16 @@ router.put("/:id", async (req, res, next) => {
       throw error;
     }
 
-    if (suggestedPrice !== null) {
+    // Update the saved price suggestion only when the price changes
+    if (price !== undefined && price !== null && price !== "") {
+      const suggestedPrice = Number(updatedItem.price);
+
+      if (!Number.isFinite(suggestedPrice) || suggestedPrice < 0) {
+        const error = new Error("Price must be a valid non-negative number");
+        error.statusCode = 400;
+        throw error;
+      }
+
       await PriceSuggestion.findOneAndUpdate(
         { item: updatedItem._id },
         {
@@ -121,6 +111,7 @@ router.put("/:id", async (req, res, next) => {
         }
       );
     } else if (condition !== undefined) {
+      // Keep the saved suggestion's condition synchronized
       await PriceSuggestion.findOneAndUpdate(
         { item: updatedItem._id },
         {
@@ -131,8 +122,6 @@ router.put("/:id", async (req, res, next) => {
         }
       );
     }
-
-    await refreshDailySnapshots(updatedItem.owner);
 
     res.status(200).json({
       success: true,
@@ -158,8 +147,6 @@ router.delete("/:id", async (req, res, next) => {
     await PriceSuggestion.deleteMany({
       item: req.params.id,
     });
-
-    await refreshDailySnapshots(item.owner);
 
     res.status(200).json({
       success: true,
@@ -220,8 +207,6 @@ router.post(
                 }
               );
             }
-
-            await refreshDailySnapshots(savedItem.owner);
 
             res.status(201).json({
                 success: true,
