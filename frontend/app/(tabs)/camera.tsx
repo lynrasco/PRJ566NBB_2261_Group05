@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useAppTheme } from '@/context/theme-context';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function CameraScreen() {
   const cameraRef = useRef<CameraView>(null);
@@ -19,12 +20,20 @@ export default function CameraScreen() {
   const [isTakingPhoto, setIsTakingPhoto] = useState(false);
   const [isTipsVisible, setIsTipsVisible] = useState(true);
   const { resolvedTheme } = useAppTheme();
+  const { t } = useTranslation();
   const isDark = resolvedTheme === 'dark';
+  /*
   const photographyTips = [
     'Use bright, even lighting and avoid harsh shadows.',
     'Keep the item centered and fill most of the frame.',
     'Hold steady and capture logos, tags, or unique details.',
   ];
+  */
+  const photographyTips = [
+  t('photoTipLighting'),
+  t('photoTipCenter'),
+  t('photoTipDetails'),
+];
 
   async function askForCameraPermission() {
     await requestPermission();
@@ -62,9 +71,11 @@ export default function CameraScreen() {
     return (
       <View style={[styles.permissionContainer, isDark && styles.containerDark,]}>
         <Text style={styles.brand}>FlipValue</Text>
-        <Text style={[styles.permissionTitle, isDark && styles.textDark,]}>Camera access needed</Text>
+        <Text style={[styles.permissionTitle, isDark && styles.textDark,]}>
+          {t('cameraAccessNeeded')}
+        </Text>
         <Text style={[styles.permissionText, isDark && styles.mutedTextDark,]}>
-          Allow camera access to capture an item photo for resale pricing.
+           {t('cameraAccessDescription')}
         </Text>
         <Pressable
           accessibilityRole="button"
@@ -76,12 +87,13 @@ export default function CameraScreen() {
             !permission.canAskAgain && styles.permissionButtonDisabled,
           ]}
         >
-          <Text style={styles.permissionButtonText}>Allow Camera</Text>
+          <Text style={styles.permissionButtonText}>
+            {t('allowCamera')}
+          </Text>
         </Pressable>
         {!permission.canAskAgain && (
           <Text style={styles.permissionHelpText}>
-            Camera access is blocked. Open your browser site settings and allow camera access for
-            localhost, then refresh this page.
+            {t('cameraBlockedHelp')}
           </Text>
         )}
       </View>
@@ -101,14 +113,16 @@ export default function CameraScreen() {
             <TouchableWithoutFeedback onPress={() => {}}>
               <View style={[styles.tipsModalCard, isDark && styles.tipsModalCardDark]}>
                 <Pressable
-                  accessibilityLabel="Close photo tips"
+                  accessibilityLabel={t('closePhotoTips')}
                   onPress={() => setIsTipsVisible(false)}
                   style={[styles.tipsCloseButton, isDark && styles.tipsCloseButtonDark]}
                 >
                   <Text style={[styles.tipsCloseIcon, isDark && styles.textDark]}>x</Text>
                 </Pressable>
 
-                <Text style={[styles.tipsTitle, isDark && styles.textDark]}>Photo tips</Text>
+                <Text style={[styles.tipsTitle, isDark && styles.textDark]}>
+                  {t('photoTips')}
+                </Text>
                 {photographyTips.map((tip) => (
                   <Text key={tip} style={[styles.tipText, isDark && styles.mutedTextDark]}>
                     • {tip}
@@ -122,7 +136,7 @@ export default function CameraScreen() {
 
       <View style={[styles.header, isDark && styles.headerDark,]}>
         <TouchableOpacity
-          accessibilityLabel="Close camera"
+          accessibilityLabel={t('closeCamera')}
           onPress={() => router.back()}
           style={[styles.closeButton, isDark && styles.closeButtonDark,]}
         >
@@ -146,14 +160,14 @@ export default function CameraScreen() {
       <View style={[styles.footer, isDark && styles.footerDark,]}>
         <View style={styles.controlsRow}>
           <TouchableOpacity
-            accessibilityLabel="Flip camera"
+            accessibilityLabel={t('flipCamera')}
             onPress={() => setFacing((current) => (current === 'back' ? 'front' : 'back'))}
             style={styles.flipButton}
           >
             <Text style={[styles.flipIcon, isDark && styles.textDark,]}>↺</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            accessibilityLabel="Capture image"
+            accessibilityLabel={t('captureImage')}
             disabled={isTakingPhoto}
             onPress={takePhoto}
             style={[styles.captureButton, isDark && styles.captureButtonDark, isTakingPhoto && styles.captureButtonDisabled,]}

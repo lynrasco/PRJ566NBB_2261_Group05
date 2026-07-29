@@ -60,6 +60,20 @@ export default {
   // NavBar:
   camera: "Camera",
 
+  // Camera Screen:
+  cameraAccessNeeded: "Camera access needed",
+  cameraAccessDescription: "Allow camera access to capture an item photo for resale pricing.",
+  allowCamera: "Allow Camera",
+  cameraBlockedHelp: "Camera access is blocked. Open your browser site settings and allow camera access for localhost, then refresh this page.",
+  photoTips: "Photo tips",
+  closePhotoTips: "Close photo tips",
+  photoTipLighting: "Use bright, even lighting and avoid harsh shadows.",
+  photoTipCenter: "Keep the item centered and fill most of the frame.",
+  photoTipDetails: "Hold steady and capture logos, tags, or unique details.",
+  closeCamera: "Close camera",
+  flipCamera: "Flip camera",
+  captureImage: "Capture image",
+
   // Analytics Charts:
   analyticsCharts: "Analytics Charts",
   categoryBreakdown: "Category Breakdown",

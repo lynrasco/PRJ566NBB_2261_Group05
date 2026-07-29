@@ -60,6 +60,20 @@ export default {
   // NavBar:
   camera: "Cámara",
 
+  // Camera Screen
+  cameraAccessNeeded: "Se necesita acceso a la cámara",
+  cameraAccessDescription: "Permite el acceso a la cámara para capturar una foto del artículo y obtener un precio de reventa.",
+  allowCamera: "Permitir cámara",
+  cameraBlockedHelp: "El acceso a la cámara está bloqueado. Abre la configuración de tu navegador y permite el acceso a la cámara para localhost, luego actualiza la página.",
+  photoTips: "Consejos de fotografía",
+  closePhotoTips: "Cerrar consejos de fotografía",
+  photoTipLighting: "Usa una iluminación uniforme y evita sombras fuertes.",
+  photoTipCenter: "Mantén el artículo centrado y ocupa la mayor parte del encuadre.",
+  photoTipDetails: "Mantén estable la cámara y captura logotipos, etiquetas o detalles únicos.",
+  closeCamera: "Cerrar cámara",
+  flipCamera: "Cambiar cámara",
+  captureImage: "Capturar imagen",
+
   // Analytics Charts:
   analyticsCharts: "Gráficos analíticos",
   categoryBreakdown: "Distribución por categoría",

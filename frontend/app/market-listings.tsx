@@ -47,66 +47,8 @@ export default function MarketListingsScreen() {
   const featured = parsedListings.length > 0 ? parsedListings[0] : null;
   const rest = parsedListings.length > 1 ? parsedListings.slice(1) : [];
   const { t } = useTranslation();
+
   /*
-  const openEditItem = (listing: Listing) => {
-    router.push({
-    pathname: '/edit-item',
-    params: {
-      itemId: String(listing.id || ''),
-      title: String(listing.title || ''),
-      price: getNumericPriceString(listing.price),
-      imageUrl: String(listing.imageUrl || imageUri || ''),
-    },
-  });
-}
-*/
-/*
- const openEditItem = async (listing: Listing) => {
-  if (savingListingId) return;
-
-  try {
-    setSavingListingId(listing.id);
-
-    const savedResponse = await saveItemToMyItems({
-      title: listing.title,
-      brand: listing.brand,
-      category: listing.category,
-      description: listing.description,
-      condition: listing.condition,
-      price: getNumericPrice(listing.price),
-      imageUrl: listing.imageUrl || imageUri,
-    });
-
-    const savedItem = savedResponse.item;
-
-    console.log('Saved marketplace item response:', savedResponse);
-    console.log('Saved MongoDB item ID:', savedItem?._id);
-
-    if (!savedItem?._id) {
-      console.log('Saved item missing MongoDB _id:', savedResponse);
-      return;
-    }
-
-    router.push({
-      pathname: '/edit-item',
-      params: {
-        itemId: savedItem._id,
-        title: savedItem.title || listing.title || '',
-        brand: savedItem.brand || listing.brand || '',
-        category: savedItem.category || listing.category || '',
-        description: savedItem.description || listing.description || '',
-        price: String(savedItem.price || getNumericPriceString(listing.price)),
-        imageUrl: savedItem.imageUrl || listing.imageUrl || imageUri || '',
-      },
-    });
-  } catch (error) {
-    console.error('Failed to save marketplace listing before edit:', error);
-  } finally {
-    setSavingListingId(null);
-  }
-};
-*/
-
 const openEditItem = async (listing: Listing) => {
   if (savingListingId) return;
 
@@ -167,6 +109,22 @@ const openEditItem = async (listing: Listing) => {
     setSavingListingId(null);
   }
 };
+*/
+const openEditItem = (listing: Listing) => {
+  router.push({
+    pathname: '/edit-item',
+    params: {
+      title: listing.title || '',
+      brand: listing.brand || '',
+      category: listing.category || '',
+      description: listing.description || '',
+      price: String(getNumericPrice(listing.price)),
+      condition: listing.condition || '',
+      imageUrl: listing.imageUrl || imageUri || '',
+    },
+  });
+};
+
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === 'dark';
 
