@@ -46,14 +46,12 @@ const totalEstimatedValue = items.reduce(
 
 const todayKey = getDateKey();
 const yesterdayKey = getPreviousDateKey(todayKey);
-
 const snapshotOwner = userId || null;
 
-const yesterdaySnapshot =
-  await DailyAnalyticsSnapshot.findOne({
-    owner: snapshotOwner,
-    dateKey: yesterdayKey,
-  }).lean();
+const yesterdaySnapshot = await DailyAnalyticsSnapshot.findOne({
+  owner: snapshotOwner,
+  dateKey: yesterdayKey,
+}).lean();
 
 let yesterdayTotalEstimatedValue = 0;
 let valueChangedToday = 0;
@@ -69,22 +67,16 @@ if (yesterdaySnapshot) {
   }
 
   valueChangedToday =
-    totalEstimatedValue -
-    yesterdayTotalEstimatedValue;
+    totalEstimatedValue - yesterdayTotalEstimatedValue;
 
   if (yesterdayTotalEstimatedValue > 0) {
     dailyPercentageIncrease =
-      (
-        valueChangedToday /
-        yesterdayTotalEstimatedValue
-      ) * 100;
+      (valueChangedToday / yesterdayTotalEstimatedValue) * 100;
   }
 }
 
-/*
- * Save the latest total for today.
- * This becomes the historical baseline tomorrow.
- */
+// Save today's latest total.
+// Tomorrow, this becomes the previous-day baseline.
 await DailyAnalyticsSnapshot.findOneAndUpdate(
   {
     owner: snapshotOwner,
@@ -102,17 +94,8 @@ await DailyAnalyticsSnapshot.findOneAndUpdate(
     setDefaultsOnInsert: true,
   }
 );
- 
-    const valueChangedToday =
-    roundToTwoDecimals(valueChangedToday),
 
-  // At the beginning of every day, valueAddedToday is 0,
-  // so dailyPercentageIncrease is also 0.
-  const dailyPercentageIncrease =
-    roundToTwoDecimals(dailyPercentageIncrease),
-
-
-  if (itemIds.length === 0) {
+if (itemIds.length === 0) {
   return {
     totalSavedItems: 0,
     totalEstimatedValue: 0,
