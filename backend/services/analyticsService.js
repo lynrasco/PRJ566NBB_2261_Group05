@@ -10,6 +10,17 @@ const buildBreakdown = (items, fieldName) => {
   }, {});
 };
 
+
+const DailyAnalyticsSnapshot = require(
+  "../models/DailyAnalyticsSnapshot"
+);
+
+const {
+  getDateKey,
+  getPreviousDateKey,
+} = require("./dailyAnalyticsSnapshotService");
+
+
 const getItemPrice = (item) => {
   const price = Number(item.price);
   return Number.isFinite(price) ? price : 0;
@@ -28,30 +39,77 @@ const getUserAnalytics = async (userId) => {
 
   const itemIds = items.map((item) => item._id);
 
-
-  const startOfToday = new Date();
-startOfToday.setHours(0, 0, 0, 0);
-
 const totalEstimatedValue = items.reduce(
   (total, item) => total + getItemPrice(item),
   0
 );
 
-const previousTotalEstimatedValue = items
-  .filter((item) => new Date(item.uploadDate) < startOfToday)
-  .reduce((total, item) => total + getItemPrice(item), 0);
+const todayKey = getDateKey();
+const yesterdayKey = getPreviousDateKey(todayKey);
 
-const valueAddedToday =
-  totalEstimatedValue - previousTotalEstimatedValue;
+const snapshotOwner = userId || null;
 
+const yesterdaySnapshot =
+  await DailyAnalyticsSnapshot.findOne({
+    owner: snapshotOwner,
+    dateKey: yesterdayKey,
+  }).lean();
+
+let yesterdayTotalEstimatedValue = 0;
+let valueChangedToday = 0;
 let dailyPercentageIncrease = 0;
 
-if (previousTotalEstimatedValue > 0) {
-  dailyPercentageIncrease =
-    (valueAddedToday / previousTotalEstimatedValue) * 100;
-} else if (totalEstimatedValue > 0) {
-  dailyPercentageIncrease = 100;
+if (yesterdaySnapshot) {
+  yesterdayTotalEstimatedValue = Number(
+    yesterdaySnapshot.totalEstimatedValue
+  );
+
+  if (!Number.isFinite(yesterdayTotalEstimatedValue)) {
+    yesterdayTotalEstimatedValue = 0;
+  }
+
+  valueChangedToday =
+    totalEstimatedValue -
+    yesterdayTotalEstimatedValue;
+
+  if (yesterdayTotalEstimatedValue > 0) {
+    dailyPercentageIncrease =
+      (
+        valueChangedToday /
+        yesterdayTotalEstimatedValue
+      ) * 100;
+  }
 }
+
+/*
+ * Save the latest total for today.
+ * This becomes the historical baseline tomorrow.
+ */
+await DailyAnalyticsSnapshot.findOneAndUpdate(
+  {
+    owner: snapshotOwner,
+    dateKey: todayKey,
+  },
+  {
+    $set: {
+      totalEstimatedValue:
+        roundToTwoDecimals(totalEstimatedValue),
+    },
+  },
+  {
+    new: true,
+    upsert: true,
+    setDefaultsOnInsert: true,
+  }
+);
+ 
+    const valueChangedToday =
+    roundToTwoDecimals(valueChangedToday),
+
+  // At the beginning of every day, valueAddedToday is 0,
+  // so dailyPercentageIncrease is also 0.
+  const dailyPercentageIncrease =
+    roundToTwoDecimals(dailyPercentageIncrease),
 
 
   if (itemIds.length === 0) {
