@@ -5,6 +5,9 @@ const ebayService = require("../services/ebayService");
 const pricingService = require("../services/pricingService");
 const imageRepository = require("../repositories/imageRepository");
 
+const Item = require("../models/Item");
+const PriceSuggestion = require("../models/PriceSuggestion");
+
 const normalizeEbayCondition = (condition) => {
   if (!condition) return null;
 
@@ -35,6 +38,7 @@ const buildSearchQuery = ({ image, userDescription }) => {
 const createPriceEstimate = async (req, res, next) => {
   try {
     const {
+      itemId,
       imageId,
       condition,
       userDescription,
@@ -83,12 +87,54 @@ const createPriceEstimate = async (req, res, next) => {
       ebayResults,
     });
 
+    if (!itemId) {
+      const error = new Error("Item ID is required to save the price suggestion");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const item = await Item.findById(itemId);
+
+    if (!item) {
+      const error = new Error("Item not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const savedSuggestion = await PriceSuggestion.findOneAndUpdate(
+      { item: itemId },
+      {
+        item: itemId,
+        lowPrice: priceEstimate.lowPrice,
+        highPrice: priceEstimate.highPrice,
+        suggestedPrice: priceEstimate.suggestedPrice,
+        currency:
+          ebayResults?.itemSummaries?.[0]?.price?.currency || "USD",
+        condition: condition || item.condition || "used",
+        reasoning: priceEstimate.reasoning,
+        comparablesCount: priceEstimate.comparablesCount,
+        priceRange: priceEstimate.priceRange || undefined,
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true,
+      }
+    );
+
+    // Also update the item's current estimated value
+    await Item.findByIdAndUpdate(itemId, {
+      price: priceEstimate.suggestedPrice,
+    });
+
     res.status(200).json({
       success: true,
       message: "Price estimate completed successfully",
       query,
       conditionId,
       priceEstimate,
+      priceSuggestion: savedSuggestion,
     });
   } catch (error) {
     next(error);
