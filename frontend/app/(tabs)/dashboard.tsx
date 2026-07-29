@@ -26,30 +26,36 @@ export default function DashboardScreen() {
   const { profile, avatarSource } = useProfile();
   const { t } = useTranslation();
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchItems();
-    }, [])
-  );
-
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const [itemsResponse, analyticsResponse] = await Promise.allSettled([
-        getAllItems(),
-        getDashboardAnalytics(),
-      ]);
+      const [itemsResponse, analyticsResponse] =
+        await Promise.allSettled([
+          getAllItems(),
+          getDashboardAnalytics(),
+        ]);
 
-      if (itemsResponse.status === 'fulfilled' && itemsResponse.value?.success && itemsResponse.value?.items) {
-        console.log('ALL ITEMS FROM MONGODB:', itemsResponse.value.items);
+      if (
+        itemsResponse.status === 'fulfilled' &&
+        itemsResponse.value?.success &&
+        itemsResponse.value?.items
+      ) {
         setItems(itemsResponse.value.items);
       } else {
         throw new Error('Unable to load your items right now.');
       }
 
-      if (analyticsResponse.status === 'fulfilled' && analyticsResponse.value?.success) {
+      if (
+        analyticsResponse.status === 'fulfilled' &&
+        analyticsResponse.value?.success
+      ) {
+        console.log(
+          'DASHBOARD ANALYTICS:',
+          analyticsResponse.value.analytics
+        );
+
         setAnalytics(analyticsResponse.value.analytics);
       } else {
         setAnalytics(null);
@@ -60,7 +66,13 @@ export default function DashboardScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchItems();
+    }, [fetchItems])
+  );
 
   const handleItemPress = (item: any) => {
     console.log(item);
