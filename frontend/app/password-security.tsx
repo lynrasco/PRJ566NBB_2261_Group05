@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,104 +11,163 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { useAppTheme } from '@/context/theme-context';
-import { useTranslation } from '@/hooks/use-translation';
-import { updatePassword } from '@/services/api';
+} from "react-native";
+import { useAppTheme } from "@/context/theme-context";
+import { useTranslation } from "@/hooks/use-translation";
+import { useProfile } from "@/context/profile-context";
+import { updatePassword } from "@/services/api";
 
 export default function PasswordSecurityScreen() {
   const [faceIdEnabled, setFaceIdEnabled] = useState(true);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { resolvedTheme } = useAppTheme();
-  const isDark = resolvedTheme === 'dark';
+  const isDark = resolvedTheme === "dark";
   const { t } = useTranslation();
+  const { profile } = useProfile();
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.select({ ios: 'padding', default: undefined })}
+      behavior={Platform.select({ ios: "padding", default: undefined })}
       style={[styles.screen, isDark && styles.screenDark]}
     >
       <ScrollView
-        contentContainerStyle={[styles.content, isDark && styles.contentDark,]}
+        contentContainerStyle={[styles.content, isDark && styles.contentDark]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color={isDark ? '#ffffff' : '#111111'}/>
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={isDark ? "#ffffff" : "#111111"}
+            />
           </Pressable>
           <Text style={[styles.title, isDark && styles.textDark]}>
-            {t('passwordSecurity')}
+            {t("passwordSecurity")}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
 
         <View style={[styles.previewCard, isDark && styles.cardDark]}>
-            <View style={[styles.iconCircle, isDark && styles.iconCircleDark,]}>
-                <Ionicons name="lock-closed-outline" size={28} color={isDark ? '#8bbcff' : '#024883'}/>
-            </View>
-            <Text style={[styles.previewTitle, isDark && styles.textDark,]}>
-              {t('security')}
-            </Text>
-            <Text style={[styles.previewText, isDark && styles.mutedTextDark,]}>
-                {t('securityDesc')}
-            </Text>
+          <View style={[styles.iconCircle, isDark && styles.iconCircleDark]}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={28}
+              color={isDark ? "#8bbcff" : "#024883"}
+            />
+          </View>
+          <Text style={[styles.previewTitle, isDark && styles.textDark]}>
+            {t("security")}
+          </Text>
+          <Text style={[styles.previewText, isDark && styles.mutedTextDark]}>
+            {t("securityDesc")}
+          </Text>
         </View>
 
         <View style={[styles.card, isDark && styles.cardDark]}>
-          <View style={[styles.row, styles.rowBorder, isDark && styles.rowDark,]}>
-            <Text selectable style={[styles.label, isDark && styles.textDark,]}>
-              {t('oldPassword')}:
+          <View
+            style={[styles.row, styles.rowBorder, isDark && styles.rowDark]}
+          >
+            <Text selectable style={[styles.label, isDark && styles.textDark]}>
+              {t("oldPassword")}:
             </Text>
             <TextInput
               secureTextEntry
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
               textContentType="password"
               autoCapitalize="none"
               autoCorrect={false}
-              style={[styles.input, isDark && styles.inputDark,]}
+              style={[styles.input, isDark && styles.inputDark]}
             />
           </View>
 
           <View style={[styles.row, isDark && styles.rowDark]}>
-            <Text selectable style={[styles.label, isDark && styles.textDark,]}>
-              {t('changePassword')}:
+            <Text selectable style={[styles.label, isDark && styles.textDark]}>
+              {t("changePassword")}:
             </Text>
             <TextInput
               secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
               textContentType="newPassword"
               autoCapitalize="none"
               autoCorrect={false}
-              style={[styles.input, isDark && styles.inputDark,]}
+              style={[styles.input, isDark && styles.inputDark]}
             />
           </View>
         </View>
+        {errorMessage ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : null}
 
-        <View style={[styles.faceIdCard, isDark && styles.cardDark,]}>
-          <Text selectable style={[styles.faceIdText, isDark && styles.textDark,]}>
-            {t('enableFaceId')}
+        <View style={[styles.faceIdCard, isDark && styles.cardDark]}>
+          <Text
+            selectable
+            style={[styles.faceIdText, isDark && styles.textDark]}
+          >
+            {t("enableFaceId")}
           </Text>
           <View style={styles.switchWrapper}>
             <Switch
-            value={faceIdEnabled}
-            onValueChange={setFaceIdEnabled}
-            trackColor={{
-              false: isDark ? '#3b4d61' : '#d9d9d9',
-              true: '#34c759',
-            }}
-            thumbColor={isDark ? '#d9e2ec' : '#ffffff'}
-            ios_backgroundColor={isDark ? '#3b4d61' : '#d9d9d9'}
+              value={faceIdEnabled}
+              onValueChange={setFaceIdEnabled}
+              trackColor={{
+                false: isDark ? "#3b4d61" : "#d9d9d9",
+                true: "#34c759",
+              }}
+              thumbColor={isDark ? "#d9e2ec" : "#ffffff"}
+              ios_backgroundColor={isDark ? "#3b4d61" : "#d9d9d9"}
             />
           </View>
         </View>
 
         <Pressable
-          onPress={() => {
-            
-            router.back();
+          onPress={async () => {
+            if (!profile.userId) {
+              setErrorMessage(t("loginRequired"));
+              return;
+            }
+
+            if (!currentPassword || !newPassword) {
+              setErrorMessage(t("passwordRequired"));
+              return;
+            }
+
+            setErrorMessage(null);
+            setSaving(true);
+            try {
+              await updatePassword(
+                profile.userId,
+                currentPassword,
+                newPassword,
+              );
+              router.back();
+            } catch (error: any) {
+              setErrorMessage(
+                error?.response?.data?.message ||
+                  error?.message ||
+                  t("passwordUpdateFailed"),
+              );
+            } finally {
+              setSaving(false);
+            }
           }}
-          style={({ pressed }) => [styles.saveButton, pressed && styles.saveButtonPressed]}
+          disabled={saving}
+          style={({ pressed }) => [
+            styles.saveButton,
+            pressed && styles.saveButtonPressed,
+            saving && styles.saveButtonDisabled,
+          ]}
         >
           <Text style={styles.saveText}>
-            {t('save')}
+            {saving ? t("saving") : t("save")}
           </Text>
         </Pressable>
       </ScrollView>
@@ -119,7 +178,7 @@ export default function PasswordSecurityScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#eef3f8',
+    backgroundColor: "#eef3f8",
   },
   content: {
     flexGrow: 1,
@@ -150,9 +209,9 @@ const styles = StyleSheet.create({
   },
   */
   title: {
-    fontFamily: 'AzeretMono_700Bold',
+    fontFamily: "AzeretMono_700Bold",
     fontSize: 21,
-    color: '#111111',
+    color: "#111111",
   },
   form: {
     marginTop: 51,
@@ -164,152 +223,164 @@ const styles = StyleSheet.create({
   label: {
     marginBottom: 7,
     marginLeft: 7,
-    fontFamily: 'AzeretMono_700Bold',
+    fontFamily: "AzeretMono_700Bold",
     fontSize: 13,
     lineHeight: 17,
-    color: '#050505',
+    color: "#050505",
   },
   input: {
     marginTop: 8,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#f3f5f7',
+    backgroundColor: "#f3f5f7",
     paddingHorizontal: 12,
-    fontFamily: 'AzeretMono_400Regular',
+    fontFamily: "AzeretMono_400Regular",
     fontSize: 13,
-    color: '#111111',
-    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
+    color: "#111111",
+    boxShadow: "0 2px 3px rgba(0, 0, 0, 0.12)",
   },
   faceIdCard: {
     minHeight: 72,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: 58,
     marginHorizontal: 9,
     borderRadius: 16,
-    backgroundColor: '#f7f7f7',
+    backgroundColor: "#f7f7f7",
     paddingHorizontal: 18,
-    shadowColor: '#000000',
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 3,
     elevation: 3,
   },
   faceIdText: {
-    fontFamily: 'AzeretMono_700Bold',
+    fontFamily: "AzeretMono_700Bold",
     fontSize: 14,
-    color: '#050505',
+    color: "#050505",
   },
   saveButton: {
     height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 28,
     marginHorizontal: 9,
     borderRadius: 26,
-    backgroundColor: '#024883',
+    backgroundColor: "#024883",
   },
   saveButtonPressed: {
-    backgroundColor: '#002f59',
+    backgroundColor: "#002f59",
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   saveText: {
-    fontFamily: 'AzeretMono_700Bold',
+    fontFamily: "AzeretMono_700Bold",
     fontSize: 16,
-    color: '#ffffff',
+    color: "#ffffff",
+  },
+  errorBox: {
+    marginTop: 16,
+    paddingHorizontal: 9,
+  },
+  errorText: {
+    color: "#d62828",
+    fontSize: 13,
+    fontFamily: "AzeretMono_700Bold",
   },
   switchWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   previewCard: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 18,
     paddingVertical: 24,
     paddingHorizontal: 18,
     borderRadius: 22,
-    backgroundColor: '#ffffff',
-    boxShadow: '0 2px 3px rgba(0, 0, 0, 0.12)'
+    backgroundColor: "#ffffff",
+    boxShadow: "0 2px 3px rgba(0, 0, 0, 0.12)",
   },
   iconCircle: {
     width: 58,
     height: 58,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 29,
-    backgroundColor: '#e9f2fb',
+    backgroundColor: "#e9f2fb",
   },
   previewTitle: {
     marginTop: 12,
-    fontFamily: 'AzeretMono_700Bold',
+    fontFamily: "AzeretMono_700Bold",
     fontSize: 16,
-    color: '#111111',
+    color: "#111111",
   },
   previewText: {
     marginTop: 7,
-    textAlign: 'center',
-    fontFamily: 'AzeretMono_400Regular',
+    textAlign: "center",
+    fontFamily: "AzeretMono_400Regular",
     fontSize: 11,
     lineHeight: 16,
-    color: '#52616f',
+    color: "#52616f",
   },
   screenDark: {
-    backgroundColor: '#08111f',
+    backgroundColor: "#08111f",
   },
   contentDark: {
-    backgroundColor: '#08111f',
+    backgroundColor: "#08111f",
   },
   cardDark: {
-    backgroundColor: '#121c2b',
+    backgroundColor: "#121c2b",
   },
   inputDark: {
-    backgroundColor: '#1d2d44',
-    color: '#f3f5f7',
+    backgroundColor: "#1d2d44",
+    color: "#f3f5f7",
   },
   iconCircleDark: {
-    backgroundColor: '#1d2d44',
+    backgroundColor: "#1d2d44",
   },
   textDark: {
-    color: '#ffffff',
+    color: "#ffffff",
   },
   mutedTextDark: {
-    color: '#b8c4d1',
+    color: "#b8c4d1",
   },
   header: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  marginBottom: 22,
-},
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 22,
+  },
 
-headerSpacer: {
-  width: 36,
-},
+  headerSpacer: {
+    width: 36,
+  },
 
-backButton: {
-  width: 36,
-  height: 36,
-  justifyContent: 'center',
-},
+  backButton: {
+    width: 36,
+    height: 36,
+    justifyContent: "center",
+  },
 
-card: {
-  overflow: 'hidden',
-  borderRadius: 18,
-  backgroundColor: '#ffffff',
-  boxShadow: '0 2px 3px rgba(0,0,0,0.12)',
-},
+  card: {
+    overflow: "hidden",
+    borderRadius: 18,
+    backgroundColor: "#ffffff",
+    boxShadow: "0 2px 3px rgba(0,0,0,0.12)",
+  },
 
-row: {
-  paddingHorizontal: 18,
-  paddingVertical: 16,
-},
+  row: {
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+  },
 
-rowBorder: {
-  borderBottomWidth: StyleSheet.hairlineWidth,
-  borderBottomColor: '#d7e0ea',
-},
+  rowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#d7e0ea",
+  },
 
-rowDark: {
-  backgroundColor: '#121c2b',
-},
+  rowDark: {
+    backgroundColor: "#121c2b",
+  },
 });

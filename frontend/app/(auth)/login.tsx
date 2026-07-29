@@ -127,29 +127,29 @@ export default function Login() {
     const nextErrors: { EmailPwd?: string } = {};
 
     try {
-        if (validateForm()) {
-          //router.push('/dashboard')
+      if (validateForm()) {
+        //router.push('/dashboard')
 
-          const result = await login(email, password);
-          if (result?.success) {
-            //router.replace("/dashboard");
-            const user = result.user.user;
-            console.log("LOGIN USER:", user);
+        const result = await login(email, password);
+        if (result?.success) {
+          //router.replace("/dashboard");
+          const user = result.user?.user || result.user;
+          console.log("LOGIN USER:", user);
 
-            updateProfile({
-              userId: user.id,
-              name: user.name,
-              //username: `${user.name.split(" ")[0].toLowerCase()}${user.id.slice(-4)}`,
-              username: user.userName,
-              email: user.email,
-              phone: "",
-              avatarId: "avatar-1",
-            });
-            router.replace("/dashboard")
-          } else {
-            setErrors(result?.message || "Login failed. Please try again.");
-          }
+          updateProfile({
+            userId: user.id,
+            name: user.name,
+            //username: `${user.name.split(" ")[0].toLowerCase()}${user.id.slice(-4)}`,
+            username: user.userName,
+            email: user.email,
+            phone: "",
+            avatarId: "avatar-1",
+          });
+          router.replace("/dashboard");
+        } else {
+          setErrors(result?.message || "Login failed. Please try again.");
         }
+      }
     } catch (err: any) {
       Alert.alert(
         "Login Failed",
@@ -175,31 +175,31 @@ export default function Login() {
         </Text>
       </View>
       <View style={styles.passwordContainer}>
-  <TextInput
-    placeholder={t("passwordPlaceholder")}
-    placeholderTextColor="#D9D9D9"
-    style={[styles.passwordInput, styles.baseText]}
-    value={password}
-    onChangeText={setPassword}
-    secureTextEntry={!showPassword}
-  />
+        <TextInput
+          placeholder={t("passwordPlaceholder")}
+          placeholderTextColor="#D9D9D9"
+          style={[styles.passwordInput, styles.baseText]}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+        />
 
-  <Pressable
-    onPress={() => setShowPassword(!showPassword)}
-    style={{
-      position: "absolute",
-      right: 12,
-      top: 23,
-    }}
-  >
-    <Ionicons
-      name={showPassword ? "eye-off" : "eye"}
-      size={22}
-      color="#D9D9D9"
-    />
-  </Pressable>
-</View>
-      
+        <Pressable
+          onPress={() => setShowPassword(!showPassword)}
+          style={{
+            position: "absolute",
+            right: 12,
+            top: 23,
+          }}
+        >
+          <Ionicons
+            name={showPassword ? "eye-off" : "eye"}
+            size={22}
+            color="#D9D9D9"
+          />
+        </Pressable>
+      </View>
+
       <View style={styles.errorBox}>
         <Text style={styles.errorText}>
           {errors.password ? errors.password : " "}

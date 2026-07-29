@@ -19,12 +19,22 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+let authToken: string | null = null;
+
 const apiClient = create({
   baseURL: API_BASE_URL,
   timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+apiClient.interceptors.request.use((config) => {
+  if (authToken) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${authToken}`;
+  }
+  return config;
 });
 
 apiClient.interceptors.response.use(
@@ -40,6 +50,14 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+export const setAuthToken = (token: string | null) => {
+  authToken = token;
+};
+
+export const clearAuthToken = () => {
+  authToken = null;
+};
 
 export const getAllItems = async () => {
   try {
@@ -354,7 +372,12 @@ export const sendTestNotification = async (userId: string) => {
 export const login = async (email: string, password: string) => {
   try {
     const response = await apiClient.post("/auth/login", { email, password });
-    return response.data;
+    const data = response.data;
+    const token = data?.token || data?.user?.token || data?.user?.user?.token;
+    if (token) {
+      setAuthToken(token);
+    }
+    return data;
   } catch (error: any) {
     const message =
       error?.response?.data?.message ||
@@ -377,7 +400,6 @@ export const register = async (
       password,
     });
     return response.data;
-    
   } catch (error: any) {
     const message =
       error?.response?.data?.message ||
