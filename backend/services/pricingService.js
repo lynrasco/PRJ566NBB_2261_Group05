@@ -102,6 +102,58 @@ const removeOutliers = (sortedPrices) => {
     : sortedPrices;
 };
 
+const calculateConfidence = (
+  cleanedPrices,
+  totalComparables
+) => {
+  if (cleanedPrices.length === 0) {
+    return 0;
+  }
+
+  const median = getPercentile(cleanedPrices, 0.5);
+  const firstQuartile = getPercentile(
+    cleanedPrices,
+    0.25
+  );
+  const thirdQuartile = getPercentile(
+    cleanedPrices,
+    0.75
+  );
+
+  const priceSpread =
+    thirdQuartile - firstQuartile;
+
+  const relativeSpread =
+    median > 0 ? priceSpread / median : 1;
+
+  // More comparable listings increase confidence.
+  const comparableScore = Math.min(
+    55,
+    cleanedPrices.length * 7
+  );
+
+  // Similar prices increase confidence.
+  const consistencyScore = Math.max(
+    0,
+    35 - relativeSpread * 35
+  );
+
+  // Fewer removed outliers increase confidence.
+  const retentionScore =
+    totalComparables > 0
+      ? (cleanedPrices.length / totalComparables) * 10
+      : 0;
+
+  return Math.round(
+    Math.min(
+      95,
+      comparableScore +
+        consistencyScore +
+        retentionScore
+    )
+  );
+};
+
 const estimatePrice = async ({
   condition,
   ebayResults,
@@ -174,11 +226,17 @@ const estimatePrice = async ({
   const removedOutlierCount =
     prices.length - cleanedPrices.length;
 
+    const confidence = calculateConfidence(
+      cleanedPrices,
+      prices.length
+    );
+
   return {
     success: true,
     lowPrice,
     highPrice,
     suggestedPrice,
+    confidence,
     reasoning: [
       `Calculated from ${cleanedPrices.length} usable comparable listing(s).`,
       removedOutlierCount > 0

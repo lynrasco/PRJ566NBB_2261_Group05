@@ -290,7 +290,7 @@ export const searchFromImage = async (
         index === 0
           ? priceEstimate?.suggestedPrice
           : undefined,
-      confidence: item.confidence,
+      confidence: index === 0 ? priceEstimate?.confidence : undefined,
       pricePositionPercent: item.pricePositionPercent,
       imageUrl: extractImage(item),
       url: item.itemWebUrl,
