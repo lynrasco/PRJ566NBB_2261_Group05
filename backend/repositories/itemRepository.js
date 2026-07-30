@@ -1,11 +1,20 @@
 const Item = require("../models/Item");
 
 const createItem = async (itemData) => {
-  return await Item.create(itemData);
+  return Item.create(itemData);
 };
 
 const getAllItems = async () => {
-  return await Item.find();
+  return Item.find();
+};
+
+const getItemsByUserId = async (userId) => {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  return Item.find({ owner: userId })
+    .sort({ uploadDate: -1 }).lean();
 };
 
 const getItemsByOwner = async (ownerId) => {
@@ -13,7 +22,7 @@ const getItemsByOwner = async (ownerId) => {
 };
 
 const getItemById = async (id) => {
-  return await Item.findById(id);
+  return Item.findById(id);
 };
 
 const getItemByIdAndOwner = async (id, ownerId) => {

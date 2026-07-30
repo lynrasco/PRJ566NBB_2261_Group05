@@ -7,7 +7,11 @@ const router = express.Router();
 const imageRepository = require("../repositories/imageRepository");
 const ebayService = require("../services/ebayService");
 
+const pricingService = require("../services/pricingService");
+
 const visionClient = new vision.ImageAnnotatorClient();
+
+
 
 const isRemoteUrl = (imageUrl) => /^https?:\/\//i.test(imageUrl);
 
@@ -320,5 +324,95 @@ router.post("/search-ebay", async (req, res, next) => {
   }
 });
 
+router.post("/price-estimate", async (req, res, next) => {
+  try {
+    const {
+      imageId,
+      imageUrl,
+      imageBase64,
+      aiTags,
+      aiDescription,
+      condition,
+      userDescription,
+    } = req.body;
+
+    let image =
+      aiTags || aiDescription
+        ? {
+            imageUrl,
+            aiTags: aiTags || [],
+            aiDescription: aiDescription || "",
+          }
+        : null;
+
+    let resolved = null;
+
+    if (!image) {
+      resolved = await resolveImageContext({
+        imageId,
+        imageUrl,
+        imageBase64,
+      });
+
+      image = resolved.image;
+    }
+
+    // Run Vision only when there is not enough information
+    // to create an eBay search query.
+    if (
+      !buildEbaySearchQuery({ image, userDescription }) &&
+      resolved?.visionImage
+    ) {
+      const visionResult = await analyzeVisionImage(
+        resolved.visionImage
+      );
+
+      image = {
+        ...image,
+        aiTags: visionResult.aiTags,
+        aiDescription: visionResult.aiDescription,
+      };
+    }
+
+    const query = buildEbaySearchQuery({
+      image,
+      userDescription,
+    });
+
+    if (!query) {
+      const error = new Error(
+        "Please provide image data or a description to estimate the price"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const conditionId = normalizeEbayCondition(condition);
+
+    const ebayResults = await ebayService.searchItems(
+      query,
+      conditionId,
+      12
+    );
+
+    const priceEstimate = await pricingService.estimatePrice({
+      image,
+      condition: condition || "used",
+      userDescription,
+      ebayResults,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Price estimate completed successfully",
+      query,
+      conditionId,
+      ebayResults,
+      priceEstimate,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;

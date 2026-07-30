@@ -4,8 +4,8 @@ const router = express.Router();
 const protect = require("../middleware/authMiddleware");
 const itemRepository = require("../repositories/itemRepository");
 const upload = require("../middleware/multer");
+const protect = require("../middleware/authMiddleware");
 const Item = require("../models/Item");
-
 const PriceSuggestion = require("../models/PriceSuggestion");
 
 // GET all items for logged-in user
@@ -155,7 +155,7 @@ router.delete("/:id", protect, async (req, res, next) => {
     }
 
     await PriceSuggestion.deleteMany({
-      item: req.params.id,
+      item: item._id,
     });
 
     res.status(200).json({

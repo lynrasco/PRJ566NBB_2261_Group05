@@ -80,16 +80,9 @@ export const getItemById = async (id: string) => {
   }
 };
 
-export const getDashboardAnalytics = async (userId?: string) => {
-  try {
-    const response = await apiClient.get("/analytics/me", {
-      params: userId ? { userId } : undefined,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching dashboard analytics:", error);
-    throw error;
-  }
+export const getDashboardAnalytics = async () => {
+  const response = await apiClient.get("/analytics/me");
+  return response.data;
 };
 
 export const getItemMarketAnalytics = async (itemId: string) => {
@@ -236,7 +229,7 @@ export const searchFromImage = async (
       ? { imageUrl: imageInput, condition: conditionId, userDescription }
       : { ...imageInput, condition: conditionId, userDescription };
 
-  const response = await apiClient.post("/ai/search-ebay", payload);
+  const response = await apiClient.post("/ai/price-estimate", payload);
   console.log("EBAY RAW RESPONSE:", response.data.ebayResults);
   const results = response.data?.ebayResults?.itemSummaries;
 
@@ -245,7 +238,10 @@ export const searchFromImage = async (
     return [];
   }
 
-  return results.map((item: any) => {
+  const priceEstimate =
+    response.data?.priceEstimate;
+
+  return results.map((item: any, index: number) => {
     const ebayCategories = Array.isArray(item.categories)
       ? item.categories
       : [];
@@ -289,10 +285,21 @@ export const searchFromImage = async (
         ? `${item.price.currency} ${item.price.value}`
         : "Price not available",
 
-      priceLow: item.priceLow,
-      priceHigh: item.priceHigh,
-      suggestedPrice: item.suggestedPrice,
-      confidence: item.confidence,
+      priceLow:
+        index === 0
+          ? priceEstimate?.lowPrice
+          : undefined,
+
+      priceHigh:
+        index === 0
+          ? priceEstimate?.highPrice
+          : undefined,
+
+      suggestedPrice:
+        index === 0
+          ? priceEstimate?.suggestedPrice
+          : undefined,
+      confidence: index === 0 ? priceEstimate?.confidence : undefined,
       pricePositionPercent: item.pricePositionPercent,
       imageUrl: extractImage(item),
       url: item.itemWebUrl,
