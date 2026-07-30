@@ -1,174 +1,28 @@
 /**
- * Local pricing estimator using eBay comparables.
- * Runs locally without additional external API calls.
+ * Local pricing estimator using eBay comparables
+ * No external API calls - runs entirely locally
  */
 
-const roundToTwoDecimals = (value) => {
-  return Math.round(value * 100) / 100;
-};
+const estimatePrice = async ({ image, condition, userDescription, ebayResults }) => {
+  const comparables = ebayResults?.itemSummaries || [];
 
-const getPercentile = (sortedValues, percentile) => {
-  if (sortedValues.length === 0) {
-    return 0;
+  if (!comparables || comparables.length === 0) {
+    // No comparables - use conservative baseline estimate
+    return {
+      success: true,
+      lowPrice: 15,
+      highPrice: 50,
+      suggestedPrice: 30,
+      reasoning:
+        "No comparable listings found on eBay. Estimate is based on general resale guidelines for used items. Adjust based on brand, condition, and demand.",
+      comparablesCount: 0,
+    };
   }
 
-  if (sortedValues.length === 1) {
-    return sortedValues[0];
-  }
-
-  const index = (sortedValues.length - 1) * percentile;
-  const lowerIndex = Math.floor(index);
-  const upperIndex = Math.ceil(index);
-
-  if (lowerIndex === upperIndex) {
-    return sortedValues[lowerIndex];
-  }
-
-  const weight = index - lowerIndex;
-
-  return (
-    sortedValues[lowerIndex] * (1 - weight) +
-    sortedValues[upperIndex] * weight
-  );
-};
-
-const getConditionMultiplier = (condition) => {
-  const normalizedCondition = String(
-    condition || "used"
-  ).toLowerCase();
-
-  if (normalizedCondition.includes("new")) {
-    return 1;
-  }
-
-  if (
-    normalizedCondition.includes("excellent") ||
-    normalizedCondition.includes("refurb")
-  ) {
-    return 0.95;
-  }
-
-  if (
-    normalizedCondition.includes("good") ||
-    normalizedCondition.includes("used") ||
-    normalizedCondition.includes("pre-owned")
-  ) {
-    return 0.9;
-  }
-
-  if (normalizedCondition.includes("fair")) {
-    return 0.75;
-  }
-
-  if (normalizedCondition.includes("poor")) {
-    return 0.6;
-  }
-
-  return 0.9;
-};
-
-const removeOutliers = (sortedPrices) => {
-  if (sortedPrices.length < 4) {
-    return sortedPrices;
-  }
-
-  const firstQuartile = getPercentile(
-    sortedPrices,
-    0.25
-  );
-
-  const thirdQuartile = getPercentile(
-    sortedPrices,
-    0.75
-  );
-
-  const interquartileRange =
-    thirdQuartile - firstQuartile;
-
-  const minimumAllowed =
-    firstQuartile - 1.5 * interquartileRange;
-
-  const maximumAllowed =
-    thirdQuartile + 1.5 * interquartileRange;
-
-  const filteredPrices = sortedPrices.filter(
-    (price) =>
-      price >= minimumAllowed &&
-      price <= maximumAllowed
-  );
-
-  return filteredPrices.length >= 3
-    ? filteredPrices
-    : sortedPrices;
-};
-
-const calculateConfidence = (
-  cleanedPrices,
-  totalComparables
-) => {
-  if (cleanedPrices.length === 0) {
-    return 0;
-  }
-
-  const median = getPercentile(cleanedPrices, 0.5);
-  const firstQuartile = getPercentile(
-    cleanedPrices,
-    0.25
-  );
-  const thirdQuartile = getPercentile(
-    cleanedPrices,
-    0.75
-  );
-
-  const priceSpread =
-    thirdQuartile - firstQuartile;
-
-  const relativeSpread =
-    median > 0 ? priceSpread / median : 1;
-
-  // More comparable listings increase confidence.
-  const comparableScore = Math.min(
-    55,
-    cleanedPrices.length * 7
-  );
-
-  // Similar prices increase confidence.
-  const consistencyScore = Math.max(
-    0,
-    35 - relativeSpread * 35
-  );
-
-  // Fewer removed outliers increase confidence.
-  const retentionScore =
-    totalComparables > 0
-      ? (cleanedPrices.length / totalComparables) * 10
-      : 0;
-
-  return Math.round(
-    Math.min(
-      95,
-      comparableScore +
-        consistencyScore +
-        retentionScore
-    )
-  );
-};
-
-const estimatePrice = async ({
-  condition,
-  ebayResults,
-}) => {
-  const comparables =
-    ebayResults?.itemSummaries || [];
-
+  // Extract prices from comparables
   const prices = comparables
-    .map((item) => Number(item.price?.value))
-    .filter(
-      (price) =>
-        Number.isFinite(price) &&
-        price > 0
-    )
-    .sort((a, b) => a - b);
+    .filter((item) => item.price && item.price.value)
+    .map((item) => parseFloat(item.price.value));
 
   if (prices.length === 0) {
     return {
@@ -176,87 +30,67 @@ const estimatePrice = async ({
       lowPrice: 15,
       highPrice: 50,
       suggestedPrice: 30,
-      reasoning:
-        "No usable comparable prices were found. Estimate uses conservative general resale guidelines.",
-      comparablesCount: 0,
-      usedComparablesCount: 0,
+      reasoning: "Comparable listings found but prices unavailable. Estimate based on general guidelines.",
+      comparablesCount: comparables.length,
     };
   }
 
-  const cleanedPrices = removeOutliers(prices);
-  const conditionMultiplier =
-    getConditionMultiplier(condition);
+  // Calculate statistics
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+  const medianPrice = prices.sort((a, b) => a - b)[Math.floor(prices.length / 2)];
 
-  /*
-   * Use conservative percentiles instead of:
-   * - absolute minimum
-   * - median
-   * - absolute maximum
-   *
-   * This prevents one expensive listing from
-   * making the estimate unrealistically high.
-   */
-  let lowPrice =
-    getPercentile(cleanedPrices, 0.2) *
-    conditionMultiplier;
+  // Condition adjustment multiplier
+  let conditionMultiplier = 1.0;
+  const normalizedCondition = (condition || "used").toLowerCase();
+  if (normalizedCondition.includes("new")) {
+    conditionMultiplier = 1.15; // New items get 15% premium
+  } else if (normalizedCondition.includes("refurb") || normalizedCondition.includes("excellent")) {
+    conditionMultiplier = 1.05; // Refurb/excellent get 5% premium
+  } else if (normalizedCondition.includes("good")) {
+    conditionMultiplier = 0.95; // Good condition gets slight discount
+  } else if (normalizedCondition.includes("fair") || normalizedCondition.includes("poor")) {
+    conditionMultiplier = 0.8; // Fair/poor gets 20% discount
+  }
 
-  let suggestedPrice =
-    getPercentile(cleanedPrices, 0.4) *
-    conditionMultiplier;
+  // Estimate based on median and apply condition multiplier
+  const basePrice = medianPrice;
+  const adjustedMedian = basePrice * conditionMultiplier;
 
-  let highPrice =
-    getPercentile(cleanedPrices, 0.7) *
-    conditionMultiplier;
-
-  lowPrice = Math.max(
-    5,
-    roundToTwoDecimals(lowPrice)
+  // Set price range: conservative low, optimistic high
+  let lowPrice = Math.max(
+    5, // Minimum $5
+    Math.round((minPrice * 0.8) * 100) / 100 // 80% of minimum
   );
 
-  suggestedPrice = Math.max(
-    lowPrice,
-    roundToTwoDecimals(suggestedPrice)
-  );
+  let highPrice = Math.round((maxPrice * 1.2) * 100) / 100; // 120% of maximum
 
-  highPrice = Math.max(
-    suggestedPrice,
-    roundToTwoDecimals(highPrice)
-  );
+  let suggestedPrice = Math.round(adjustedMedian * 100) / 100;
 
-  const removedOutlierCount =
-    prices.length - cleanedPrices.length;
+  // Ensure suggested is between low and high
+  if (suggestedPrice < lowPrice) suggestedPrice = lowPrice;
+  if (suggestedPrice > highPrice) suggestedPrice = highPrice;
 
-    const confidence = calculateConfidence(
-      cleanedPrices,
-      prices.length
-    );
+  // Build reasoning
+  const reasoningParts = [
+    `Based on ${comparables.length} comparable eBay listing(s), prices range from $${minPrice.toFixed(2)} to $${maxPrice.toFixed(2)}.`,
+    `Item condition is "${condition || "used"}"${conditionMultiplier !== 1.0 ? ` (${((conditionMultiplier - 1) * 100).toFixed(0)}% ${conditionMultiplier > 1 ? "premium" : "discount"})` : ""}.`,
+    `Suggested selling price: $${suggestedPrice.toFixed(2)} (conservative: $${lowPrice.toFixed(2)}, optimistic: $${highPrice.toFixed(2)}).`,
+  ];
 
   return {
     success: true,
     lowPrice,
     highPrice,
     suggestedPrice,
-    confidence,
-    reasoning: [
-      `Calculated from ${cleanedPrices.length} usable comparable listing(s).`,
-      removedOutlierCount > 0
-        ? `${removedOutlierCount} unusually priced listing(s) were excluded.`
-        : "No significant price outliers were detected.",
-      `The estimate was adjusted for "${condition || "used"}" condition.`,
-      `Suggested resale price: $${suggestedPrice.toFixed(2)}.`,
-    ].join(" "),
+    reasoning: reasoningParts.join(" "),
     comparablesCount: comparables.length,
-    usedComparablesCount: cleanedPrices.length,
     priceRange: {
-      minimumComparable: roundToTwoDecimals(
-        Math.min(...cleanedPrices)
-      ),
-      maximumComparable: roundToTwoDecimals(
-        Math.max(...cleanedPrices)
-      ),
-      medianComparable: roundToTwoDecimals(
-        getPercentile(cleanedPrices, 0.5)
-      ),
+      min: minPrice,
+      max: maxPrice,
+      median: medianPrice,
+      average: Math.round(avgPrice * 100) / 100,
     },
   };
 };

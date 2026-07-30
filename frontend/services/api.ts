@@ -80,9 +80,16 @@ export const getItemById = async (id: string) => {
   }
 };
 
-export const getDashboardAnalytics = async () => {
-  const response = await apiClient.get("/analytics/me");
-  return response.data;
+export const getDashboardAnalytics = async (userId?: string) => {
+  try {
+    const response = await apiClient.get("/analytics/me", {
+      params: userId ? { userId } : undefined,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching dashboard analytics:", error);
+    throw error;
+  }
 };
 
 export const getItemMarketAnalytics = async (itemId: string) => {
@@ -229,7 +236,7 @@ export const searchFromImage = async (
       ? { imageUrl: imageInput, condition: conditionId, userDescription }
       : { ...imageInput, condition: conditionId, userDescription };
 
-  const response = await apiClient.post("/ai/price-estimate", payload);
+  const response = await apiClient.post("/ai/search-ebay", payload);
   console.log("EBAY RAW RESPONSE:", response.data.ebayResults);
   const results = response.data?.ebayResults?.itemSummaries;
 
@@ -238,10 +245,7 @@ export const searchFromImage = async (
     return [];
   }
 
-  const priceEstimate =
-    response.data?.priceEstimate;
-
-  return results.map((item: any, index: number) => {
+  return results.map((item: any) => {
     const ebayCategories = Array.isArray(item.categories)
       ? item.categories
       : [];
@@ -285,21 +289,10 @@ export const searchFromImage = async (
         ? `${item.price.currency} ${item.price.value}`
         : "Price not available",
 
-      priceLow:
-        index === 0
-          ? priceEstimate?.lowPrice
-          : undefined,
-
-      priceHigh:
-        index === 0
-          ? priceEstimate?.highPrice
-          : undefined,
-
-      suggestedPrice:
-        index === 0
-          ? priceEstimate?.suggestedPrice
-          : undefined,
-      confidence: index === 0 ? priceEstimate?.confidence : undefined,
+      priceLow: item.priceLow,
+      priceHigh: item.priceHigh,
+      suggestedPrice: item.suggestedPrice,
+      confidence: item.confidence,
       pricePositionPercent: item.pricePositionPercent,
       imageUrl: extractImage(item),
       url: item.itemWebUrl,

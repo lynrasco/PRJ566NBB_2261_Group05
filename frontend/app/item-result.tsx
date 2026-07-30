@@ -48,7 +48,7 @@ export default function ItemResultScreen() {
   const displayCategory = primaryListing?.category || t('item');
   //const displayDescription = getDisplayDescription(primaryListing);
   const displayDescription = getDisplayDescription(primaryListing, t);
-  const displayConfidence = primaryListing?.confidence;
+  const displayConfidence = primaryListing?.confidence ?? UI_PLACEHOLDERS.confidence;
   const listingPriceRange = getListingPriceRange(marketplaceListings);
   const displayLowPrice = primaryListing?.priceLow ?? listingPriceRange.low;
   const displayHighPrice = primaryListing?.priceHigh ?? listingPriceRange.high;
@@ -159,24 +159,12 @@ export default function ItemResultScreen() {
             >
               {formatPrice(displayPrice) || UI_PLACEHOLDERS.price}
             </Text>
-          {displayConfidence != null && (
-            <View
-              style={[
-                styles.confidencePill,
-                isDark && styles.confidencePillDark,
-              ]}
-            >
-              <Ionicons
-                color="#21b66c"
-                name="checkmark"
-                size={9}
-              />
-
+            <View style={[styles.confidencePill, isDark && styles.confidencePillDark,]}>
+              <Ionicons color="#21b66c" name="checkmark" size={9} />
               <Text selectable style={styles.confidenceText}>
-                {formatConfidence(displayConfidence)} confidence
+                {formatConfidence(displayConfidence)} {t('confidence')}
               </Text>
             </View>
-          )}
           </View>
 
           <View style={styles.rangeLabels}>
@@ -399,12 +387,10 @@ function getPricePositionPercent(price?: number, low?: number | string, high?: n
 
 function formatConfidence(confidence?: number | string) {
   if (confidence == null || confidence === '') {
-    return '';
+    return `${UI_PLACEHOLDERS.confidence}%`;
   }
 
-  return String(confidence).includes('%')
-    ? String(confidence)
-    : `${confidence}%`;
+  return String(confidence).includes('%') ? String(confidence) : `${confidence}%`;
 }
 
 function getDisplayDescription(
@@ -434,6 +420,7 @@ const UI_PLACEHOLDERS = {
   price: '$--',
   lowPrice: 57,
   highPrice: 83,
+  confidence: 92,
   pricePositionPercent: 50,
 };
 
