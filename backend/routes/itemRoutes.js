@@ -3,14 +3,18 @@ const router = express.Router();
 
 const itemRepository = require("../repositories/itemRepository");
 const upload = require("../middleware/multer");
+const protect = require("../middleware/authMiddleware");
 const Item = require("../models/Item");
-
 const PriceSuggestion = require("../models/PriceSuggestion");
 
-// GET all items
+router.use(protect);
+
+// GET authenticated user's items
 router.get("/", async (req, res, next) => {
   try {
-    const items = await itemRepository.getItemsByUserId(req.user._id);
+    const items = await itemRepository.getItemsByUserId(
+      req.user._id
+    );
 
     res.status(200).json({
       success: true,
