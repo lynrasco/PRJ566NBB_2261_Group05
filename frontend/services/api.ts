@@ -220,7 +220,7 @@ export const searchFromImage = async (
       ? { imageUrl: imageInput, condition: conditionId, userDescription }
       : { ...imageInput, condition: conditionId, userDescription };
 
-  const response = await apiClient.post("/ai/search-ebay", payload);
+  const response = await apiClient.post("/ai/price-estimate", payload);
   console.log("EBAY RAW RESPONSE:", response.data.ebayResults);
   const results = response.data?.ebayResults?.itemSummaries;
 
@@ -229,7 +229,10 @@ export const searchFromImage = async (
     return [];
   }
 
-  return results.map((item: any) => {
+  const priceEstimate =
+    response.data?.priceEstimate;
+
+  return results.map((item: any, index: number) => {
     const ebayCategories = Array.isArray(item.categories)
       ? item.categories
       : [];
@@ -273,9 +276,20 @@ export const searchFromImage = async (
         ? `${item.price.currency} ${item.price.value}`
         : "Price not available",
 
-      priceLow: item.priceLow,
-      priceHigh: item.priceHigh,
-      suggestedPrice: item.suggestedPrice,
+      priceLow:
+        index === 0
+          ? priceEstimate?.lowPrice
+          : undefined,
+
+      priceHigh:
+        index === 0
+          ? priceEstimate?.highPrice
+          : undefined,
+
+      suggestedPrice:
+        index === 0
+          ? priceEstimate?.suggestedPrice
+          : undefined,
       confidence: item.confidence,
       pricePositionPercent: item.pricePositionPercent,
       imageUrl: extractImage(item),
