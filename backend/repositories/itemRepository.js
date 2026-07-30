@@ -8,25 +8,35 @@ const getAllItems = async () => {
   return await Item.find();
 };
 
+const getItemsByOwner = async (ownerId) => {
+  return await Item.find({ owner: ownerId });
+};
+
 const getItemById = async (id) => {
   return await Item.findById(id);
 };
 
-const updateItemById = async (id, itemData) => {
-  return await Item.findByIdAndUpdate(id, itemData, {
+const getItemByIdAndOwner = async (id, ownerId) => {
+  return await Item.findOne({ _id: id, owner: ownerId });
+};
+
+const updateItemByIdAndOwner = async (id, ownerId, itemData) => {
+  return await Item.findOneAndUpdate({ _id: id, owner: ownerId }, itemData, {
     new: true,
     runValidators: true,
   });
 };
 
-const deleteItemById = async (id) => {
-  return await Item.findByIdAndDelete(id);
+const deleteItemByIdAndOwner = async (id, ownerId) => {
+  return await Item.findOneAndDelete({ _id: id, owner: ownerId });
 };
 
 module.exports = {
   createItem,
   getAllItems,
+  getItemsByOwner,
   getItemById,
-  updateItemById,
-  deleteItemById,
+  getItemByIdAndOwner,
+  updateItemByIdAndOwner,
+  deleteItemByIdAndOwner,
 };

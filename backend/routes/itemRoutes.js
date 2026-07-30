@@ -1,16 +1,17 @@
 const express = require("express");
 const router = express.Router();
 
+const protect = require("../middleware/authMiddleware");
 const itemRepository = require("../repositories/itemRepository");
 const upload = require("../middleware/multer");
 const Item = require("../models/Item");
 
 const PriceSuggestion = require("../models/PriceSuggestion");
 
-// GET all items
-router.get("/", async (req, res, next) => {
+// GET all items for logged-in user
+router.get("/", protect, async (req, res, next) => {
   try {
-    const items = await itemRepository.getAllItems();
+    const items = await itemRepository.getItemsByOwner(req.user._id);
 
     res.status(200).json({
       success: true,
@@ -21,10 +22,13 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-// GET item by ID
-router.get("/:id", async (req, res, next) => {
+// GET item by ID for logged-in user
+router.get("/:id", protect, async (req, res, next) => {
   try {
-    const item = await itemRepository.getItemById(req.params.id);
+    const item = await itemRepository.getItemByIdAndOwner(
+      req.params.id,
+      req.user._id,
+    );
 
     if (!item) {
       const error = new Error("Item not found");
@@ -41,8 +45,8 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-// UPDATE item
-router.put("/:id", async (req, res, next) => {
+// UPDATE item for logged-in user
+router.put("/:id", protect, async (req, res, next) => {
   try {
     const {
       title,
@@ -66,13 +70,10 @@ router.put("/:id", async (req, res, next) => {
     if (condition !== undefined) updates.condition = condition;
     if (imageUrl !== undefined) updates.imageUrl = imageUrl;
 
-    const updatedItem = await Item.findByIdAndUpdate(
+    const updatedItem = await itemRepository.updateItemByIdAndOwner(
       req.params.id,
+      req.user._id,
       updates,
-      {
-        new: true,
-        runValidators: true,
-      }
     );
 
     if (!updatedItem) {
@@ -108,7 +109,7 @@ router.put("/:id", async (req, res, next) => {
           upsert: true,
           runValidators: true,
           setDefaultsOnInsert: true,
-        }
+        },
       );
     } else if (condition !== undefined) {
       // Keep the saved suggestion's condition synchronized
@@ -119,7 +120,7 @@ router.put("/:id", async (req, res, next) => {
         },
         {
           new: true,
-        }
+        },
       );
     }
 
@@ -133,10 +134,13 @@ router.put("/:id", async (req, res, next) => {
   }
 });
 
-// DELETE item
-router.delete("/:id", async (req, res, next) => {
+// DELETE item for logged-in user
+router.delete("/:id", protect, async (req, res, next) => {
   try {
-    const item = await itemRepository.deleteItemById(req.params.id);
+    const item = await itemRepository.deleteItemByIdAndOwner(
+      req.params.id,
+      req.user._id,
+    );
 
     if (!item) {
       const error = new Error("Item not found");
@@ -157,72 +161,73 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
-router.post(
-    '/upload',
-    upload.single('image'),
-    async (req, res) => {
+router.post("/upload", protect, upload.single("image"), async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      price,
+      category,
+      categoryId,
+      brand,
+      condition,
+      imageUrl,
+    } = req.body;
 
-        try {
+    const newItem = new Item({
+      title,
+      description,
+      price,
+      category,
+      categoryId,
+      brand,
+      condition,
+      owner: req.user._id,
 
-            const { title, description, price, category, categoryId, brand, condition, imageUrl } = req.body;
+      imageUrl: req.file
+        ? //? req.file.path
+          `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`
+        : imageUrl || null,
+    });
 
-            const newItem = new Item({
+    const savedItem = await newItem.save();
 
-                title,
-                description,
-                price,
-                category,
-                categoryId,
-                brand,
-                condition,
+    const suggestedPrice = Number(savedItem.price);
 
-                imageUrl: req.file
-                    //? req.file.path
-                    ? `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`
-                    : imageUrl || null,
-            });
-
-            const savedItem = await newItem.save();
-
-            const suggestedPrice = Number(savedItem.price);
-
-            if (Number.isFinite(suggestedPrice) && suggestedPrice >= 0) {
-              await PriceSuggestion.findOneAndUpdate(
-                { item: savedItem._id },
-                {
-                  item: savedItem._id,
-                  lowPrice: suggestedPrice,
-                  highPrice: suggestedPrice,
-                  suggestedPrice,
-                  currency: "USD",
-                  condition: savedItem.condition,
-                  reasoning: "Suggested price saved with item",
-                  comparablesCount: 0,
-                },  
-                {
-                  new: true,
-                  upsert: true,
-                  runValidators: true,
-                  setDefaultsOnInsert: true,
-                }
-              );
-            }
-
-            res.status(201).json({
-                success: true,
-                message: 'Item created successfully',
-                item: savedItem
-            });
-
-        } catch (error) {
-
-            console.log(error);
-
-            res.status(500).json({
-                message: 'Server error'
-            });
-        }
+    if (Number.isFinite(suggestedPrice) && suggestedPrice >= 0) {
+      await PriceSuggestion.findOneAndUpdate(
+        { item: savedItem._id },
+        {
+          item: savedItem._id,
+          lowPrice: suggestedPrice,
+          highPrice: suggestedPrice,
+          suggestedPrice,
+          currency: "USD",
+          condition: savedItem.condition,
+          reasoning: "Suggested price saved with item",
+          comparablesCount: 0,
+        },
+        {
+          new: true,
+          upsert: true,
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        },
+      );
     }
-);
+
+    res.status(201).json({
+      success: true,
+      message: "Item created successfully",
+      item: savedItem,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+});
 
 module.exports = router;
