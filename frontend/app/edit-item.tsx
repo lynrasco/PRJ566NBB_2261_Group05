@@ -1,11 +1,15 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, KeyboardAvoidingView } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, KeyboardAvoidingView, Pressable } from 'react-native';
 import { useState, useRef } from 'react';
 import { ThemedText } from '@/components/themed-text';
 import { useAppTheme } from '@/context/theme-context';
 import { updateItem, deleteItem } from '@/services/api';
 import { useTranslation } from '@/hooks/use-translation';
+
+const CLOTHING_SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const BAG_MATERIALS = ['Leather', 'Canvas'];
+const US_SHOE_SIZES = ['5', '5.5', '6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5', '11', '11.5', '12', '13'];
 
 export default function EditItemScreen() {
   const { resolvedTheme } = useAppTheme();
@@ -17,6 +21,9 @@ export default function EditItemScreen() {
     category?: string;
     description?: string;
     price?: string;
+    size?: string;
+    material?: string;
+    usShoeSize?: string;
     imageUrl?: string;
   }>();
 
@@ -45,6 +52,9 @@ export default function EditItemScreen() {
   const [brand, setBrand] = useState(params.brand || '');
   const [category, setCategory] = useState(params.category || '');
   const [description, setDescription] = useState(params.description || '');
+  const [size, setSize] = useState(params.size || 'M');
+  const [material, setMaterial] = useState(params.material || 'Leather');
+  const [usShoeSize, setUsShoeSize] = useState(params.usShoeSize || '10');
   const [price, setPrice] = useState(initialPrice);
   const [minPrice, setMinPrice] = useState(
     initialPrice > 0 ? Math.max(5, Math.floor(initialPrice * 0.5)) : 0
@@ -53,6 +63,11 @@ export default function EditItemScreen() {
     initialPrice > 0 ? Math.ceil(initialPrice * 1.5) : 100
   );
   const [saving, setSaving] = useState(false);
+
+  const detectedType = detectItemType(category, title, description);
+  const isClothing = detectedType === 'clothing';
+  const isBag = detectedType === 'bag';
+  const isShoe = detectedType === 'shoe';
 
   const imageSource = params.imageUrl
     ? { uri: params.imageUrl }
@@ -136,6 +151,9 @@ export default function EditItemScreen() {
       category,
       description,
       price,
+      size: isClothing ? size : '',
+      material: isBag ? material : '',
+      usShoeSize: isShoe ? usShoeSize : '',
       imageUrl: params.imageUrl,
     });
 
@@ -145,6 +163,9 @@ export default function EditItemScreen() {
       category,
       description,
       price,
+      size: isClothing ? size : '',
+      material: isBag ? material : '',
+      usShoeSize: isShoe ? usShoeSize : '',
       imageUrl: params.imageUrl,
     });
 
@@ -288,6 +309,75 @@ const handleDelete = () => {
           />
         </View>
 
+        {isClothing && (
+          <View style={styles.fieldGroup}>
+            <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+              Clothing size:
+            </ThemedText>
+            <View style={styles.optionRow}>
+              {CLOTHING_SIZES.map((option) => (
+                <Pressable
+                  key={option}
+                  onPress={() => setSize(option)}
+                  style={[
+                    styles.optionChip,
+                    isDark && styles.optionChipDark,
+                    size === option && styles.optionChipActive,
+                  ]}
+                >
+                  <Text style={[styles.optionChipText, size === option && styles.optionChipTextActive]}>{option}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {isBag && (
+          <View style={styles.fieldGroup}>
+            <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+              Bag material:
+            </ThemedText>
+            <View style={styles.optionRow}>
+              {BAG_MATERIALS.map((option) => (
+                <Pressable
+                  key={option}
+                  onPress={() => setMaterial(option)}
+                  style={[
+                    styles.optionChip,
+                    isDark && styles.optionChipDark,
+                    material === option && styles.optionChipActive,
+                  ]}
+                >
+                  <Text style={[styles.optionChipText, material === option && styles.optionChipTextActive]}>{option}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {isShoe && (
+          <View style={styles.fieldGroup}>
+            <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
+              US shoe size:
+            </ThemedText>
+            <View style={styles.optionRow}>
+              {US_SHOE_SIZES.map((option) => (
+                <Pressable
+                  key={option}
+                  onPress={() => setUsShoeSize(option)}
+                  style={[
+                    styles.optionChip,
+                    isDark && styles.optionChipDark,
+                    usShoeSize === option && styles.optionChipActive,
+                  ]}
+                >
+                  <Text style={[styles.optionChipText, usShoeSize === option && styles.optionChipTextActive]}>{option}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Description */}
         <View style={styles.fieldGroup}>
           <ThemedText type="defaultSemiBold" style={[styles.fieldLabel, isDark && styles.textDark,]}>
@@ -355,6 +445,24 @@ const handleDelete = () => {
 
 function roundToCents(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function detectItemType(category: string, title: string, description: string) {
+  const normalized = `${category || ''} ${title || ''} ${description || ''}`.toLowerCase();
+
+  if (/(shoe|sneaker|boot|heel|loafer|sandals?|slippers?|athletic shoes?|footwear)/.test(normalized)) {
+    return 'shoe';
+  }
+
+  if (/(bag|handbag|purse|tote|crossbody|satchel|clutch|backpack|duffel|wallet|luggage)/.test(normalized)) {
+    return 'bag';
+  }
+
+  if (/(clothing|apparel|shirt|t-?shirt|tee|blouse|dress|skirt|pants|trousers|jeans|shorts|hoodie|sweater|cardigan|jacket|coat|suit|blazer|top)/.test(normalized)) {
+    return 'clothing';
+  }
+
+  return 'other';
 }
 
 const styles = StyleSheet.create({
@@ -445,6 +553,36 @@ const styles = StyleSheet.create({
   },
   fieldGroup: {
     marginBottom: 20,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  optionChip: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#c0c8d2',
+    backgroundColor: '#f4f7fb',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  optionChipDark: {
+    borderColor: '#35506d',
+    backgroundColor: '#121c2b',
+  },
+  optionChipActive: {
+    borderColor: '#0d3b66',
+    backgroundColor: '#0d3b66',
+  },
+  optionChipText: {
+    color: '#173042',
+    fontFamily: 'AzeretMono_400Regular',
+    fontSize: 12,
+  },
+  optionChipTextActive: {
+    color: '#ffffff',
   },
   label: {
     fontSize: 16,

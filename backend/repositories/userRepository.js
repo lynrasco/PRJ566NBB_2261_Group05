@@ -18,7 +18,7 @@ const getUserById = async (id) => {
 
 const updateUserById = async (id, userData) => {
   return await User.findByIdAndUpdate(id, userData, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   }).select("-password");
 };
@@ -27,7 +27,7 @@ const updatePasswordById = async (id, hashedPassword) => {
   return await User.findByIdAndUpdate(
     id,
     { password: hashedPassword },
-    { new: true, runValidators: true },
+    { returnDocument: "after", runValidators: true },
   ).select("-password");
 };
 

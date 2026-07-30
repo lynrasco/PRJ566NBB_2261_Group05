@@ -10,6 +10,9 @@ const itemSchema = new mongoose.Schema({
     trim: true
     },
     brand: String,
+    size: String,
+    material: String,
+    usShoeSize: String,
     condition: String,
     price: Number,
     uploadDate: {

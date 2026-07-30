@@ -116,7 +116,7 @@ const createPriceEstimate = async (req, res, next) => {
         priceRange: priceEstimate.priceRange || undefined,
       },
       {
-        new: true,
+        returnDocument: "after",
         upsert: true,
         runValidators: true,
         setDefaultsOnInsert: true,

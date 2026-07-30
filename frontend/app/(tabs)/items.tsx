@@ -21,6 +21,9 @@ type UserItem = {
   title?: string;
   brand?: string;
   category?: string;
+  size?: string;
+  material?: string;
+  usShoeSize?: string;
   description?: string;
   price?: number | string;
   imageUrl?: string;
@@ -102,6 +105,9 @@ export default function ItemsScreen() {
         category: item.category,
         description: item.description,
         price: item.price?.toString() || "",
+        size: item.size || "",
+        material: item.material || "",
+        usShoeSize: item.usShoeSize || "",
         imageUrl: item.imageUrl,
       },
     });

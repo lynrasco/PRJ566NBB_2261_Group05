@@ -26,7 +26,7 @@ const getLatestPriceSuggestionByItemId = async (itemId) => {
 
 const updatePriceSuggestionById = async (id, suggestionData) => {
   return await PriceSuggestion.findByIdAndUpdate(id, suggestionData, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   }).populate("item");
 };

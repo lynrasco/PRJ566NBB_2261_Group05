@@ -18,7 +18,7 @@ const getImageById = async (id) => {
 
 const updateImageById = async (id, imageData) => {
   return await Image.findByIdAndUpdate(id, imageData, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 };

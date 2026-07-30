@@ -1,24 +1,17 @@
 const express = require("express");
 const router = express.Router();
 
+const protect = require("../middleware/authMiddleware");
 const itemRepository = require("../repositories/itemRepository");
 const upload = require("../middleware/multer");
 const protect = require("../middleware/authMiddleware");
 const Item = require("../models/Item");
 const PriceSuggestion = require("../models/PriceSuggestion");
 
-const {
-  getOrCreateDailySnapshot,
-} = require("../services/dailyAnalyticsSnapshotService");
-
-router.use(protect);
-
-// GET authenticated user's items
-router.get("/", async (req, res, next) => {
+// GET all items for logged-in user
+router.get("/", protect, async (req, res, next) => {
   try {
-    const items = await itemRepository.getItemsByUserId(
-      req.user._id
-    );
+    const items = await itemRepository.getItemsByOwner(req.user._id);
 
     res.status(200).json({
       success: true,
@@ -29,13 +22,13 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-// GET item by ID
-router.get("/:id", async (req, res, next) => {
+// GET item by ID for logged-in user
+router.get("/:id", protect, async (req, res, next) => {
   try {
-    const item = await Item.findOne({
-      _id: req.params.id,
-      owner: req.user._id,
-    });
+    const item = await itemRepository.getItemByIdAndOwner(
+      req.params.id,
+      req.user._id,
+    );
 
     if (!item) {
       const error = new Error("Item not found");
@@ -52,8 +45,8 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-// UPDATE item
-router.put("/:id", async (req, res, next) => {
+// UPDATE item for logged-in user
+router.put("/:id", protect, async (req, res, next) => {
   try {
     const {
       title,
@@ -62,6 +55,9 @@ router.put("/:id", async (req, res, next) => {
       category,
       categoryId,
       brand,
+      size,
+      material,
+      usShoeSize,
       condition,
       imageUrl,
     } = req.body;
@@ -74,22 +70,17 @@ router.put("/:id", async (req, res, next) => {
     if (category !== undefined) updates.category = category;
     if (categoryId !== undefined) updates.categoryId = categoryId;
     if (brand !== undefined) updates.brand = brand;
+    if (size !== undefined) updates.size = size;
+    if (material !== undefined) updates.material = material;
+    if (usShoeSize !== undefined) updates.usShoeSize = usShoeSize;
     if (condition !== undefined) updates.condition = condition;
     if (imageUrl !== undefined) updates.imageUrl = imageUrl;
 
-    await getOrCreateDailySnapshot(req.user._id);
-
-    const updatedItem = await Item.findOneAndUpdate(
-  {
-    _id: req.params.id,
-    owner: req.user._id,
-  },
-  updates,
-  {
-    new: true,
-    runValidators: true,
-  }
-);
+    const updatedItem = await itemRepository.updateItemByIdAndOwner(
+      req.params.id,
+      req.user._id,
+      updates,
+    );
 
     if (!updatedItem) {
       const error = new Error("Item not found");
@@ -120,11 +111,11 @@ router.put("/:id", async (req, res, next) => {
           comparablesCount: 0,
         },
         {
-          new: true,
+          returnDocument: "after",
           upsert: true,
           runValidators: true,
           setDefaultsOnInsert: true,
-        }
+        },
       );
     } else if (condition !== undefined) {
       // Keep the saved suggestion's condition synchronized
@@ -134,8 +125,8 @@ router.put("/:id", async (req, res, next) => {
           condition: updatedItem.condition,
         },
         {
-          new: true,
-        }
+          returnDocument: "after",
+        },
       );
     }
 
@@ -149,16 +140,13 @@ router.put("/:id", async (req, res, next) => {
   }
 });
 
-// DELETE item
-router.delete("/:id", async (req, res, next) => {
+// DELETE item for logged-in user
+router.delete("/:id", protect, async (req, res, next) => {
   try {
-    // Save today's opening total before deleting anything
-    await getOrCreateDailySnapshot(req.user._id);
-
-    const item = await Item.findOneAndDelete({
-      _id: req.params.id,
-      owner: req.user._id,
-    });
+    const item = await itemRepository.deleteItemByIdAndOwner(
+      req.params.id,
+      req.user._id,
+    );
 
     if (!item) {
       const error = new Error("Item not found");
@@ -179,75 +167,79 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
-router.post(
-    '/upload',
-    upload.single('image'),
-    async (req, res) => {
+router.post("/upload", protect, upload.single("image"), async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      price,
+      category,
+      categoryId,
+      brand,
+      size,
+      material,
+      usShoeSize,
+      condition,
+      imageUrl,
+    } = req.body;
 
-        try {
+    const newItem = new Item({
+      title,
+      description,
+      price,
+      category,
+      categoryId,
+      brand,
+      size,
+      material,
+      usShoeSize,
+      condition,
+      owner: req.user._id,
 
-            const { title, description, price, category, categoryId, brand, condition, imageUrl } = req.body;
+      imageUrl: req.file
+        ? //? req.file.path
+          `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`
+        : imageUrl || null,
+    });
 
-            await getOrCreateDailySnapshot(req.user._id);
+    const savedItem = await newItem.save();
 
-            const newItem = new Item({
+    const suggestedPrice = Number(savedItem.price);
 
-                title,
-                description,
-                price,
-                category,
-                categoryId,
-                brand,
-                condition,
-                owner: req.user._id,
-
-                imageUrl: req.file
-                    //? req.file.path
-                    ? `${req.protocol}://${req.get("host")}/${req.file.path.replace(/\\/g, "/")}`
-                    : imageUrl || null,
-            });
-
-            const savedItem = await newItem.save();
-
-            const suggestedPrice = Number(savedItem.price);
-
-            if (Number.isFinite(suggestedPrice) && suggestedPrice >= 0) {
-              await PriceSuggestion.findOneAndUpdate(
-                { item: savedItem._id },
-                {
-                  item: savedItem._id,
-                  lowPrice: suggestedPrice,
-                  highPrice: suggestedPrice,
-                  suggestedPrice,
-                  currency: "USD",
-                  condition: savedItem.condition,
-                  reasoning: "Suggested price saved with item",
-                  comparablesCount: 0,
-                },  
-                {
-                  new: true,
-                  upsert: true,
-                  runValidators: true,
-                  setDefaultsOnInsert: true,
-                }
-              );
-            }
-
-            res.status(201).json({
-                success: true,
-                message: 'Item created successfully',
-                item: savedItem
-            });
-
-        } catch (error) {
-
-            console.log(error);
-
-            res.status(500).json({
-                message: 'Server error'
-            });
-        }
+    if (Number.isFinite(suggestedPrice) && suggestedPrice >= 0) {
+      await PriceSuggestion.findOneAndUpdate(
+        { item: savedItem._id },
+        {
+          item: savedItem._id,
+          lowPrice: suggestedPrice,
+          highPrice: suggestedPrice,
+          suggestedPrice,
+          currency: "USD",
+          condition: savedItem.condition,
+          reasoning: "Suggested price saved with item",
+          comparablesCount: 0,
+        },
+        {
+          returnDocument: "after",
+          upsert: true,
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        },
+      );
     }
-);
+
+    res.status(201).json({
+      success: true,
+      message: "Item created successfully",
+      item: savedItem,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+});
 
 module.exports = router;
