@@ -7,6 +7,10 @@ const protect = require("../middleware/authMiddleware");
 const Item = require("../models/Item");
 const PriceSuggestion = require("../models/PriceSuggestion");
 
+const {
+  getOrCreateDailySnapshot,
+} = require("../services/dailyAnalyticsSnapshotService");
+
 router.use(protect);
 
 // GET authenticated user's items
@@ -72,6 +76,8 @@ router.put("/:id", async (req, res, next) => {
     if (brand !== undefined) updates.brand = brand;
     if (condition !== undefined) updates.condition = condition;
     if (imageUrl !== undefined) updates.imageUrl = imageUrl;
+
+    await getOrCreateDailySnapshot(req.user._id);
 
     const updatedItem = await Item.findOneAndUpdate(
   {
@@ -146,10 +152,14 @@ router.put("/:id", async (req, res, next) => {
 // DELETE item
 router.delete("/:id", async (req, res, next) => {
   try {
-      const item = await Item.findOneAndDelete({
-        _id: req.params.id,
-        owner: req.user._id,
-      });
+    // Save today's opening total before deleting anything
+    await getOrCreateDailySnapshot(req.user._id);
+
+    const item = await Item.findOneAndDelete({
+      _id: req.params.id,
+      owner: req.user._id,
+    });
+
     if (!item) {
       const error = new Error("Item not found");
       error.statusCode = 404;
@@ -157,7 +167,7 @@ router.delete("/:id", async (req, res, next) => {
     }
 
     await PriceSuggestion.deleteMany({
-      item: req.params.id,
+      item: item._id,
     });
 
     res.status(200).json({
@@ -177,6 +187,8 @@ router.post(
         try {
 
             const { title, description, price, category, categoryId, brand, condition, imageUrl } = req.body;
+
+            await getOrCreateDailySnapshot(req.user._id);
 
             const newItem = new Item({
 

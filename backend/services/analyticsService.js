@@ -10,6 +10,10 @@ const buildBreakdown = (items, fieldName) => {
   }, {});
 };
 
+const {
+  getOrCreateDailySnapshot,
+} = require("./dailyAnalyticsSnapshotService");
+
 const getItemPrice = (item) => {
   const price = Number(item.price);
   return Number.isFinite(price) ? price : 0;
@@ -26,30 +30,27 @@ const getUserAnalytics = async (userId) => {
     throw error;
   }
 
+  const dailySnapshot = await getOrCreateDailySnapshot(userId);
   const items = await itemRepository.getItemsByUserId(userId);
 
   const itemIds = items.map((item) => item._id);
-
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
 
   const totalEstimatedValue = items.reduce(
     (total, item) => total + getItemPrice(item),
     0
   );
 
-  const previousTotalEstimatedValue = items
-    .filter((item) => new Date(item.uploadDate) < startOfToday)
-    .reduce((total, item) => total + getItemPrice(item), 0);
+  const openingTotal =
+    Number(dailySnapshot.openingTotal) || 0;
 
   const valueAddedToday =
-    totalEstimatedValue - previousTotalEstimatedValue;
+    totalEstimatedValue - openingTotal;
 
   let dailyPercentageIncrease = 0;
 
-  if (previousTotalEstimatedValue > 0) {
+  if (openingTotal > 0) {
     dailyPercentageIncrease =
-      (valueAddedToday / previousTotalEstimatedValue) * 100;
+      (valueAddedToday / openingTotal) * 100;
   } else if (totalEstimatedValue > 0) {
     dailyPercentageIncrease = 100;
   }
