@@ -1,31 +1,41 @@
 const Item = require("../models/Item");
 
 const createItem = async (itemData) => {
-  return await Item.create(itemData);
+  return Item.create(itemData);
 };
 
 const getAllItems = async () => {
-  return await Item.find();
+  return Item.find();
+};
+
+const getItemsByUserId = async (userId) => {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  return Item.find({ owner: userId })
+    .sort({ uploadDate: -1 }).lean();
 };
 
 const getItemById = async (id) => {
-  return await Item.findById(id);
+  return Item.findById(id);
 };
 
 const updateItemById = async (id, itemData) => {
-  return await Item.findByIdAndUpdate(id, itemData, {
+  return Item.findByIdAndUpdate(id, itemData, {
     new: true,
     runValidators: true,
   });
 };
 
 const deleteItemById = async (id) => {
-  return await Item.findByIdAndDelete(id);
+  return Item.findByIdAndDelete(id);
 };
 
 module.exports = {
   createItem,
   getAllItems,
+  getItemsByUserId,
   getItemById,
   updateItemById,
   deleteItemById,

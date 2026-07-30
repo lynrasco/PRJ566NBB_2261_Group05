@@ -10,7 +10,7 @@ const PriceSuggestion = require("../models/PriceSuggestion");
 // GET all items
 router.get("/", async (req, res, next) => {
   try {
-    const items = await itemRepository.getAllItems();
+    const items = await itemRepository.getItemsByUserId(req.user._id);
 
     res.status(200).json({
       success: true,
@@ -24,7 +24,10 @@ router.get("/", async (req, res, next) => {
 // GET item by ID
 router.get("/:id", async (req, res, next) => {
   try {
-    const item = await itemRepository.getItemById(req.params.id);
+    const item = await Item.findOne({
+      _id: req.params.id,
+      owner: req.user._id,
+    });
 
     if (!item) {
       const error = new Error("Item not found");
@@ -66,14 +69,17 @@ router.put("/:id", async (req, res, next) => {
     if (condition !== undefined) updates.condition = condition;
     if (imageUrl !== undefined) updates.imageUrl = imageUrl;
 
-    const updatedItem = await Item.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const updatedItem = await Item.findOneAndUpdate(
+  {
+    _id: req.params.id,
+    owner: req.user._id,
+  },
+  updates,
+  {
+    new: true,
+    runValidators: true,
+  }
+);
 
     if (!updatedItem) {
       const error = new Error("Item not found");
@@ -136,8 +142,10 @@ router.put("/:id", async (req, res, next) => {
 // DELETE item
 router.delete("/:id", async (req, res, next) => {
   try {
-    const item = await itemRepository.deleteItemById(req.params.id);
-
+      const item = await Item.findOneAndDelete({
+        _id: req.params.id,
+        owner: req.user._id,
+      });
     if (!item) {
       const error = new Error("Item not found");
       error.statusCode = 404;
@@ -175,6 +183,7 @@ router.post(
                 categoryId,
                 brand,
                 condition,
+                owner: req.user._id,
 
                 imageUrl: req.file
                     //? req.file.path

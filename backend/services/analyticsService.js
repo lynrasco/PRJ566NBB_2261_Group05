@@ -1,4 +1,4 @@
-const Item = require("../models/Item");
+const itemRepository = require("../repositories/itemRepository");
 const PriceSuggestion = require("../models/PriceSuggestion");
 const MarketPlace = require("../models/MarketPlace");
 
@@ -20,53 +20,53 @@ const roundToTwoDecimals = (value) => {
 };
 
 const getUserAnalytics = async (userId) => {
-  const query = userId ? { owner: userId } : {};
+  if (!userId) {
+    const error = new Error("User ID is required for analytics");
+    error.statusCode = 401;
+    throw error;
+  }
 
-  const items = await Item.find(query)
-    .sort({ uploadDate: -1 })
-    .lean();
+  const items = await itemRepository.getItemsByUserId(userId);
 
   const itemIds = items.map((item) => item._id);
 
-
   const startOfToday = new Date();
-startOfToday.setHours(0, 0, 0, 0);
+  startOfToday.setHours(0, 0, 0, 0);
 
-const totalEstimatedValue = items.reduce(
-  (total, item) => total + getItemPrice(item),
-  0
-);
+  const totalEstimatedValue = items.reduce(
+    (total, item) => total + getItemPrice(item),
+    0
+  );
 
-const previousTotalEstimatedValue = items
-  .filter((item) => new Date(item.uploadDate) < startOfToday)
-  .reduce((total, item) => total + getItemPrice(item), 0);
+  const previousTotalEstimatedValue = items
+    .filter((item) => new Date(item.uploadDate) < startOfToday)
+    .reduce((total, item) => total + getItemPrice(item), 0);
 
-const valueAddedToday =
-  totalEstimatedValue - previousTotalEstimatedValue;
+  const valueAddedToday =
+    totalEstimatedValue - previousTotalEstimatedValue;
 
-let dailyPercentageIncrease = 0;
+  let dailyPercentageIncrease = 0;
 
-if (previousTotalEstimatedValue > 0) {
-  dailyPercentageIncrease =
-    (valueAddedToday / previousTotalEstimatedValue) * 100;
-} else if (totalEstimatedValue > 0) {
-  dailyPercentageIncrease = 100;
-}
-
+  if (previousTotalEstimatedValue > 0) {
+    dailyPercentageIncrease =
+      (valueAddedToday / previousTotalEstimatedValue) * 100;
+  } else if (totalEstimatedValue > 0) {
+    dailyPercentageIncrease = 100;
+  }
 
   if (itemIds.length === 0) {
-  return {
-    totalSavedItems: 0,
-    totalEstimatedValue: 0,
-    valueAddedToday: 0,
-    dailyPercentageIncrease: 0,
-    averageSuggestedPrice: 0,
-    marketplaceComparables: 0,
-    categoryBreakdown: {},
-    conditionBreakdown: {},
-    recentItems: [],
-  };
-}
+    return {
+      totalSavedItems: 0,
+      totalEstimatedValue: 0,
+      valueAddedToday: 0,
+      dailyPercentageIncrease: 0,
+      averageSuggestedPrice: 0,
+      marketplaceComparables: 0,
+      categoryBreakdown: {},
+      conditionBreakdown: {},
+      recentItems: [],
+    };
+  }
 
   const [suggestions, marketplaceComparables] = await Promise.all([
     PriceSuggestion.find({
@@ -102,25 +102,20 @@ if (previousTotalEstimatedValue > 0) {
   }));
 
   return {
-  totalSavedItems: items.length,
-
-  totalEstimatedValue:
-    roundToTwoDecimals(totalEstimatedValue),
-
-  valueAddedToday:
-    roundToTwoDecimals(valueAddedToday),
-
-  dailyPercentageIncrease:
-    roundToTwoDecimals(dailyPercentageIncrease),
-
-  averageSuggestedPrice:
-    Math.round(averageSuggestedPrice * 100) / 100,
-
-  marketplaceComparables,
-  categoryBreakdown: buildBreakdown(items, "category"),
-  conditionBreakdown: buildBreakdown(items, "condition"),
-  recentItems,
-};
+    totalSavedItems: items.length,
+    totalEstimatedValue: roundToTwoDecimals(totalEstimatedValue),
+    valueAddedToday: roundToTwoDecimals(valueAddedToday),
+    dailyPercentageIncrease: roundToTwoDecimals(
+      dailyPercentageIncrease
+    ),
+    averageSuggestedPrice: roundToTwoDecimals(
+      averageSuggestedPrice
+    ),
+    marketplaceComparables,
+    categoryBreakdown: buildBreakdown(items, "category"),
+    conditionBreakdown: buildBreakdown(items, "condition"),
+    recentItems,
+  };
 };
 
 const getItemMarketAnalytics = async (itemId) => {
@@ -130,7 +125,7 @@ const getItemMarketAnalytics = async (itemId) => {
     throw error;
   }
 
-  const item = await Item.findById(itemId).lean();
+  const item = await itemRepository.getItemById(itemId);
 
   if (!item) {
     const error = new Error("Item not found");

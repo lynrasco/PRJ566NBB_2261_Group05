@@ -80,16 +80,9 @@ export const getItemById = async (id: string) => {
   }
 };
 
-export const getDashboardAnalytics = async (userId?: string) => {
-  try {
-    const response = await apiClient.get("/analytics/me", {
-      params: userId ? { userId } : undefined,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching dashboard analytics:", error);
-    throw error;
-  }
+export const getDashboardAnalytics = async () => {
+  const response = await apiClient.get("/analytics/me");
+  return response.data;
 };
 
 export const getItemMarketAnalytics = async (itemId: string) => {

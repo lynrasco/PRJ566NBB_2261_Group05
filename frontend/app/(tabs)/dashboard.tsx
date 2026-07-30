@@ -152,7 +152,7 @@ export default function DashboardScreen() {
   */
 
   const summary = analytics || {
-  totalSavedItems: items.length,
+  totalSavedItems: 0,
   totalEstimatedValue: 0,
   valueAddedToday: 0,
   dailyPercentageIncrease: 0,
@@ -160,7 +160,7 @@ export default function DashboardScreen() {
   marketplaceComparables: 0,
   categoryBreakdown: {},
   conditionBreakdown: {},
-  recentItems: items.slice(0, 5),
+  recentItems: [],
 };
 
   const categoryEntries = (
@@ -182,17 +182,7 @@ export default function DashboardScreen() {
   const recentItems = uploadedItems.slice(0, 4);
 
   const totalEstimatedValue =
-    Number(summary.totalEstimatedValue) ||
-    items.reduce((sum, item) => {
-      return (
-        sum +
-        getNumericPrice(
-          item.suggestedPrice ??
-          item.estimatedPrice ??
-          item.price
-        )
-      );
-    }, 0);
+  Number(summary.totalEstimatedValue) || 0;
 
   const formattedTotalEstimatedValue =
     `$${totalEstimatedValue.toFixed(2)}`;
@@ -553,18 +543,18 @@ function getItemCreatedTime(item: any) {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
-function getNumericPrice(value: any) {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
+// function getNumericPrice(value: any) {
+//   if (typeof value === 'number' && Number.isFinite(value)) {
+//     return value;
+//   }
 
-  if (typeof value === 'string') {
-    const match = value.match(/\d+(\.\d+)?/);
-    return match ? Number(match[0]) : 0;
-  }
+//   if (typeof value === 'string') {
+//     const match = value.match(/\d+(\.\d+)?/);
+//     return match ? Number(match[0]) : 0;
+//   }
 
-  return 0;
-}
+//   return 0;
+// }
 
 const styles = StyleSheet.create({
   scrollView: {
