@@ -4,6 +4,16 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const { createSuccessResponse, createErrorResponse } = require("../response");
 
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    const error = new Error("Server configuration error: JWT_SECRET is missing");
+    error.statusCode = 500;
+    throw error;
+  }
+  return secret;
+};
+
 
 const registerUser = async (name, email, password) => {
   const existingUser = await userRepository.findUserByEmail(email);
@@ -51,8 +61,6 @@ if (!email || !password) {
       throw error;
     }
 
-    console.log("login handler found user:", user.password);
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
 
@@ -61,19 +69,12 @@ if (!email || !password) {
       throw error;
     }
 
-    console.log("login handler JWT_SECRET present:", !!process.env.JWT_SECRET);
-    console.log(
-      "login handler JWT_SECRET length:",
-      process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0,
-    );
+    const jwtSecret = getJwtSecret();
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
+      jwtSecret,
       { expiresIn: "24h" },
     );
-    console.log("login handler generated token:", token);
-    console.log("LOGIN USER OBJECT:", user);
-    console.log("USERNAME:", user.userName);
 
     return createSuccessResponse({
         message: "Login successful",

@@ -109,6 +109,9 @@ export const saveItemToMyItems = async (item: {
   category?: string;
   categoryId?: string;
   brand?: string;
+  size?: string;
+  material?: string;
+  usShoeSize?: string;
   condition?: string;
   imageUrl?: string;
 }) => {
@@ -121,6 +124,9 @@ export const saveItemToMyItems = async (item: {
     appendFormValue(formData, "category", item.category);
     appendFormValue(formData, "categoryId", item.categoryId);
     appendFormValue(formData, "brand", item.brand);
+    appendFormValue(formData, "size", item.size);
+    appendFormValue(formData, "material", item.material);
+    appendFormValue(formData, "usShoeSize", item.usShoeSize);
     appendFormValue(formData, "condition", item.condition);
     appendFormValue(formData, "imageUrl", item.imageUrl);
 
@@ -194,6 +200,9 @@ export const listItemToEbay = async (item: {
   category?: string;
   categoryId?: string;
   brand?: string;
+  size?: string;
+  material?: string;
+  usShoeSize?: string;
   condition?: string;
   imageUrl?: string;
 }) => {
@@ -316,6 +325,9 @@ export const updateItem = async (
     category?: string;
     categoryId?: string;
     brand?: string;
+    size?: string;
+    material?: string;
+    usShoeSize?: string;
     imageUrl?: string;
   },
 ) => {

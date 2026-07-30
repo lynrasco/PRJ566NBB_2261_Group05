@@ -55,6 +55,9 @@ router.put("/:id", protect, async (req, res, next) => {
       category,
       categoryId,
       brand,
+      size,
+      material,
+      usShoeSize,
       condition,
       imageUrl,
     } = req.body;
@@ -67,6 +70,9 @@ router.put("/:id", protect, async (req, res, next) => {
     if (category !== undefined) updates.category = category;
     if (categoryId !== undefined) updates.categoryId = categoryId;
     if (brand !== undefined) updates.brand = brand;
+    if (size !== undefined) updates.size = size;
+    if (material !== undefined) updates.material = material;
+    if (usShoeSize !== undefined) updates.usShoeSize = usShoeSize;
     if (condition !== undefined) updates.condition = condition;
     if (imageUrl !== undefined) updates.imageUrl = imageUrl;
 
@@ -105,7 +111,7 @@ router.put("/:id", protect, async (req, res, next) => {
           comparablesCount: 0,
         },
         {
-          new: true,
+          returnDocument: "after",
           upsert: true,
           runValidators: true,
           setDefaultsOnInsert: true,
@@ -119,7 +125,7 @@ router.put("/:id", protect, async (req, res, next) => {
           condition: updatedItem.condition,
         },
         {
-          new: true,
+          returnDocument: "after",
         },
       );
     }
@@ -170,6 +176,9 @@ router.post("/upload", protect, upload.single("image"), async (req, res) => {
       category,
       categoryId,
       brand,
+      size,
+      material,
+      usShoeSize,
       condition,
       imageUrl,
     } = req.body;
@@ -181,6 +190,9 @@ router.post("/upload", protect, upload.single("image"), async (req, res) => {
       category,
       categoryId,
       brand,
+      size,
+      material,
+      usShoeSize,
       condition,
       owner: req.user._id,
 
@@ -208,7 +220,7 @@ router.post("/upload", protect, upload.single("image"), async (req, res) => {
           comparablesCount: 0,
         },
         {
-          new: true,
+          returnDocument: "after",
           upsert: true,
           runValidators: true,
           setDefaultsOnInsert: true,

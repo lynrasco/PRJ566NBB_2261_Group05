@@ -343,6 +343,107 @@ const inferStyle = (item) => {
   return "Top Handle Bag";
 };
 
+const inferApparelSize = (item) => {
+  const title = typeof item.title === "string" ? item.title : "";
+  const description = typeof item.description === "string" ? item.description : "";
+  const text = `${title} ${description}`;
+
+  const normalized = text.toLowerCase();
+  if (/\bxxs\b/.test(normalized)) return "XXS";
+  if (/\bxs\b|extra\s*small/.test(normalized)) return "XS";
+  if (/\bs\b|\bsmall\b/.test(normalized)) return "S";
+  if (/\bm\b|\bmedium\b/.test(normalized)) return "M";
+  if (/\bl\b|\blarge\b/.test(normalized)) return "L";
+  if (/\bxl\b|extra\s*large/.test(normalized)) return "XL";
+  if (/\bxxl\b|2xl/.test(normalized)) return "XXL";
+
+  const numericSize = text.match(/\b(?:size\s*)?(\d{1,2})\b/i);
+  if (numericSize?.[1]) {
+    return numericSize[1];
+  }
+
+  return "M";
+};
+
+const inferUsShoeSize = (item) => {
+  const title = typeof item.title === "string" ? item.title : "";
+  const description = typeof item.description === "string" ? item.description : "";
+  const text = `${title} ${description}`;
+
+  const explicit = text.match(/\b(?:us\s*)?(?:shoe\s*)?size\s*(\d{1,2}(?:\.5)?)\b/i);
+  if (explicit?.[1]) {
+    return explicit[1];
+  }
+
+  return "10";
+};
+
+const normalizeAspectName = (name) => String(name || "").trim().toLowerCase();
+
+const getAspectFallbackValues = (aspectName, item) => {
+  const normalized = normalizeAspectName(aspectName);
+
+  if (normalized === "size") return [inferApparelSize(item)];
+  if (normalized === "size type") return ["Regular"];
+  if (normalized === "us shoe size") return [inferUsShoeSize(item)];
+  if (normalized === "material") return [item.material || item.exteriorMaterial || inferExteriorMaterial(item)];
+  if (normalized === "exterior material") return [item.material || item.exteriorMaterial || inferExteriorMaterial(item)];
+  if (normalized === "style") return [item.style || inferStyle(item)];
+  if (normalized === "department") return [item.department || inferDepartment(item)];
+  if (normalized === "color" || normalized === "exterior color") return [item.color || "Multicolor"];
+  if (normalized === "brand") return [item.brand || "Unbranded"];
+
+  return ["Not Specified"];
+};
+
+const extractMissingAspectNames = (details) => {
+  const errors = Array.isArray(details?.errors) ? details.errors : [];
+  const fromParams = errors.flatMap((entry) => {
+    const parameters = Array.isArray(entry?.parameters) ? entry.parameters : [];
+    return parameters
+      .map((parameter) => (typeof parameter?.value === "string" ? parameter.value.trim() : ""))
+      .filter((value) => value && !value.toLowerCase().includes("missing"));
+  });
+
+  const fromMessages = errors.flatMap((entry) => {
+    const message = typeof entry?.message === "string" ? entry.message : "";
+    const match = message.match(/item specific\s+(.+?)\s+is missing/i);
+    return match?.[1] ? [match[1].trim()] : [];
+  });
+
+  return [...new Set([...fromParams, ...fromMessages].filter(Boolean))];
+};
+
+const buildInventoryAspects = (item, additionalAspects = {}) => {
+  const baseAspects = {
+    Brand: item.brand ? [item.brand] : ["Unknown"],
+    Color: item.color ? [item.color] : ["Multicolor"],
+    Department: item.department ? [item.department] : ["Unisex Adults"],
+    ...(String(item.categoryId) === String(EBAY_BAGS_CATEGORY_ID) || String(item.categoryId) === String(EBAY_ACCESSORIES_CATEGORY_ID)
+      ? {
+        "Exterior Material": [item.material || item.exteriorMaterial || "Leather"],
+        "Exterior Color": [item.color || "Multicolor"],
+        Style: [item.style || "Top Handle Bag"],
+      }
+      : {}),
+    ...(item.size ? { Size: [String(item.size)] } : {}),
+    ...(item.usShoeSize ? { "US Shoe Size": [String(item.usShoeSize)] } : {}),
+    ...(item.model ? { Model: [item.model] } : {}),
+  };
+
+  for (const [aspectName, aspectValues] of Object.entries(additionalAspects || {})) {
+    if (!aspectName || !Array.isArray(aspectValues) || aspectValues.length === 0) {
+      continue;
+    }
+
+    if (!baseAspects[aspectName]) {
+      baseAspects[aspectName] = aspectValues;
+    }
+  }
+
+  return baseAspects;
+};
+
 const inferModel = (item) => {
   if (typeof item.model === "string" && item.model.trim()) {
     return item.model.trim();
@@ -384,9 +485,18 @@ const normalizeListingItem = (item) => {
     model: inferModel(item),
     color: typeof item.color === "string" && item.color.trim() ? item.color.trim() : "Multicolor",
     department: typeof item.department === "string" && item.department.trim() ? item.department.trim() : inferDepartment(item),
+    material: typeof item.material === "string" && item.material.trim()
+      ? item.material.trim()
+      : undefined,
     exteriorMaterial: typeof item.exteriorMaterial === "string" && item.exteriorMaterial.trim()
       ? item.exteriorMaterial.trim()
+      : (typeof item.material === "string" && item.material.trim())
+        ? item.material.trim()
       : inferExteriorMaterial(item),
+    size: typeof item.size === "string" && item.size.trim() ? item.size.trim() : undefined,
+    usShoeSize: typeof item.usShoeSize === "string" && item.usShoeSize.trim()
+      ? item.usShoeSize.trim()
+      : undefined,
     style: typeof item.style === "string" && item.style.trim() ? item.style.trim() : inferStyle(item),
     condition: typeof item.condition === "string" && item.condition.trim() ? item.condition.trim() : "Used",
     ebayCondition: normalizeConditionForCategory(baseCondition, categoryId),
@@ -558,7 +668,7 @@ const refreshEbaySellerToken = async (refreshToken) => {
   return sellerTokenCache.accessToken;
 };
 
-const createInventoryItem = async (sku, item, accessToken) => {
+const createInventoryItem = async (sku, item, accessToken, additionalAspects = {}) => {
   const rawImageUrl = item.imageUrl && typeof item.imageUrl === 'string' ? item.imageUrl.trim() : '';
   const imageUrl = rawImageUrl && /^https?:\/\//i.test(rawImageUrl)
     ? rawImageUrl
@@ -578,19 +688,7 @@ const createInventoryItem = async (sku, item, accessToken) => {
     product: {
       title: item.title,
       description: item.description || item.title,
-      aspects: {
-        Brand: item.brand ? [item.brand] : ['Unknown'],
-        Color: item.color ? [item.color] : ["Multicolor"],
-        Department: item.department ? [item.department] : ["Unisex Adults"],
-        ...(String(item.categoryId) === String(EBAY_BAGS_CATEGORY_ID) || String(item.categoryId) === String(EBAY_ACCESSORIES_CATEGORY_ID)
-          ? {
-            "Exterior Material": [item.exteriorMaterial || "Leather"],
-            "Exterior Color": [item.color || "Multicolor"],
-            Style: [item.style || "Top Handle Bag"],
-          }
-          : {}),
-        ...(item.model ? { Model: [item.model] } : {}),
-      },
+      aspects: buildInventoryAspects(item, additionalAspects),
       imageUrls: [imageUrl],
     },
     availability: {
@@ -774,45 +872,56 @@ const publishOffer = async (offerId, accessToken) => {
 const createListing = async (item) => {
   const accessToken = await getEbaySellerToken();
   let listingItem = normalizeListingItem(item);
+  const additionalAspects = {};
   const baseSku = listingItem.id
     ? String(listingItem.id).replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 40)
     : "flipvalue";
   const sku = `${baseSku}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
-  await createInventoryItem(sku, listingItem, accessToken);
+  await createInventoryItem(sku, listingItem, accessToken, additionalAspects);
   const offer = await createOffer(sku, listingItem, accessToken);
 
   let publishResult;
-  try {
-    publishResult = await publishOffer(offer.offerId, accessToken);
-  } catch (error) {
-    if (!isFashionCategory(listingItem.categoryId) || !isInvalidConditionForCategoryError(error)) {
-      throw error;
-    }
+  const fallbackConditions = ["NEW", "PRE_OWNED_EXCELLENT", "PRE_OWNED_FAIR", "USED_EXCELLENT"]
+    .filter((condition) => condition !== listingItem.ebayCondition);
+  const attemptedConditions = new Set([listingItem.ebayCondition]);
 
-    const fallbackConditions = ["NEW", "PRE_OWNED_EXCELLENT", "PRE_OWNED_FAIR", "USED_EXCELLENT"]
-      .filter((condition) => condition !== listingItem.ebayCondition);
+  while (true) {
+    try {
+      publishResult = await publishOffer(offer.offerId, accessToken);
+      break;
+    } catch (error) {
+      const missingAspectNames = extractMissingAspectNames(error?.details);
+      let addedAspects = 0;
 
-    let recovered = false;
-    for (const fallbackCondition of fallbackConditions) {
-      try {
-        listingItem = {
-          ...listingItem,
-          ebayCondition: fallbackCondition,
-        };
+      for (const aspectName of missingAspectNames) {
+        if (additionalAspects[aspectName]) {
+          continue;
+        }
 
-        await createInventoryItem(sku, listingItem, accessToken);
-        publishResult = await publishOffer(offer.offerId, accessToken);
-        recovered = true;
-        break;
-      } catch (retryError) {
-        if (!isInvalidConditionForCategoryError(retryError)) {
-          throw retryError;
+        additionalAspects[aspectName] = getAspectFallbackValues(aspectName, listingItem);
+        addedAspects += 1;
+      }
+
+      if (addedAspects > 0) {
+        await createInventoryItem(sku, listingItem, accessToken, additionalAspects);
+        continue;
+      }
+
+      if (isFashionCategory(listingItem.categoryId) && isInvalidConditionForCategoryError(error)) {
+        const nextCondition = fallbackConditions.find((condition) => !attemptedConditions.has(condition));
+        if (nextCondition) {
+          attemptedConditions.add(nextCondition);
+          listingItem = {
+            ...listingItem,
+            ebayCondition: nextCondition,
+          };
+
+          await createInventoryItem(sku, listingItem, accessToken, additionalAspects);
+          continue;
         }
       }
-    }
 
-    if (!recovered) {
       throw error;
     }
   }

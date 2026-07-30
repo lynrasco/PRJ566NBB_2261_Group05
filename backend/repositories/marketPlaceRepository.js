@@ -28,7 +28,7 @@ const getMarketPlaceListingsByMarketplace = async (marketplace) => {
 
 const updateMarketPlaceListingById = async (id, listingData) => {
   return await MarketPlace.findByIdAndUpdate(id, listingData, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   }).populate("item");
 };

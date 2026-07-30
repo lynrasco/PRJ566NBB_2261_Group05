@@ -92,6 +92,9 @@ export default function DashboardScreen() {
         category: item.category,
         categoryId: item.categoryId,
         brand: item.brand,
+        size: item.size,
+        material: item.material,
+        usShoeSize: item.usShoeSize,
         condition: item.condition,
         imageUrl: item.imageUrl,
       };
@@ -441,6 +444,9 @@ const formattedTrendValue =
                     category: selectedItem.category,
                     description: selectedItem.description,
                     price: selectedItem.price?.toString() || '',
+                    size: selectedItem.size || '',
+                    material: selectedItem.material || '',
+                    usShoeSize: selectedItem.usShoeSize || '',
                     imageUrl: selectedItem.imageUrl,
                   },
                 });

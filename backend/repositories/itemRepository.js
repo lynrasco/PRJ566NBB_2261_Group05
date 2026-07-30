@@ -22,7 +22,7 @@ const getItemByIdAndOwner = async (id, ownerId) => {
 
 const updateItemByIdAndOwner = async (id, ownerId, itemData) => {
   return await Item.findOneAndUpdate({ _id: id, owner: ownerId }, itemData, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 };

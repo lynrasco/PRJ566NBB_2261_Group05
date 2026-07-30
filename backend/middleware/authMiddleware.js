@@ -1,6 +1,16 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    const error = new Error("Server configuration error: JWT_SECRET is missing");
+    error.statusCode = 500;
+    throw error;
+  }
+  return secret;
+};
+
 const protect = async (req, res, next) => {
   try {
     let token;
@@ -18,7 +28,7 @@ const protect = async (req, res, next) => {
       throw error;
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, getJwtSecret());
 
     req.user = await User.findById(decoded.id).select("-password");
 
@@ -30,7 +40,7 @@ const protect = async (req, res, next) => {
 
     next();
   } catch (error) {
-    error.statusCode = 401;
+    error.statusCode = error.statusCode || 401;
     next(error);
   }
 };
